@@ -1,11 +1,10 @@
-USING: help.syntax help.markup kernel prettyprint sequences
-io.pathnames ;
+USING: help.syntax help.markup kernel prettyprint sequences io.pathnames ;
 IN: csv
 
 HELP: csv
 { $values { "stream" "an input stream" }
           { "rows" "an array of arrays of fields" } } 
-{ $description "Parses a csv stream into an array of row arrays." } ;
+{ $description "Parses a csv stream into an array of row arrays. (closes the stream)" } ;
 
 HELP: file>csv
 { $values
@@ -24,7 +23,7 @@ HELP: csv>file
 HELP: csv-row
 { $values { "stream" "an input stream" }
           { "row" "an array of fields" } } 
-{ $description "parses a row from a csv stream" } ;
+{ $description "parses a row from a csv stream. Doesn't close the stream" } ;
 
 HELP: write-csv
 { $values { "rows" "a sequence of sequences of strings" }
@@ -36,6 +35,11 @@ HELP: with-delimiter
           { "quot" "a quotation" } }
 { $description "Sets the field delimiter for csv or csv-row words." } ;
 
+HELP: with-dialect
+{ $values { "dialect" "a dialect object" }
+  { "quot" "a quotation" } }
+  { $description "Sets the " { $link dialect } " for reading and writing csv files." } ;
+
 ARTICLE: "csv" "Comma-separated-values parsing and writing"
 "The " { $vocab-link "csv" } " vocabulary can read and write CSV (comma-separated-value) files." $nl
 "Reading a csv file:"
@@ -44,6 +48,8 @@ ARTICLE: "csv" "Comma-separated-values parsing and writing"
 { $subsection csv>file }
 "Changing the delimiter from a comma:"
 { $subsection with-delimiter }
+"Changing the csv dialect for reading/writing:"
+{ $subsection with-dialect }
 "Reading from a stream:"
 { $subsection csv }
 "Writing to a stream:"

@@ -1,6 +1,5 @@
-USING: io.streams.string csv tools.test kernel strings
-io.pathnames io.files.unique io.encodings.utf8 io.files
-io.directories ;
+USING: accessors csv io.directories io.encodings.utf8 io.files
+io.files.unique io.streams.string kernel strings tools.test ;
 IN: csv.tests
 
 ! I like to name my unit tests
@@ -63,6 +62,13 @@ IN: csv.tests
 [ { { "foo" "bah" "baz" } } ] 
 [ "foo\tbah\tbaz\n" <string-reader> CHAR: \t [ csv ] with-delimiter ] named-unit-test
 
+"allows setting of dialect"
+[ { { "foo" "bah" "baz" } } ] 
+[ "foo\tbah\tbaz\n" <string-reader>
+  <dialect> CHAR: \t >>delimiter [ csv ] with-dialect ] named-unit-test
+
+
+
 "Quoted field followed immediately by newline"
 [ { { "foo" "bar" }
     { "1"   "2" } } ]
@@ -75,6 +81,13 @@ IN: csv.tests
 "escapes quotes commas and newlines when writing"
 [ "\"fo\"\"o1\",bar1\n\"fo\no2\",\"b,ar2\"\n" ]
 [ { { "fo\"o1" "bar1" } { "fo\no2" "b,ar2" } } <string-writer> tuck write-csv >string ] named-unit-test ! "
+
+"can output dos carriage returns"
+[ "\"fo\"\"o1\",bar1\r\n\"fo\no2\",\"b,ar2\"\r\n" ]
+[ { { "fo\"o1" "bar1" } { "fo\no2" "b,ar2" } } <string-writer> tuck
+  <dialect> "\r\n" >>lineterminator [ write-csv ] with-dialect >string ] named-unit-test ! "
+
+
 
 [ { { "writing" "some" "csv" "tests" } } ]
 [

@@ -1,44 +1,58 @@
 ! Copyright (C) 2007, 2008 Phil Dawes
 ! See http://factorcode.org/license.txt for BSD license.
-USING: kernel sequences io namespaces make combinators
-unicode.categories io.files combinators.short-circuit ;
+USING: accessors combinators combinators.short-circuit io io.files
+kernel make namespaces sequences unicode.categories ;
 IN: csv
 
 SYMBOL: delimiter
 
 CHAR: , delimiter set-global
 
+TUPLE: dialect delimiter quotechar lineterminator ;
+
+: <dialect> ( -- d )
+  dialect new
+  CHAR: , >>delimiter
+  CHAR: " >>quotechar
+  "\n" >>lineterminator ;
+
+SYMBOL: thedialect
+
+<dialect> thedialect set-global
+
 <PRIVATE
 
-: delimiter> ( -- delimiter ) delimiter get ; inline
-    
+: delimiter> ( -- ch ) thedialect get delimiter>> ; inline
+: quotechar> ( -- ch ) thedialect get quotechar>> ; inline
+: lineterminator> ( -- str ) thedialect get lineterminator>> ; inline
+
 DEFER: quoted-field ( -- endchar )
     
 : trim-whitespace ( str -- str )
     [ blank? ] trim ; inline
 
 : skip-to-field-end ( -- endchar )
-  "\n" delimiter> suffix read-until nip ; inline
+    "\n" delimiter> suffix read-until nip ; inline
   
 : not-quoted-field ( -- endchar )
-    "\"\n" delimiter> suffix read-until
+    "\n" delimiter> suffix quotechar> suffix read-until
     dup {
-        { CHAR: "    [ 2drop quoted-field ] }
-        { delimiter> [ swap trim-whitespace % ] }
-        { CHAR: \n   [ swap trim-whitespace % ] }
-        { f          [ swap trim-whitespace % ] }
+        { quotechar> [ 2drop quoted-field ] }
+        { delimiter>  [ swap trim-whitespace % ] }
+        { CHAR: \n    [ swap trim-whitespace % ] }
+        { f           [ swap trim-whitespace % ] }
     } case ;
   
 : maybe-escaped-quote ( -- endchar )
     read1 dup {
-        { CHAR: "    [ , quoted-field ] }
+        { quotechar>    [ , quoted-field ] }
         { delimiter> [ ] }
         { CHAR: \n   [ ] }
         [ 2drop skip-to-field-end ]
     } case ;
   
 : quoted-field ( -- endchar )
-    "\"" read-until
+    "" quotechar> suffix read-until
     drop % maybe-escaped-quote ;
 
 : field ( -- sep string )
@@ -59,33 +73,41 @@ DEFER: quoted-field ( -- endchar )
 PRIVATE>
 
 : csv-row ( stream -- row )
-    [ row nip ] with-input-stream ;
+    [ row nip ] with-input-stream* ;
 
+: csv* ( -- rows )
+    [ (csv) ] { } make dup last { "" } = [ but-last ] when ;
+  
 : csv ( stream -- rows )
-    [ [ (csv) ] { } make ] with-input-stream
-    dup last { "" } = [ but-last ] when ;
+    [ csv* ] with-input-stream ;
 
 : file>csv ( path encoding -- csv )
     <file-reader> csv ;
 
+: with-dialect ( dialect quot -- )
+    [ thedialect ] dip with-variable ; inline
+
 : with-delimiter ( ch quot -- )
-    [ delimiter ] dip with-variable ; inline
+    [ <dialect> swap >>delimiter ] dip with-dialect ; inline
+
 
 <PRIVATE
 
 : needs-escaping? ( cell -- ? )
-    [ { [ "\n\"" member? ] [ delimiter get = ] } 1|| ] any? ; inline
+    [ { [ "" lineterminator> suffix quotechar> suffix member? ] [ delimiter> = ] } 1|| ] any? ; inline
 
 : escape-quotes ( cell -- cell' )
     [
         [
             [ , ]
-            [ dup CHAR: " = [ , ] [ drop ] if ] bi
+            [ dup quotechar> = [ , ] [ drop ] if ] bi
         ] each
     ] "" make ; inline
 
+: quotechar-as-str ( -- s ) "" quotechar> suffix ; inline 
+
 : enclose-in-quotes ( cell -- cell' )
-    "\"" dup surround ; inline
+    quotechar-as-str dup surround ; inline
     
 : escape-if-required ( cell -- cell' )
     dup needs-escaping?
@@ -94,8 +116,8 @@ PRIVATE>
 PRIVATE>
     
 : write-row ( row -- )
-    [ delimiter get write1 ]
-    [ escape-if-required write ] interleave nl ; inline
+    [ delimiter> write1 ]
+    [ escape-if-required write ] interleave lineterminator> write ; inline
     
 : write-csv ( rows stream -- )
     [ [ write-row ] each ] with-output-stream ;
