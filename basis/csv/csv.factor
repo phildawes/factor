@@ -1,20 +1,18 @@
 ! Copyright (C) 2007, 2008 Phil Dawes
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors combinators combinators.short-circuit io io.files
-kernel make namespaces sequences unicode.categories ;
+kernel make math namespaces sequences strings unicode.categories ;
 IN: csv
 
-SYMBOL: delimiter
+UNION: char integer ;
 
-CHAR: , delimiter set-global
-
-TUPLE: dialect delimiter quotechar lineterminator ;
+TUPLE: dialect
+{ delimiter char initial: CHAR: , }
+{ quotechar char initial: CHAR: " }
+{ lineterminator string initial: "\n" } ;
 
 : <dialect> ( -- d )
-  dialect new
-  CHAR: , >>delimiter
-  CHAR: " >>quotechar
-  "\n" >>lineterminator ;
+  dialect new ;
 
 SYMBOL: thedialect
 
@@ -98,7 +96,7 @@ PRIVATE>
 
 : escape-quotes ( cell -- cell' )
     [
-        [
+      [
             [ , ]
             [ dup quotechar> = [ , ] [ drop ] if ] bi
         ] each
