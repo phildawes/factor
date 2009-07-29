@@ -66,7 +66,7 @@ void set_string_nth(string *str, cell index, cell ch)
 /* Allocates memory */
 string *allot_string_internal(cell capacity)
 {
-	string *str = allot<string>(string_size(capacity));
+	string *str = coll->allot<string>(string_size(capacity));
 
 	str->length = tag_fixnum(capacity);
 	str->hashcode = F;

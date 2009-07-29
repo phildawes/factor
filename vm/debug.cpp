@@ -243,7 +243,7 @@ void dump_generations()
 
 void dump_objects(cell type)
 {
-	gc();
+	coll->gc();
 	begin_scan();
 
 	cell obj;

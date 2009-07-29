@@ -192,7 +192,8 @@ void init_data_heap(cell gens,
 
 	secure_gc = secure_gc_;
 
-	init_data_gc();
+	datacollector *collector = new datacollector;
+	collector->init_data_gc();
 }
 
 /* Size of the object pointed to by a tagged pointer */

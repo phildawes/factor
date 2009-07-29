@@ -1,6 +1,7 @@
 namespace factor
 {
 
+
 /* statistics */
 struct gc_stats {
 	cell collections;
@@ -10,19 +11,75 @@ struct gc_stats {
 	u64 bytes_copied;
 };
 
-extern zone *newspace;
+/* We leave this many bytes free at the top of the nursery so that inline
+allocation (which does not call GC because of possible roots in volatile
+registers) does not run out of memory */
+static const cell allot_buffer_zone = 1024;
 
-extern bool performing_compaction;
-extern cell collecting_gen;
-extern bool collecting_aging_again;
+struct datacollector {
 
-extern cell last_code_heap_scan;
+/* used during garbage collection only */
+  zone *newspace;
+  bool performing_gc;
+  bool performing_compaction;
+  cell collecting_gen;
 
-void init_data_gc();
+/* if true, we collecting aging space for the second time, so if it is still
+full, we go on to collect tenured */
+  bool collecting_aging_again;
 
-void gc();
+/* in case a generation fills up in the middle of a gc, we jump back
+up to try collecting the next generation. */
+  jmp_buf gc_jmp;
+  
+  gc_stats stats[max_gen_count];
+  u64 cards_scanned;
+  u64 decks_scanned;
+  u64 card_scan_time;
+  cell code_heap_scans;
 
-inline static bool collecting_accumulation_gen_p()
+
+/* What generation was being collected when copy_code_heap_roots() was last
+called? Until the next call to add_code_block(), future
+collections of younger generations don't have to touch the code
+heap. */
+  cell last_code_heap_scan;
+
+/* sometimes we grow the heap */
+  bool growing_data_heap;
+  data_heap *old_data_heap;
+
+
+  void init_data_gc();
+  void gc();
+  object *copy_untagged_object_impl(object *pointer, cell size);
+  object *copy_object_impl(object *untagged);
+  bool should_copy_p(object *untagged);
+  object *resolve_forwarding(object *untagged);
+  cell copy_object(cell pointer);
+  void copy_handle(cell *handle);
+  void copy_card(card *ptr, cell gen, cell here);
+  void copy_card_deck(card_deck *deck, cell gen, card mask, card unmask);
+  void copy_gen_cards(cell gen);
+  void copy_cards();
+  void copy_stack_elements(segment *region, cell top);
+  void copy_registered_locals();
+  void copy_registered_bignums();
+  void copy_roots();
+  cell copy_next_from_nursery(cell scan);
+  cell copy_next_from_aging(cell scan);
+  cell copy_next_from_tenured(cell scan);
+  void copy_reachable_objects(cell scan, cell *end);
+  void begin_gc(cell requested_bytes);
+  void end_gc(cell gc_elapsed);
+  void garbage_collection(cell gen,
+			bool growing_data_heap_,
+			cell requested_bytes);
+  void clear_gc_stats();
+  template <typename T> T *copy_untagged_object(T *untagged);
+
+
+inline bool collecting_accumulation_gen_p()
 {
 	return ((data->have_aging_p()
 		&& collecting_gen == data->aging()
@@ -30,18 +87,8 @@ inline static bool collecting_accumulation_gen_p()
 		|| collecting_gen == data->tenured());
 }
 
-void copy_handle(cell *handle);
 
-void garbage_collection(volatile cell gen,
-	bool growing_data_heap_,
-	cell requested_bytes);
-
-/* We leave this many bytes free at the top of the nursery so that inline
-allocation (which does not call GC because of possible roots in volatile
-registers) does not run out of memory */
-static const cell allot_buffer_zone = 1024;
-
-inline static object *allot_zone(zone *z, cell a)
+inline object *allot_zone(zone *z, cell a)
 {
 	cell h = z->here;
 	z->here = h + align8(a);
@@ -50,11 +97,34 @@ inline static object *allot_zone(zone *z, cell a)
 	return obj;
 }
 
+inline void check_data_pointer(object *pointer)
+{
+#ifdef FACTOR_DEBUG
+	if(!growing_data_heap)
+	{
+		assert((cell)pointer >= data->seg->start
+		       && (cell)pointer < data->seg->end);
+	}
+#endif
+}
+
+inline void check_tagged_pointer(cell tagged)
+{
+#ifdef FACTOR_DEBUG
+	if(!immediate_p(tagged))
+	{
+		object *obj = untag<object>(tagged);
+		check_data_pointer(obj);
+		obj->h.hi_tag();
+	}
+#endif
+}
+
 /*
  * It is up to the caller to fill in the object's fields in a meaningful
  * fashion!
  */
-inline static object *allot_object(header header, cell size)
+inline object *allot_object(header header, cell size)
 {
 #ifdef GC_DEBUG
 	if(!gc_off)
@@ -110,38 +180,15 @@ template<typename T> T *allot(cell size)
 	return (T *)allot_object(header(T::type_number),size);
 }
 
-void copy_reachable_objects(cell scan, cell *end);
+}; // end datacollector
+
+extern datacollector *coll ; // nasty singleton
+
 
 PRIMITIVE(gc);
 PRIMITIVE(gc_stats);
-void clear_gc_stats();
 PRIMITIVE(clear_gc_stats);
 PRIMITIVE(become);
-
-extern bool growing_data_heap;
-
-inline static void check_data_pointer(object *pointer)
-{
-#ifdef FACTOR_DEBUG
-	if(!growing_data_heap)
-	{
-		assert((cell)pointer >= data->seg->start
-		       && (cell)pointer < data->seg->end);
-	}
-#endif
-}
-
-inline static void check_tagged_pointer(cell tagged)
-{
-#ifdef FACTOR_DEBUG
-	if(!immediate_p(tagged))
-	{
-		object *obj = untag<object>(tagged);
-		check_data_pointer(obj);
-		obj->h.hi_tag();
-	}
-#endif
-}
 
 VM_ASM_API void inline_gc(cell *gc_roots_base, cell gc_roots_size);
 

@@ -3,48 +3,21 @@
 namespace factor
 {
 
-/* used during garbage collection only */
-zone *newspace;
-bool performing_gc;
-bool performing_compaction;
-cell collecting_gen;
+datacollector *coll = NULL;
 
-/* if true, we collecting aging space for the second time, so if it is still
-full, we go on to collect tenured */
-bool collecting_aging_again;
 
-/* in case a generation fills up in the middle of a gc, we jump back
-up to try collecting the next generation. */
-jmp_buf gc_jmp;
-
-gc_stats stats[max_gen_count];
-u64 cards_scanned;
-u64 decks_scanned;
-u64 card_scan_time;
-cell code_heap_scans;
-
-/* What generation was being collected when copy_code_heap_roots() was last
-called? Until the next call to add_code_block(), future
-collections of younger generations don't have to touch the code
-heap. */
-cell last_code_heap_scan;
-
-/* sometimes we grow the heap */
-bool growing_data_heap;
-data_heap *old_data_heap;
-
-void init_data_gc()
+void datacollector::init_data_gc()
 {
+ coll = this;
 	performing_gc = false;
 	last_code_heap_scan = data->nursery();
 	collecting_aging_again = false;
 }
 
 /* Given a pointer to oldspace, copy it to newspace */
-static object *copy_untagged_object_impl(object *pointer, cell size)
+object *datacollector::copy_untagged_object_impl(object *pointer, cell size)
 {
-	if(newspace->here + size >= newspace->end)
-		longjmp(gc_jmp,1);
+	if(newspace->here + size >= newspace->end)		longjmp(gc_jmp,1);
 	object *newpointer = allot_zone(newspace,size);
 
 	gc_stats *s = &stats[collecting_gen];
@@ -55,14 +28,14 @@ static object *copy_untagged_object_impl(object *pointer, cell size)
 	return newpointer;
 }
 
-static object *copy_object_impl(object *untagged)
+object *datacollector::copy_object_impl(object *untagged)
 {
 	object *newpointer = copy_untagged_object_impl(untagged,untagged_object_size(untagged));
 	untagged->h.forward_to(newpointer);
 	return newpointer;
 }
 
-static bool should_copy_p(object *untagged)
+bool datacollector::should_copy_p(object *untagged)
 {
 	if(in_zone(newspace,untagged))
 		return false;
@@ -80,7 +53,7 @@ static bool should_copy_p(object *untagged)
 }
 
 /* Follow a chain of forwarding pointers */
-static object *resolve_forwarding(object *untagged)
+object *datacollector::resolve_forwarding(object *untagged)
 {
 	check_data_pointer(untagged);
 
@@ -98,7 +71,7 @@ static object *resolve_forwarding(object *untagged)
 	}
 }
 
-template <typename T> static T *copy_untagged_object(T *untagged)
+template <typename T> T *datacollector::copy_untagged_object(T *untagged)
 {
 	check_data_pointer(untagged);
 
@@ -113,12 +86,12 @@ template <typename T> static T *copy_untagged_object(T *untagged)
 	return untagged;
 }
 
-static cell copy_object(cell pointer)
+cell datacollector::copy_object(cell pointer)
 {
 	return RETAG(copy_untagged_object(untag<object>(pointer)),TAG(pointer));
 }
 
-void copy_handle(cell *handle)
+void datacollector::copy_handle(cell *handle)
 {
 	cell pointer = *handle;
 
@@ -132,7 +105,7 @@ void copy_handle(cell *handle)
 }
 
 /* Scan all the objects in the card */
-static void copy_card(card *ptr, cell gen, cell here)
+void datacollector::copy_card(card *ptr, cell gen, cell here)
 {
 	cell card_scan = card_to_addr(ptr) + card_offset(ptr);
 	cell card_end = card_to_addr(ptr + 1);
@@ -145,7 +118,7 @@ static void copy_card(card *ptr, cell gen, cell here)
 	cards_scanned++;
 }
 
-static void copy_card_deck(card_deck *deck, cell gen, card mask, card unmask)
+void datacollector::copy_card_deck(card_deck *deck, cell gen, card mask, card unmask)
 {
 	card *first_card = deck_to_card(deck);
 	card *last_card = deck_to_card(deck + 1);
@@ -177,7 +150,7 @@ static void copy_card_deck(card_deck *deck, cell gen, card mask, card unmask)
 }
 
 /* Copy all newspace objects referenced from marked cards to the destination */
-static void copy_gen_cards(cell gen)
+void datacollector::copy_gen_cards(cell gen)
 {
 	card_deck *first_deck = addr_to_deck(data->generations[gen].start);
 	card_deck *last_deck = addr_to_deck(data->generations[gen].end);
@@ -244,7 +217,7 @@ static void copy_gen_cards(cell gen)
 
 /* Scan cards in all generations older than the one being collected, copying
 old->new references */
-static void copy_cards()
+void datacollector::copy_cards()
 {
 	u64 start = current_micros();
 
@@ -256,7 +229,7 @@ static void copy_cards()
 }
 
 /* Copy all tagged pointers in a range of memory */
-static void copy_stack_elements(segment *region, cell top)
+void datacollector::copy_stack_elements(segment *region, cell top)
 {
 	cell ptr = region->start;
 
@@ -264,7 +237,7 @@ static void copy_stack_elements(segment *region, cell top)
 		copy_handle((cell*)ptr);
 }
 
-static void copy_registered_locals()
+void datacollector::copy_registered_locals()
 {
 	cell scan = gc_locals_region->start;
 
@@ -272,7 +245,7 @@ static void copy_registered_locals()
 		copy_handle(*(cell **)scan);
 }
 
-static void copy_registered_bignums()
+void datacollector::copy_registered_bignums()
 {
 	cell scan = gc_bignums_region->start;
 
@@ -295,7 +268,7 @@ static void copy_registered_bignums()
 
 /* Copy roots over at the start of GC, namely various constants, stacks,
 the user environment and extra roots registered by local_roots.hpp */
-static void copy_roots()
+void datacollector::copy_roots()
 {
 	copy_handle(&T);
 	copy_handle(&bignum_zero);
@@ -329,7 +302,7 @@ static void copy_roots()
 		copy_handle(&userenv[i]);
 }
 
-static cell copy_next_from_nursery(cell scan)
+cell datacollector::copy_next_from_nursery(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -357,7 +330,7 @@ static cell copy_next_from_nursery(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-static cell copy_next_from_aging(cell scan)
+cell datacollector::copy_next_from_aging(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -389,7 +362,7 @@ static cell copy_next_from_aging(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-static cell copy_next_from_tenured(cell scan)
+cell datacollector::copy_next_from_tenured(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -419,7 +392,7 @@ static cell copy_next_from_tenured(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-void copy_reachable_objects(cell scan, cell *end)
+void datacollector::copy_reachable_objects(cell scan, cell *end)
 {
 	if(collecting_gen == data->nursery())
 	{
@@ -439,7 +412,7 @@ void copy_reachable_objects(cell scan, cell *end)
 }
 
 /* Prepare to start copying reachable objects into an unused zone */
-static void begin_gc(cell requested_bytes)
+void datacollector::begin_gc(cell requested_bytes)
 {
 	if(growing_data_heap)
 	{
@@ -472,7 +445,7 @@ static void begin_gc(cell requested_bytes)
 	}
 }
 
-static void end_gc(cell gc_elapsed)
+void datacollector::end_gc(cell gc_elapsed)
 {
 	gc_stats *s = &stats[collecting_gen];
 
@@ -513,7 +486,7 @@ static void end_gc(cell gc_elapsed)
 /* Collect gen and all younger generations.
 If growing_data_heap_ is true, we must grow the data heap to such a size that
 an allocation of requested_bytes won't fail */
-void garbage_collection(cell gen,
+void datacollector::garbage_collection(cell gen,
 	bool growing_data_heap_,
 	cell requested_bytes)
 {
@@ -593,14 +566,14 @@ void garbage_collection(cell gen,
 	performing_gc = false;
 }
 
-void gc()
+void datacollector::gc()
 {
 	garbage_collection(data->tenured(),false,0);
 }
 
 PRIMITIVE(gc)
 {
-	gc();
+	coll->gc();
 }
 
 PRIMITIVE(gc_stats)
@@ -612,7 +585,7 @@ PRIMITIVE(gc_stats)
 
 	for(i = 0; i < max_gen_count; i++)
 	{
-		gc_stats *s = &stats[i];
+		gc_stats *s = &coll->stats[i];
 		result.add(allot_cell(s->collections));
 		result.add(tag<bignum>(long_long_to_bignum(s->gc_time)));
 		result.add(tag<bignum>(long_long_to_bignum(s->max_gc_time)));
@@ -624,16 +597,16 @@ PRIMITIVE(gc_stats)
 	}
 
 	result.add(tag<bignum>(ulong_long_to_bignum(total_gc_time)));
-	result.add(tag<bignum>(ulong_long_to_bignum(cards_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(decks_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(card_scan_time)));
-	result.add(allot_cell(code_heap_scans));
+	result.add(tag<bignum>(ulong_long_to_bignum(coll->cards_scanned)));
+	result.add(tag<bignum>(ulong_long_to_bignum(coll->decks_scanned)));
+	result.add(tag<bignum>(ulong_long_to_bignum(coll->card_scan_time)));
+	result.add(allot_cell(coll->code_heap_scans));
 
 	result.trim();
 	dpush(result.elements.value());
 }
 
-void clear_gc_stats()
+void datacollector::clear_gc_stats()
 {
 	for(cell i = 0; i < max_gen_count; i++)
 		memset(&stats[i],0,sizeof(gc_stats));
@@ -646,7 +619,7 @@ void clear_gc_stats()
 
 PRIMITIVE(clear_gc_stats)
 {
-	clear_gc_stats();
+	coll->clear_gc_stats();
 }
 
 /* classes.tuple uses this to reshape tuples; tools.deploy.shaker uses this
@@ -671,7 +644,7 @@ PRIMITIVE(become)
 			old_obj->h.forward_to(new_obj.untagged());
 	}
 
-	gc();
+	coll->gc();
 
 	/* If a word's definition quotation was in old_objects and the
 	   quotation in new_objects is not compiled, we might leak memory
@@ -685,7 +658,7 @@ VM_ASM_API void inline_gc(cell *gc_roots_base, cell gc_roots_size)
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_push((cell)&gc_roots_base[i]);
 
-	garbage_collection(data->nursery(),false,0);
+	coll->garbage_collection(data->nursery(),false,0);
 
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_pop();

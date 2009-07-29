@@ -297,7 +297,7 @@ PRIMITIVE(jit_compile)
 /* push a new quotation on the stack */
 PRIMITIVE(array_to_quotation)
 {
-	quotation *quot = allot<quotation>(sizeof(quotation));
+	quotation *quot = coll->allot<quotation>(sizeof(quotation));
 	quot->array = dpeek();
 	quot->cached_effect = F;
 	quot->cache_counter = F;

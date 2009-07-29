@@ -31,7 +31,7 @@ static void set_profiling(bool profiling)
 
 	/* Push everything to tenured space so that we can heap scan
 	and allocate profiling blocks if necessary */
-	gc();
+	coll->gc();
 
 	gc_root<array> words(find_all_words());
 

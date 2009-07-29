@@ -7,7 +7,7 @@ namespace factor
 tuple *allot_tuple(cell layout_)
 {
 	gc_root<tuple_layout> layout(layout_);
-	gc_root<tuple> t(allot<tuple>(tuple_size(layout.untagged())));
+	gc_root<tuple> t(coll->allot<tuple>(tuple_size(layout.untagged())));
 	t->layout = layout.value();
 	return t.untagged();
 }

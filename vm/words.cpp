@@ -8,7 +8,7 @@ word *allot_word(cell vocab_, cell name_)
 	gc_root<object> vocab(vocab_);
 	gc_root<object> name(name_);
 
-	gc_root<word> new_word(allot<word>(sizeof(word)));
+	gc_root<word> new_word(coll->allot<word>(sizeof(word)));
 
 	new_word->hashcode = tag_fixnum((rand() << 16) ^ rand());
 	new_word->vocabulary = vocab.value();
@@ -71,7 +71,7 @@ PRIMITIVE(optimized_p)
 
 PRIMITIVE(wrapper)
 {
-	wrapper *new_wrapper = allot<wrapper>(sizeof(wrapper));
+	wrapper *new_wrapper = coll->allot<wrapper>(sizeof(wrapper));
 	new_wrapper->object = dpeek();
 	drepl(tag<wrapper>(new_wrapper));
 }

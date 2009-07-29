@@ -29,7 +29,7 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		p->tenured_size,
 		p->secure_gc);
 
-	clear_gc_stats();
+	coll->clear_gc_stats();
 
 	zone *tenured = &data->generations[data->tenured()];
 
@@ -125,7 +125,7 @@ bool save_image(const vm_char *filename)
 PRIMITIVE(save_image)
 {
 	/* do a full GC to push everything into tenured space */
-	gc();
+	coll->gc();
 
 	gc_root<byte_array> path(dpop());
 	path.untag_check();
@@ -147,9 +147,9 @@ PRIMITIVE(save_image_and_exit)
 	}
 
 	/* do a full GC + code heap compaction */
-	performing_compaction = true;
+	coll->performing_compaction = true;
 	compact_code_heap();
-	performing_compaction = false;
+	coll->performing_compaction = false;
 
 	/* Save the image */
 	if(save_image((vm_char *)(path.untagged() + 1)))

@@ -286,22 +286,22 @@ void update_literal_references(code_block *compiled)
 aging and nursery collections */
 void copy_literal_references(code_block *compiled)
 {
-	if(collecting_gen >= compiled->last_scan)
+	if(coll->collecting_gen >= compiled->last_scan)
 	{
-		if(collecting_accumulation_gen_p())
-			compiled->last_scan = collecting_gen;
+		if(coll->collecting_accumulation_gen_p())
+			compiled->last_scan = coll->collecting_gen;
 		else
-			compiled->last_scan = collecting_gen + 1;
+			compiled->last_scan = coll->collecting_gen + 1;
 
 		/* initialize chase pointer */
-		cell scan = newspace->here;
+		cell scan = coll->newspace->here;
 
-		copy_handle(&compiled->literals);
-		copy_handle(&compiled->relocation);
+		coll->copy_handle(&compiled->literals);
+		coll->copy_handle(&compiled->relocation);
 
 		/* do some tracing so that all reachable literals are now
 		at their final address */
-		copy_reachable_objects(scan,&newspace->here);
+		coll->copy_reachable_objects(scan,&coll->newspace->here);
 
 		update_literal_references(compiled);
 	}
@@ -375,8 +375,8 @@ void mark_code_block(code_block *compiled)
 
 	mark_block(compiled);
 
-	copy_handle(&compiled->literals);
-	copy_handle(&compiled->relocation);
+	coll->copy_handle(&compiled->literals);
+	coll->copy_handle(&compiled->relocation);
 }
 
 void mark_stack_frame_step(stack_frame *frame)
@@ -387,7 +387,7 @@ void mark_stack_frame_step(stack_frame *frame)
 /* Mark code blocks executing in currently active stack frames. */
 void mark_active_blocks(context *stacks)
 {
-	if(collecting_gen == data->tenured())
+	if(coll->collecting_gen == data->tenured())
 	{
 		cell top = (cell)stacks->callstack_top;
 		cell bottom = (cell)stacks->callstack_bottom;
@@ -460,7 +460,7 @@ code_block *allot_code_block(cell size)
 	/* If allocation failed, do a code GC */
 	if(block == NULL)
 	{
-		gc();
+		coll->gc();
 		block = heap_allot(&code,size + sizeof(code_block));
 
 		/* Insufficient room even after code GC, give up */
@@ -517,7 +517,7 @@ code_block *add_code_block(
 
 	/* next time we do a minor GC, we have to scan the code heap for
 	literals */
-	last_code_heap_scan = data->nursery();
+	coll->last_code_heap_scan = data->nursery();
 
 	return compiled;
 }

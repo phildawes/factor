@@ -212,7 +212,7 @@ critical here */
 void compact_code_heap()
 {
 	/* Free all unreachable code blocks */
-	gc();
+	coll->gc();
 
 	/* Figure out where the code heap blocks are going to end up */
 	cell size = compute_heap_forwarding(&code, forwarding);
