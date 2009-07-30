@@ -187,22 +187,22 @@ tags:
 	etags vm/*.{cpp,hpp,mm,S,c}
 
 vm/resources.o:
-	$(WINDRES) vm/factor.rs vm/resources.o
+	$(TOOLCHAIN_PREFIX)$(WINDRES) vm/factor.rs vm/resources.o
 
 vm/ffi_test.o: vm/ffi_test.c
-	$(CC) -c $(CFLAGS) $(FFI_TEST_CFLAGS) -o $@ $<
+	$(TOOLCHAIN_PREFIX)$(CC) -c $(CFLAGS) $(FFI_TEST_CFLAGS) -o $@ $<
 
 .c.o:
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(TOOLCHAIN_PREFIX)$(CC) -c $(CFLAGS) -o $@ $<
 
 .cpp.o:
-	$(CPP) -c $(CFLAGS) -o $@ $<
+	$(TOOLCHAIN_PREFIX)$(CPP) -c $(CFLAGS) -o $@ $<
 
 .S.o:
-	$(CC) -x assembler-with-cpp -c $(CFLAGS) -o $@ $<
+	$(TOOLCHAIN_PREFIX)$(CC) -x assembler-with-cpp -c $(CFLAGS) -o $@ $<
 
 .mm.o:
-	$(CPP) -c $(CFLAGS) -o $@ $<
+	$(TOOLCHAIN_PREFIX)$(CPP) -c $(CFLAGS) -o $@ $<
 
 .PHONY: factor tags clean
 

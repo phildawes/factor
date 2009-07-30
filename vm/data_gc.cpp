@@ -8,7 +8,7 @@ datacollector *coll = NULL;
 
 void datacollector::init_data_gc()
 {
- coll = this;
+	coll = this;
 	performing_gc = false;
 	last_code_heap_scan = data->nursery();
 	collecting_aging_again = false;
@@ -430,11 +430,11 @@ void datacollector::begin_gc(cell requested_bytes)
 		zone z = data->generations[collecting_gen];
 		data->generations[collecting_gen] = data->semispaces[collecting_gen];
 		data->semispaces[collecting_gen] = z;
-		reset_generation(collecting_gen);
+		data->reset_generation(collecting_gen);
 		newspace = &data->generations[collecting_gen];
-		clear_cards(collecting_gen,collecting_gen);
-		clear_decks(collecting_gen,collecting_gen);
-		clear_allot_markers(collecting_gen,collecting_gen);
+		data->clear_cards(collecting_gen,collecting_gen);
+		data->clear_decks(collecting_gen,collecting_gen);
+		data->clear_allot_markers(collecting_gen,collecting_gen);
 	}
 	else
 	{
@@ -467,7 +467,7 @@ void datacollector::end_gc(cell gc_elapsed)
 		if collecting_gen == data->nursery() here, we only have 1 generation;
 		old-school Cheney collector */
 		if(collecting_gen != data->nursery())
-			reset_generations(data->nursery(),collecting_gen - 1);
+			data->reset_generations(data->nursery(),collecting_gen - 1);
 	}
 	else if(collecting_gen == data->nursery())
 	{
@@ -477,7 +477,7 @@ void datacollector::end_gc(cell gc_elapsed)
 	{
 		/* all generations up to and including the one
 		collected are now empty */
-		reset_generations(data->nursery(),collecting_gen);
+		data->reset_generations(data->nursery(),collecting_gen);
 	}
 
 	collecting_aging_again = false;

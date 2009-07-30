@@ -2,6 +2,8 @@
 
 factor::zone nursery;
 
+
+
 namespace factor
 {
 
@@ -24,24 +26,19 @@ cell init_zone(zone *z, cell size, cell start)
 	return z->end;
 }
 
-void init_card_decks()
+void data_heap::init_card_decks()
 {
-	cell start = align(data->seg->start,deck_size);
-	allot_markers_offset = (cell)data->allot_markers - (start >> card_bits);
-	cards_offset = (cell)data->cards - (start >> card_bits);
-	decks_offset = (cell)data->decks - (start >> deck_bits);
+	cell start = align(seg->start,deck_size);
+	allot_markers_offset = (cell)allot_markers - (start >> card_bits);
+	cards_offset = (cell)cards - (start >> card_bits);
+	decks_offset = (cell)decks - (start >> deck_bits);
 }
 
-data_heap *alloc_data_heap(cell gens,
-	cell young_size,
-	cell aging_size,
-	cell tenured_size)
-{
-	young_size = align(young_size,deck_size);
-	aging_size = align(aging_size,deck_size);
-	tenured_size = align(tenured_size,deck_size);
+data_heap *data_heap::initial_setup(cell gens,
+			 cell young_size,
+			 cell aging_size,
+			 cell tenured_size){
 
-	data_heap *data = (data_heap *)safe_malloc(sizeof(data_heap));
 	data->young_size = young_size;
 	data->aging_size = aging_size;
 	data->tenured_size = tenured_size;
@@ -96,7 +93,20 @@ data_heap *alloc_data_heap(cell gens,
 	if(data->seg->end - alloter > deck_size)
 		critical_error("Bug in alloc_data_heap",alloter);
 
-	return data;
+	return this;
+}
+
+data_heap *alloc_data_heap(cell gens,
+	cell young_size,
+	cell aging_size,
+	cell tenured_size)
+{
+	young_size = align(young_size,deck_size);
+	aging_size = align(aging_size,deck_size);
+	tenured_size = align(tenured_size,deck_size);
+
+	data_heap *data = (data_heap *)safe_malloc(sizeof(data_heap));
+	return data->initial_setup(gens,young_size,aging_size,tenured_size);
 }
 
 data_heap *grow_data_heap(data_heap *data, cell requested_bytes)
@@ -120,7 +130,7 @@ void dealloc_data_heap(data_heap *data)
 	free(data);
 }
 
-void clear_cards(cell from, cell to)
+void data_heap::clear_cards(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
 	card *first_card = addr_to_card(data->generations[to].start);
@@ -128,7 +138,7 @@ void clear_cards(cell from, cell to)
 	memset(first_card,0,last_card - first_card);
 }
 
-void clear_decks(cell from, cell to)
+void data_heap::clear_decks(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
 	card_deck *first_deck = addr_to_deck(data->generations[to].start);
@@ -136,7 +146,7 @@ void clear_decks(cell from, cell to)
 	memset(first_deck,0,last_deck - first_deck);
 }
 
-void clear_allot_markers(cell from, cell to)
+void data_heap::clear_allot_markers(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
 	card *first_card = addr_to_allot_marker((object *)data->generations[to].start);
@@ -144,9 +154,9 @@ void clear_allot_markers(cell from, cell to)
 	memset(first_card,invalid_allot_marker,last_card - first_card);
 }
 
-void reset_generation(cell i)
+void data_heap::reset_generation(cell i)
 {
-	zone *z = (i == data->nursery() ? &nursery : &data->generations[i]);
+  zone *z = (i == data->nursery() ? &factor::nursery : &data->generations[i]);
 
 	z->here = z->start;
 	if(secure_gc)
@@ -155,7 +165,7 @@ void reset_generation(cell i)
 
 /* After garbage collection, any generations which are now empty need to have
 their allocation pointers and cards reset. */
-void reset_generations(cell from, cell to)
+void data_heap::reset_generations(cell from, cell to)
 {
 	cell i;
 	for(i = from; i <= to; i++)
@@ -170,10 +180,10 @@ void set_data_heap(data_heap *data_)
 {
 	data = data_;
 	nursery = data->generations[data->nursery()];
-	init_card_decks();
-	clear_cards(data->nursery(),data->tenured());
-	clear_decks(data->nursery(),data->tenured());
-	clear_allot_markers(data->nursery(),data->tenured());
+	data->init_card_decks();
+	data->clear_cards(data->nursery(),data->tenured());
+	data->clear_decks(data->nursery(),data->tenured());
+	data->clear_allot_markers(data->nursery(),data->tenured());
 }
 
 void init_data_heap(cell gens,

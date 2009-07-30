@@ -13,6 +13,7 @@ implementation. It is not an introduction to the language itself.
 - Running Factor on Mac OS X - Cocoa UI
 - Running Factor on Mac OS X - X11 UI
 - Running Factor on Windows
+- Running Factor on Unix with Wine
 - Command line usage
 - The Factor FAQ
 - Source organization
