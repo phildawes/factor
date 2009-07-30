@@ -34,63 +34,63 @@ void data_heap::init_card_decks()
 	decks_offset = (cell)decks - (start >> deck_bits);
 }
 
-data_heap *data_heap::initial_setup(cell gens,
-			 cell young_size,
-			 cell aging_size,
-			 cell tenured_size){
+data_heap *data_heap::initial_setup(cell gens_,
+			 cell young_size_,
+			 cell aging_size_,
+			 cell tenured_size_){
 
-	data->young_size = young_size;
-	data->aging_size = aging_size;
-	data->tenured_size = tenured_size;
-	data->gen_count = gens;
+	young_size = young_size_;
+	aging_size = aging_size_;
+	tenured_size = tenured_size_;
+	gen_count = gens_;
 
 	cell total_size;
-	if(data->gen_count == 2)
+	if(gen_count == 2)
 		total_size = young_size + 2 * tenured_size;
-	else if(data->gen_count == 3)
+	else if(gen_count == 3)
 		total_size = young_size + 2 * aging_size + 2 * tenured_size;
 	else
 	{
-		fatal_error("Invalid number of generations",data->gen_count);
+		fatal_error("Invalid number of generations",gen_count);
 		return NULL; /* can't happen */
 	}
 
 	total_size += deck_size;
 
-	data->seg = alloc_segment(total_size);
+	seg = alloc_segment(total_size);
 
-	data->generations = (zone *)safe_malloc(sizeof(zone) * data->gen_count);
-	data->semispaces = (zone *)safe_malloc(sizeof(zone) * data->gen_count);
+	generations = (zone *)safe_malloc(sizeof(zone) * gen_count);
+	semispaces = (zone *)safe_malloc(sizeof(zone) * gen_count);
 
 	cell cards_size = total_size >> card_bits;
-	data->allot_markers = (cell *)safe_malloc(cards_size);
-	data->allot_markers_end = data->allot_markers + cards_size;
+	allot_markers = (cell *)safe_malloc(cards_size);
+	allot_markers_end = allot_markers + cards_size;
 
-	data->cards = (cell *)safe_malloc(cards_size);
-	data->cards_end = data->cards + cards_size;
+	cards = (cell *)safe_malloc(cards_size);
+	cards_end = cards + cards_size;
 
 	cell decks_size = total_size >> deck_bits;
-	data->decks = (cell *)safe_malloc(decks_size);
-	data->decks_end = data->decks + decks_size;
+	decks = (cell *)safe_malloc(decks_size);
+	decks_end = decks + decks_size;
 
-	cell alloter = align(data->seg->start,deck_size);
+	cell alloter = align(seg->start,deck_size);
 
-	alloter = init_zone(&data->generations[data->tenured()],tenured_size,alloter);
-	alloter = init_zone(&data->semispaces[data->tenured()],tenured_size,alloter);
+	alloter = init_zone(&generations[tenured()],tenured_size,alloter);
+	alloter = init_zone(&semispaces[tenured()],tenured_size,alloter);
 
-	if(data->gen_count == 3)
+	if(gen_count == 3)
 	{
-		alloter = init_zone(&data->generations[data->aging()],aging_size,alloter);
-		alloter = init_zone(&data->semispaces[data->aging()],aging_size,alloter);
+		alloter = init_zone(&generations[aging()],aging_size,alloter);
+		alloter = init_zone(&semispaces[aging()],aging_size,alloter);
 	}
 
-	if(data->gen_count >= 2)
+	if(gen_count >= 2)
 	{
-		alloter = init_zone(&data->generations[data->nursery()],young_size,alloter);
-		alloter = init_zone(&data->semispaces[data->nursery()],0,alloter);
+		alloter = init_zone(&generations[nursery()],young_size,alloter);
+		alloter = init_zone(&semispaces[nursery()],0,alloter);
 	}
 
-	if(data->seg->end - alloter > deck_size)
+	if(seg->end - alloter > deck_size)
 		critical_error("Bug in alloc_data_heap",alloter);
 
 	return this;
