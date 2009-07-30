@@ -136,11 +136,11 @@ void forward_frame_xt(stack_frame *frame)
 
 void forward_object_xts()
 {
-	begin_scan();
+	data->begin_scan();
 
 	cell obj;
 
-	while((obj = next_object()) != F)
+	while((obj = data->next_object()) != F)
 	{
 		switch(tagged<object>(obj).type())
 		{
@@ -173,17 +173,17 @@ void forward_object_xts()
 		}
 	}
 
-	end_scan();
+	data->end_scan();
 }
 
 /* Set the XT fields now that the heap has been compacted */
 void fixup_object_xts()
 {
-	begin_scan();
+	data->begin_scan();
 
 	cell obj;
 
-	while((obj = next_object()) != F)
+	while((obj = data->next_object()) != F)
 	{
 		switch(tagged<object>(obj).type())
 		{
@@ -202,7 +202,7 @@ void fixup_object_xts()
 		}
 	}
 
-	end_scan();
+	data->end_scan();
 }
 
 /* Move all free space to the end of the code heap. This is not very efficient,

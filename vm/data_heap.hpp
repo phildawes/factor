@@ -4,6 +4,10 @@ namespace factor
 /* Set by the -securegc command line argument */
 extern bool secure_gc;
 
+/* GC is off during heap walking */
+extern bool gc_off;
+
+
 /* generational copying GC divides memory into zones */
 struct zone {
 	/* allocation pointer is 'here'; its offset is hardcoded in the
@@ -47,7 +51,12 @@ struct data_heap {
 	bool have_aging_p() { return gen_count > 2; }
 
 
-  data_heap* initial_setup(cell gens,cell young_size,cell aging_size,cell tenured_size);
+/* A heap walk allows useful things to be done, like finding all
+references to an object for debugging purposes. */
+cell heap_scan_ptr;
+
+
+data_heap* initial_setup(cell gens,cell young_size,cell aging_size,cell tenured_size);
 
 void init_card_decks();
 void clear_cards(cell from, cell to);
@@ -56,6 +65,10 @@ void clear_allot_markers(cell from, cell to);
 void reset_generation(cell i);
 void reset_generations(cell from, cell to);
 
+
+void begin_scan();
+void end_scan();
+cell next_object();
 
 };
 
@@ -93,9 +106,6 @@ cell unaligned_object_size(object *pointer);
 cell binary_payload_start(object *pointer);
 cell object_size(cell tagged);
 
-void begin_scan();
-void end_scan();
-cell next_object();
 
 PRIMITIVE(data_room);
 PRIMITIVE(size);
@@ -104,8 +114,6 @@ PRIMITIVE(begin_scan);
 PRIMITIVE(next_object);
 PRIMITIVE(end_scan);
 
-/* GC is off during heap walking */
-extern bool gc_off;
 
 cell find_all_words();
 
@@ -127,7 +135,10 @@ inline static void do_slots(cell obj, void (* iter)(cell *))
 	}
 }
 
+
+
 }
+
 
 /* new objects are allocated here */
 VM_C_API factor::zone nursery;

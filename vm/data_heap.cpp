@@ -133,30 +133,30 @@ void dealloc_data_heap(data_heap *data)
 void data_heap::clear_cards(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = addr_to_card(data->generations[to].start);
-	card *last_card = addr_to_card(data->generations[from].end);
+	card *first_card = addr_to_card(generations[to].start);
+	card *last_card = addr_to_card(generations[from].end);
 	memset(first_card,0,last_card - first_card);
 }
 
 void data_heap::clear_decks(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card_deck *first_deck = addr_to_deck(data->generations[to].start);
-	card_deck *last_deck = addr_to_deck(data->generations[from].end);
+	card_deck *first_deck = addr_to_deck(generations[to].start);
+	card_deck *last_deck = addr_to_deck(generations[from].end);
 	memset(first_deck,0,last_deck - first_deck);
 }
 
 void data_heap::clear_allot_markers(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = addr_to_allot_marker((object *)data->generations[to].start);
-	card *last_card = addr_to_allot_marker((object *)data->generations[from].end);
+	card *first_card = addr_to_allot_marker((object *)generations[to].start);
+	card *last_card = addr_to_allot_marker((object *)generations[from].end);
 	memset(first_card,invalid_allot_marker,last_card - first_card);
 }
 
 void data_heap::reset_generation(cell i)
 {
-  zone *z = (i == data->nursery() ? &factor::nursery : &data->generations[i]);
+  zone *z = (i == nursery() ? &factor::nursery : &generations[i]);
 
 	z->here = z->start;
 	if(secure_gc)
@@ -318,28 +318,25 @@ PRIMITIVE(data_room)
 	dpush(a.elements.value());
 }
 
-/* A heap walk allows useful things to be done, like finding all
-references to an object for debugging purposes. */
-cell heap_scan_ptr;
 
 /* Disables GC and activates next-object ( -- obj ) primitive */
-void begin_scan()
+void data_heap::begin_scan()
 {
 	heap_scan_ptr = data->generations[data->tenured()].start;
 	gc_off = true;
 }
 
-void end_scan()
+void data_heap::end_scan()
 {
 	gc_off = false;
 }
 
 PRIMITIVE(begin_scan)
 {
-	begin_scan();
+	data->begin_scan();
 }
 
-cell next_object()
+cell data_heap::next_object()
 {
 	if(!gc_off)
 		general_error(ERROR_HEAP_SCAN,F,F,NULL);
@@ -355,7 +352,7 @@ cell next_object()
 /* Push object at heap scan cursor and advance; pushes f when done */
 PRIMITIVE(next_object)
 {
-	dpush(next_object());
+	dpush(data->next_object());
 }
 
 /* Re-enables GC */
@@ -366,11 +363,11 @@ PRIMITIVE(end_scan)
 
 template<typename T> void each_object(T &functor)
 {
-	begin_scan();
+	data->begin_scan();
 	cell obj;
-	while((obj = next_object()) != F)
+	while((obj = data->next_object()) != F)
 		functor(tagged<object>(obj));
-	end_scan();
+	data->end_scan();
 }
 
 namespace
