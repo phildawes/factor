@@ -509,7 +509,7 @@ void datacollector::garbage_collection(cell gen,
 			growing_data_heap = true;
 
 			/* see the comment in unmark_marked() */
-			unmark_marked(&code);
+			unmark_marked(vm->code);
 		}
 		/* we try collecting aging space twice before going on to
 		collect tenured */
@@ -546,7 +546,7 @@ void datacollector::garbage_collection(cell gen,
 		code_heap_scans++;
 
 		if(collecting_gen == vm->datagc.heap->tenured())
-			free_unmarked(&code,(heap_iterator)update_literal_and_word_references);
+			free_unmarked(vm->code,(heap_iterator)update_literal_and_word_references);
 		else
 			copy_code_heap_roots();
 

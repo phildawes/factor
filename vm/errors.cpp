@@ -108,11 +108,11 @@ void memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ds_bot, 0, -1))
 		general_error(ERROR_DS_UNDERFLOW,F,F,native_stack);
-	else if(in_page(addr, ds_bot, ds_size, 0))
+	else if(in_page(addr, ds_bot, vm->ds_size, 0))
 		general_error(ERROR_DS_OVERFLOW,F,F,native_stack);
 	else if(in_page(addr, rs_bot, 0, -1))
 		general_error(ERROR_RS_UNDERFLOW,F,F,native_stack);
-	else if(in_page(addr, rs_bot, rs_size, 0))
+	else if(in_page(addr, rs_bot, vm->rs_size, 0))
 		general_error(ERROR_RS_OVERFLOW,F,F,native_stack);
 	else if(in_page(addr, getnursery()->end, 0, 0))
 		critical_error("allot_object() missed GC check",0);

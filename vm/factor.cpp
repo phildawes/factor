@@ -5,6 +5,10 @@ namespace factor
 
   factorvm *vm;
 
+  factorvm::factorvm(){
+    code = new heap;
+  }
+
 VM_C_API void default_parameters(vm_parameters *p)
 {
 	p->image_path = NULL;

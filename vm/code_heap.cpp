@@ -3,17 +3,17 @@
 namespace factor
 {
 
-heap code;
+  //heap code;
 
 /* Allocate a code heap during startup */
 void init_code_heap(cell size)
 {
-	new_heap(&code,size);
+	new_heap(vm->code,size);
 }
 
 bool in_code_heap_p(cell ptr)
 {
-	return (ptr >= code.seg->start && ptr <= code.seg->end);
+	return (ptr >= vm->code->seg->start && ptr <= vm->code->seg->end);
 }
 
 /* Compile a word definition with the non-optimizing compiler. Allocates memory */
@@ -33,13 +33,13 @@ void jit_compile_word(cell word_, cell def_, bool relocate)
 /* Apply a function to every code block */
 void iterate_code_heap(code_heap_iterator iter)
 {
-	heap_block *scan = first_block(&code);
+	heap_block *scan = first_block(vm->code);
 
 	while(scan)
 	{
 		if(scan->status != B_FREE)
 			iter((code_block *)scan);
-		scan = next_block(&code,scan);
+		scan = next_block(vm->code,scan);
 	}
 }
 
@@ -112,18 +112,16 @@ PRIMITIVE(modify_code_heap)
 PRIMITIVE(code_room)
 {
 	cell used, total_free, max_free;
-	heap_usage(&code,&used,&total_free,&max_free);
-	dpush(tag_fixnum(code.seg->size / 1024));
+	heap_usage(vm->code,&used,&total_free,&max_free);
+	dpush(tag_fixnum(vm->code->seg->size / 1024));
 	dpush(tag_fixnum(used / 1024));
 	dpush(tag_fixnum(total_free / 1024));
 	dpush(tag_fixnum(max_free / 1024));
 }
 
-static unordered_map<heap_block *,char *> forwarding;
-
 code_block *forward_xt(code_block *compiled)
 {
-	return (code_block *)forwarding[compiled];
+	return (code_block *)vm->forwarding[compiled];
 }
 
 void forward_frame_xt(stack_frame *frame)
@@ -215,20 +213,20 @@ void compact_code_heap()
 	vm->datagc.gc();
 
 	/* Figure out where the code heap blocks are going to end up */
-	cell size = compute_heap_forwarding(&code, forwarding);
+	cell size = compute_heap_forwarding(vm->code, vm->forwarding);
 
 	/* Update word and quotation code pointers */
 	forward_object_xts();
 
 	/* Actually perform the compaction */
-	compact_heap(&code,forwarding);
+	compact_heap(vm->code,vm->forwarding);
 
 	/* Update word and quotation XTs */
 	fixup_object_xts();
 
 	/* Now update the free list; there will be a single free block at
 	the end */
-	build_free_list(&code,size);
+	build_free_list(vm->code,size);
 }
 
 }

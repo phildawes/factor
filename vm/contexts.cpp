@@ -13,8 +13,8 @@ void get_stack_chain2(){
 namespace factor
 {
 
-cell ds_size, rs_size;
-context *unused_contexts;
+  //cell ds_size, rs_size;
+  //context *unused_contexts;
 
 void reset_datastack()
 {
@@ -49,16 +49,16 @@ context *alloc_context()
 {
 	context *new_context;
 
-	if(unused_contexts)
+	if(vm->unused_contexts)
 	{
-		new_context = unused_contexts;
-		unused_contexts = unused_contexts->next;
+		new_context = vm->unused_contexts;
+		vm->unused_contexts = vm->unused_contexts->next;
 	}
 	else
 	{
 		new_context = (context *)safe_malloc(sizeof(context));
-		new_context->datastack_region = alloc_segment(ds_size);
-		new_context->retainstack_region = alloc_segment(rs_size);
+		new_context->datastack_region = alloc_segment(vm->ds_size);
+		new_context->retainstack_region = alloc_segment(vm->rs_size);
 	}
 
 	return new_context;
@@ -66,8 +66,8 @@ context *alloc_context()
 
 void dealloc_context(context *old_context)
 {
-	old_context->next = unused_contexts;
-	unused_contexts = old_context;
+	old_context->next = vm->unused_contexts;
+	vm->unused_contexts = old_context;
 }
 
 /* called on entry into a compiled callback */
@@ -120,10 +120,10 @@ void unnest_stacks()
 /* called on startup */
 void init_stacks(cell ds_size_, cell rs_size_)
 {
-	ds_size = ds_size_;
-	rs_size = rs_size_;
+	vm->ds_size = ds_size_;
+	vm->rs_size = rs_size_;
 	stack_chain = NULL;
-	unused_contexts = NULL;
+	vm->unused_contexts = NULL;
 }
 
 bool stack_to_array(cell bottom, cell top)
