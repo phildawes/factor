@@ -106,22 +106,22 @@ data_heap *alloc_data_heap(cell gens,
 
 data_heap *grow_data_heap(data_heap *data, cell requested_bytes)
 {
-	cell new_tenured_size = (vm->data->tenured_size * 2) + requested_bytes;
+	cell new_tenured_size = (data->tenured_size * 2) + requested_bytes;
 
-	return alloc_data_heap(vm->data->gen_count,
-		vm->data->young_size,
-		vm->data->aging_size,
+	return alloc_data_heap(data->gen_count,
+		data->young_size,
+		data->aging_size,
 		new_tenured_size);
 }
 
 void dealloc_data_heap(data_heap *data)
 {
-	dealloc_segment(vm->data->seg);
-	free(vm->data->generations);
-	free(vm->data->semispaces);
-	free(vm->data->allot_markers);
-	free(vm->data->cards);
-	free(vm->data->decks);
+	dealloc_segment(data->seg);
+	free(data->generations);
+	free(data->semispaces);
+	free(data->allot_markers);
+	free(data->cards);
+	free(data->decks);
 	free(data);
 }
 
