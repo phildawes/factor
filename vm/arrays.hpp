@@ -15,7 +15,7 @@ inline static void set_array_nth(array *array, cell slot, cell value)
 #ifdef FACTOR_DEBUG
 	assert(slot < array_capacity(array));
 	assert(array->h.hi_tag() == ARRAY_TYPE);
-	coll->check_tagged_pointer(value);
+	vm->dgc->check_tagged_pointer(value);
 #endif
 	array->data()[slot] = value;
 	write_barrier(array);

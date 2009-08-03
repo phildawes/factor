@@ -5,7 +5,10 @@ namespace factor
     bool gc_off;
     /* Set by the -securegc command line argument */
     bool secure_gc;
-    data_heap *data;
+
+
+    datacollector *dgc;
+
   };
 
   extern factorvm *vm;

@@ -72,7 +72,7 @@ inline static double untag_float_check(cell tagged)
 
 inline static cell allot_float(double n)
 {
-        boxed_float *flo = coll->allot<boxed_float>(sizeof(boxed_float));
+        boxed_float *flo = vm->dgc->allot<boxed_float>(sizeof(boxed_float));
 	flo->n = n;
 	return tag(flo);
 }

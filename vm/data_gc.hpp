@@ -1,6 +1,7 @@
 namespace factor
 {
 
+
 /* statistics */
 struct gc_stats {
 	cell collections;
@@ -16,6 +17,10 @@ registers) does not run out of memory */
 static const cell allot_buffer_zone = 1024;
 
 struct datacollector {
+
+  /* the heap */
+  data_heap *heap;
+
 
 /* used during garbage collection only */
   zone *newspace;
@@ -80,10 +85,10 @@ heap. */
 
 inline bool collecting_accumulation_gen_p()
 {
-	return ((vm->data->have_aging_p()
-		&& collecting_gen == vm->data->aging()
+	return ((heap->have_aging_p()
+		&& collecting_gen == heap->aging()
 		&& !collecting_aging_again)
-		|| collecting_gen == vm->data->tenured());
+		|| collecting_gen == heap->tenured());
 }
 
 
@@ -101,8 +106,8 @@ inline void check_data_pointer(object *pointer)
 #ifdef FACTOR_DEBUG
 	if(!growing_data_heap)
 	{
-		assert((cell)pointer >= vm->data->seg->start
-		       && (cell)pointer < vm->data->seg->end);
+		assert((cell)pointer >= heap->seg->start
+		       && (cell)pointer < heap->seg->end);
 	}
 #endif
 }
@@ -136,7 +141,7 @@ inline object *allot_object(header header, cell size)
 	{
 		/* If there is insufficient room, collect the nursery */
 	  if(nursery->here + allot_buffer_zone + size > nursery->end)
-			garbage_collection(vm->data->nursery(),false,0);
+			garbage_collection(heap->nursery(),false,0);
 
 		cell h = nursery->here;
 		nursery->here = h + align8(size);
@@ -146,20 +151,20 @@ inline object *allot_object(header header, cell size)
 	tenured space */
 	else
 	{
-		zone *tenured = &vm->data->generations[vm->data->tenured()];
+		zone *tenured = &heap->generations[heap->tenured()];
 
 		/* If tenured space does not have enough room, collect */
 		if(tenured->here + size > tenured->end)
 		{
 			gc();
-			tenured = &vm->data->generations[vm->data->tenured()];
+			tenured = &heap->generations[heap->tenured()];
 		}
 
 		/* If it still won't fit, grow the heap */
 		if(tenured->here + size > tenured->end)
 		{
-			garbage_collection(vm->data->tenured(),true,size);
-			tenured = &vm->data->generations[vm->data->tenured()];
+			garbage_collection(heap->tenured(),true,size);
+			tenured = &heap->generations[heap->tenured()];
 		}
 
 		obj = allot_zone(tenured,size);
@@ -180,8 +185,6 @@ template<typename T> T *allot(cell size)
 }
 
 }; // end datacollector
-
-extern datacollector *coll ; // nasty singleton
 
 
 PRIMITIVE(gc);

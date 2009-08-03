@@ -32,9 +32,9 @@ inline static cell card_to_addr(card *c)
 	return ((cell)c - cards_offset) << card_bits;
 }
 
-inline static cell card_offset(card *c)
+inline static cell card_offset(data_heap *heap,card *c)
 {
-	return *(c - (cell)vm->data->cards + (cell)vm->data->allot_markers);
+	return *(c - (cell)heap->cards + (cell)heap->allot_markers);
 }
 
 typedef u8 card_deck;
