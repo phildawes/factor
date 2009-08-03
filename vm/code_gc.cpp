@@ -222,7 +222,7 @@ void free_unmarked(heap *heap, heap_iterator iter)
 		switch(scan->status)
 		{
 		case B_ALLOCATED:
-			if(secure_gc)
+			if(vm->secure_gc)
 				memset(scan + 1,0,scan->size - sizeof(heap_block));
 
 			if(prev && prev->status == B_FREE)

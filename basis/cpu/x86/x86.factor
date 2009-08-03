@@ -539,8 +539,10 @@ M: x86 %prepare-alien-invoke
     #! Save Factor stack pointers in case the C code calls a
     #! callback which does a GC, which must reliably trace
     #! all roots.
-    temp-reg-1 "stack_chain" f %alien-global
-    temp-reg-1 temp-reg-1 [] MOV
+
+    "get_stack_chain" f %alien-invoke
+    temp-reg-1 int-regs return-reg MOV
+
     temp-reg-1 [] stack-reg MOV
     temp-reg-1 [] cell SUB
     temp-reg-1 2 cells [+] ds-reg MOV

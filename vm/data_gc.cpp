@@ -10,7 +10,7 @@ void datacollector::init_data_gc()
 {
 	coll = this;
 	performing_gc = false;
-	last_code_heap_scan = data->nursery();
+	last_code_heap_scan = vm->data->nursery();
 	collecting_aging_again = false;
 }
 
@@ -39,12 +39,12 @@ bool datacollector::should_copy_p(object *untagged)
 {
 	if(in_zone(newspace,untagged))
 		return false;
-	if(collecting_gen == data->tenured())
+	if(collecting_gen == vm->data->tenured())
 		return true;
-	else if(data->have_aging_p() && collecting_gen == data->aging())
-		return !in_zone(&data->generations[data->tenured()],untagged);
-	else if(collecting_gen == data->nursery())
-		return in_zone(&nursery,untagged);
+	else if(vm->data->have_aging_p() && collecting_gen == vm->data->aging())
+		return !in_zone(&vm->data->generations[vm->data->tenured()],untagged);
+	else if(collecting_gen == vm->data->nursery())
+	  return in_zone(getnursery(),untagged);
 	else
 	{
 		critical_error("Bug in should_copy_p",(cell)untagged);
@@ -123,7 +123,7 @@ void datacollector::copy_card_deck(card_deck *deck, cell gen, card mask, card un
 	card *first_card = deck_to_card(deck);
 	card *last_card = deck_to_card(deck + 1);
 
-	cell here = data->generations[gen].here;
+	cell here = vm->data->generations[gen].here;
 
 	u32 *quad_ptr;
 	u32 quad_mask = mask | (mask << 8) | (mask << 16) | (mask << 24);
@@ -152,25 +152,25 @@ void datacollector::copy_card_deck(card_deck *deck, cell gen, card mask, card un
 /* Copy all newspace objects referenced from marked cards to the destination */
 void datacollector::copy_gen_cards(cell gen)
 {
-	card_deck *first_deck = addr_to_deck(data->generations[gen].start);
-	card_deck *last_deck = addr_to_deck(data->generations[gen].end);
+	card_deck *first_deck = addr_to_deck(vm->data->generations[gen].start);
+	card_deck *last_deck = addr_to_deck(vm->data->generations[gen].end);
 
 	card mask, unmask;
 
 	/* if we are collecting the nursery, we care about old->nursery pointers
 	but not old->aging pointers */
-	if(collecting_gen == data->nursery())
+	if(collecting_gen == vm->data->nursery())
 	{
 		mask = card_points_to_nursery;
 
 		/* after the collection, no old->nursery pointers remain
 		anywhere, but old->aging pointers might remain in tenured
 		space */
-		if(gen == data->tenured())
+		if(gen == vm->data->tenured())
 			unmask = card_points_to_nursery;
 		/* after the collection, all cards in aging space can be
 		cleared */
-		else if(data->have_aging_p() && gen == data->aging())
+		else if(vm->data->have_aging_p() && gen == vm->data->aging())
 			unmask = card_mark_mask;
 		else
 		{
@@ -181,7 +181,7 @@ void datacollector::copy_gen_cards(cell gen)
 	/* if we are collecting aging space into tenured space, we care about
 	all old->nursery and old->aging pointers. no old->aging pointers can
 	remain */
-	else if(data->have_aging_p() && collecting_gen == data->aging())
+	else if(vm->data->have_aging_p() && collecting_gen == vm->data->aging())
 	{
 		if(collecting_aging_again)
 		{
@@ -222,7 +222,7 @@ void datacollector::copy_cards()
 	u64 start = current_micros();
 
 	cell i;
-	for(i = collecting_gen + 1; i < data->gen_count; i++)
+	for(i = collecting_gen + 1; i < vm->data->gen_count; i++)
 		copy_gen_cards(i);
 
 	card_scan_time += (current_micros() - start);
@@ -310,9 +310,9 @@ cell datacollector::copy_next_from_nursery(cell scan)
 	if(obj != end)
 	{
 		obj++;
-
-		cell nursery_start = nursery.start;
-		cell nursery_end = nursery.end;
+		zone *nursery = getnursery();
+		cell nursery_start = nursery->start;
+		cell nursery_end = nursery->end;
 
 		for(; obj < end; obj++)
 		{
@@ -339,8 +339,8 @@ cell datacollector::copy_next_from_aging(cell scan)
 	{
 		obj++;
 
-		cell tenured_start = data->generations[data->tenured()].start;
-		cell tenured_end = data->generations[data->tenured()].end;
+		cell tenured_start = vm->data->generations[vm->data->tenured()].start;
+		cell tenured_end = vm->data->generations[vm->data->tenured()].end;
 
 		cell newspace_start = newspace->start;
 		cell newspace_end = newspace->end;
@@ -394,17 +394,17 @@ cell datacollector::copy_next_from_tenured(cell scan)
 
 void datacollector::copy_reachable_objects(cell scan, cell *end)
 {
-	if(collecting_gen == data->nursery())
+	if(collecting_gen == vm->data->nursery())
 	{
 		while(scan < *end)
 			scan = copy_next_from_nursery(scan);
 	}
-	else if(data->have_aging_p() && collecting_gen == data->aging())
+	else if(vm->data->have_aging_p() && collecting_gen == vm->data->aging())
 	{
 		while(scan < *end)
 			scan = copy_next_from_aging(scan);
 	}
-	else if(collecting_gen == data->tenured())
+	else if(collecting_gen == vm->data->tenured())
 	{
 		while(scan < *end)
 			scan = copy_next_from_tenured(scan);
@@ -416,32 +416,32 @@ void datacollector::begin_gc(cell requested_bytes)
 {
 	if(growing_data_heap)
 	{
-		if(collecting_gen != data->tenured())
+		if(collecting_gen != vm->data->tenured())
 			critical_error("Invalid parameters to begin_gc",0);
 
-		old_data_heap = data;
+		old_data_heap = vm->data;
 		set_data_heap(grow_data_heap(old_data_heap,requested_bytes));
-		newspace = &data->generations[data->tenured()];
+		newspace = &vm->data->generations[vm->data->tenured()];
 	}
 	else if(collecting_accumulation_gen_p())
 	{
 		/* when collecting one of these generations, rotate it
 		with the semispace */
-		zone z = data->generations[collecting_gen];
-		data->generations[collecting_gen] = data->semispaces[collecting_gen];
-		data->semispaces[collecting_gen] = z;
-		data->reset_generation(collecting_gen);
-		newspace = &data->generations[collecting_gen];
-		data->clear_cards(collecting_gen,collecting_gen);
-		data->clear_decks(collecting_gen,collecting_gen);
-		data->clear_allot_markers(collecting_gen,collecting_gen);
+		zone z = vm->data->generations[collecting_gen];
+		vm->data->generations[collecting_gen] = vm->data->semispaces[collecting_gen];
+		vm->data->semispaces[collecting_gen] = z;
+		vm->data->reset_generation(collecting_gen);
+		newspace = &vm->data->generations[collecting_gen];
+		vm->data->clear_cards(collecting_gen,collecting_gen);
+		vm->data->clear_decks(collecting_gen,collecting_gen);
+		vm->data->clear_allot_markers(collecting_gen,collecting_gen);
 	}
 	else
 	{
 		/* when collecting a younger generation, we copy
 		reachable objects to the next oldest generation,
 		so we set the newspace so the next generation. */
-		newspace = &data->generations[collecting_gen + 1];
+		newspace = &vm->data->generations[collecting_gen + 1];
 	}
 }
 
@@ -464,20 +464,21 @@ void datacollector::end_gc(cell gc_elapsed)
 	if(collecting_accumulation_gen_p())
 	{
 		/* all younger generations except are now empty.
-		if collecting_gen == data->nursery() here, we only have 1 generation;
+		if collecting_gen == vm->data->nursery() here, we only have 1 generation;
 		old-school Cheney collector */
-		if(collecting_gen != data->nursery())
-			data->reset_generations(data->nursery(),collecting_gen - 1);
+		if(collecting_gen != vm->data->nursery())
+			vm->data->reset_generations(vm->data->nursery(),collecting_gen - 1);
 	}
-	else if(collecting_gen == data->nursery())
+	else if(collecting_gen == vm->data->nursery())
 	{
-		nursery.here = nursery.start;
+	  zone *nursery = getnursery();
+	  nursery->here = nursery->start;
 	}
 	else
 	{
 		/* all generations up to and including the one
 		collected are now empty */
-		data->reset_generations(data->nursery(),collecting_gen);
+		vm->data->reset_generations(vm->data->nursery(),collecting_gen);
 	}
 
 	collecting_aging_again = false;
@@ -490,7 +491,7 @@ void datacollector::garbage_collection(cell gen,
 	bool growing_data_heap_,
 	cell requested_bytes)
 {
-	if(gc_off)
+	if(vm->gc_off)
 	{
 		critical_error("GC disabled",gen);
 		return;
@@ -507,7 +508,7 @@ void datacollector::garbage_collection(cell gen,
 	{
 		/* We have no older generations we can try collecting, so we
 		resort to growing the data heap */
-		if(collecting_gen == data->tenured())
+		if(collecting_gen == vm->data->tenured())
 		{
 			growing_data_heap = true;
 
@@ -516,8 +517,8 @@ void datacollector::garbage_collection(cell gen,
 		}
 		/* we try collecting aging space twice before going on to
 		collect tenured */
-		else if(data->have_aging_p()
-			&& collecting_gen == data->aging()
+		else if(vm->data->have_aging_p()
+			&& collecting_gen == vm->data->aging()
 			&& !collecting_aging_again)
 		{
 			collecting_aging_again = true;
@@ -548,7 +549,7 @@ void datacollector::garbage_collection(cell gen,
 	{
 		code_heap_scans++;
 
-		if(collecting_gen == data->tenured())
+		if(collecting_gen == vm->data->tenured())
 			free_unmarked(&code,(heap_iterator)update_literal_and_word_references);
 		else
 			copy_code_heap_roots();
@@ -568,7 +569,7 @@ void datacollector::garbage_collection(cell gen,
 
 void datacollector::gc()
 {
-	garbage_collection(data->tenured(),false,0);
+	garbage_collection(vm->data->tenured(),false,0);
 }
 
 PRIMITIVE(gc)
@@ -658,7 +659,7 @@ VM_ASM_API void inline_gc(cell *gc_roots_base, cell gc_roots_size)
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_push((cell)&gc_roots_base[i]);
 
-	coll->garbage_collection(data->nursery(),false,0);
+	coll->garbage_collection(vm->data->nursery(),false,0);
 
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_pop();

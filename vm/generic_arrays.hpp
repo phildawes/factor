@@ -28,7 +28,7 @@ template <typename T> T *allot_array_internal(cell capacity)
 
 template <typename T> bool reallot_array_in_place_p(T *array, cell capacity)
 {
-	return in_zone(&nursery,array) && capacity <= array_capacity(array);
+  return in_zone(getnursery(),array) && capacity <= array_capacity(array);
 }
 
 template <typename T> T *reallot_array(T *array_, cell capacity)

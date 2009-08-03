@@ -38,7 +38,7 @@ void throw_error(cell error, stack_frame *callstack_top)
 	if(userenv[BREAK_ENV] != F)
 	{
 		/* If error was thrown during heap scan, we re-enable the GC */
-		gc_off = false;
+		vm->gc_off = false;
 
 		/* Reset local roots */
 		gc_locals = gc_locals_region->start - sizeof(cell);
@@ -114,7 +114,7 @@ void memory_protection_error(cell addr, stack_frame *native_stack)
 		general_error(ERROR_RS_UNDERFLOW,F,F,native_stack);
 	else if(in_page(addr, rs_bot, rs_size, 0))
 		general_error(ERROR_RS_OVERFLOW,F,F,native_stack);
-	else if(in_page(addr, nursery.end, 0, 0))
+	else if(in_page(addr, getnursery()->end, 0, 0))
 		critical_error("allot_object() missed GC check",0);
 	else
 		general_error(ERROR_MEMORY,allot_cell(addr),F,native_stack);

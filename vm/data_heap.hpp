@@ -1,11 +1,6 @@
 namespace factor
 {
 
-/* Set by the -securegc command line argument */
-extern bool secure_gc;
-
-/* GC is off during heap walking */
-extern bool gc_off;
 
 
 /* generational copying GC divides memory into zones */
@@ -72,7 +67,7 @@ cell next_object();
 
 };
 
-extern data_heap *data;
+  // extern data_heap *data;
 
 static const cell max_gen_count = 3;
 
@@ -141,4 +136,5 @@ inline static void do_slots(cell obj, void (* iter)(cell *))
 
 
 /* new objects are allocated here */
-VM_C_API factor::zone nursery;
+/* VM_C_API factor::zone nursery;*/
+VM_C_API factor::zone *getnursery();

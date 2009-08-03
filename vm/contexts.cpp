@@ -2,6 +2,14 @@
 
 factor::context *stack_chain;
 
+factor::context *get_stack_chain(){
+  return stack_chain;
+}
+
+void get_stack_chain2(){
+  factor::dpush((factor::cell)stack_chain);
+}
+
 namespace factor
 {
 

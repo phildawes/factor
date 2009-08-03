@@ -108,8 +108,8 @@ PRIMITIVE(string)
 
 static bool reallot_string_in_place_p(string *str, cell capacity)
 {
-	return in_zone(&nursery,str)
-		&& (str->aux == F || in_zone(&nursery,untag<byte_array>(str->aux)))
+  return in_zone(getnursery(),str)
+    && (str->aux == F || in_zone(getnursery(),untag<byte_array>(str->aux)))
 		&& capacity <= string_capacity(str);
 }
 

@@ -32,6 +32,7 @@
 #endif
 
 /* Factor headers */
+
 #include "layouts.hpp"
 #include "platform.hpp"
 #include "primitives.hpp"
@@ -45,6 +46,8 @@
 #include "bignumint.hpp"
 #include "bignum.hpp"
 #include "data_heap.hpp"
+#include "vm.hpp"
+
 #include "write_barrier.hpp"
 #include "data_gc.hpp"
 #include "local_roots.hpp"
@@ -69,7 +72,7 @@
 #include "quotations.hpp"
 #include "dispatch.hpp"
 #include "inline_cache.hpp"
-#include "factor.hpp"
 #include "utilities.hpp"
+#include "factor.hpp"
 
 #endif /* __FACTOR_MASTER_H__ */

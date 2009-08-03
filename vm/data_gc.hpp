@@ -1,7 +1,6 @@
 namespace factor
 {
 
-
 /* statistics */
 struct gc_stats {
 	cell collections;
@@ -81,10 +80,10 @@ heap. */
 
 inline bool collecting_accumulation_gen_p()
 {
-	return ((data->have_aging_p()
-		&& collecting_gen == data->aging()
+	return ((vm->data->have_aging_p()
+		&& collecting_gen == vm->data->aging()
 		&& !collecting_aging_again)
-		|| collecting_gen == data->tenured());
+		|| collecting_gen == vm->data->tenured());
 }
 
 
@@ -102,8 +101,8 @@ inline void check_data_pointer(object *pointer)
 #ifdef FACTOR_DEBUG
 	if(!growing_data_heap)
 	{
-		assert((cell)pointer >= data->seg->start
-		       && (cell)pointer < data->seg->end);
+		assert((cell)pointer >= vm->data->seg->start
+		       vm->&& (cell)pointer < data->seg->end);
 	}
 #endif
 }
@@ -132,35 +131,35 @@ inline object *allot_object(header header, cell size)
 #endif
 
 	object *obj;
-
-	if(nursery.size - allot_buffer_zone > size)
+	factor::zone *nursery = getnursery();
+	if(nursery->size - allot_buffer_zone > size)
 	{
 		/* If there is insufficient room, collect the nursery */
-		if(nursery.here + allot_buffer_zone + size > nursery.end)
-			garbage_collection(data->nursery(),false,0);
+	  if(nursery->here + allot_buffer_zone + size > nursery->end)
+			garbage_collection(vm->data->nursery(),false,0);
 
-		cell h = nursery.here;
-		nursery.here = h + align8(size);
+		cell h = nursery->here;
+		nursery->here = h + align8(size);
 		obj = (object *)h;
 	}
 	/* If the object is bigger than the nursery, allocate it in
 	tenured space */
 	else
 	{
-		zone *tenured = &data->generations[data->tenured()];
+		zone *tenured = &vm->data->generations[vm->data->tenured()];
 
 		/* If tenured space does not have enough room, collect */
 		if(tenured->here + size > tenured->end)
 		{
 			gc();
-			tenured = &data->generations[data->tenured()];
+			tenured = &vm->data->generations[vm->data->tenured()];
 		}
 
 		/* If it still won't fit, grow the heap */
 		if(tenured->here + size > tenured->end)
 		{
-			garbage_collection(data->tenured(),true,size);
-			tenured = &data->generations[data->tenured()];
+			garbage_collection(vm->data->tenured(),true,size);
+			tenured = &vm->data->generations[vm->data->tenured()];
 		}
 
 		obj = allot_zone(tenured,size);

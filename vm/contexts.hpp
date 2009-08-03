@@ -64,3 +64,6 @@ VM_C_API void unnest_stacks();
 }
 
 VM_C_API factor::context *stack_chain;
+
+VM_C_API factor::context *get_stack_chain();
+VM_C_API void get_stack_chain2();

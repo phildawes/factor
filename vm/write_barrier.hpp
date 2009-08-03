@@ -34,7 +34,7 @@ inline static cell card_to_addr(card *c)
 
 inline static cell card_offset(card *c)
 {
-	return *(c - (cell)data->cards + (cell)data->allot_markers);
+	return *(c - (cell)vm->data->cards + (cell)vm->data->allot_markers);
 }
 
 typedef u8 card_deck;

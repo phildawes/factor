@@ -387,7 +387,7 @@ void mark_stack_frame_step(stack_frame *frame)
 /* Mark code blocks executing in currently active stack frames. */
 void mark_active_blocks(context *stacks)
 {
-	if(coll->collecting_gen == data->tenured())
+	if(coll->collecting_gen == vm->data->tenured())
 	{
 		cell top = (cell)stacks->callstack_top;
 		cell bottom = (cell)stacks->callstack_bottom;
@@ -428,7 +428,7 @@ void mark_object_code_block(object *object)
 /* Perform all fixups on a code block */
 void relocate_code_block(code_block *compiled)
 {
-	compiled->last_scan = data->nursery();
+	compiled->last_scan = vm->data->nursery();
 	compiled->needs_fixup = false;
 	iterate_relocations(compiled,relocate_code_block_step);
 	flush_icache_for(compiled);
@@ -498,7 +498,7 @@ code_block *add_code_block(
 
 	/* compiled header */
 	compiled->type = type;
-	compiled->last_scan = data->nursery();
+	compiled->last_scan = vm->data->nursery();
 	compiled->needs_fixup = true;
 	compiled->relocation = relocation.value();
 
@@ -517,7 +517,7 @@ code_block *add_code_block(
 
 	/* next time we do a minor GC, we have to scan the code heap for
 	literals */
-	coll->last_code_heap_scan = data->nursery();
+	coll->last_code_heap_scan = vm->data->nursery();
 
 	return compiled;
 }

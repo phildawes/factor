@@ -220,34 +220,34 @@ void dump_generations()
 	cell i;
 
 	print_string("Nursery: ");
-	dump_zone(&nursery);
+	dump_zone(getnursery());
 	
-	for(i = 1; i < data->gen_count; i++)
+	for(i = 1; i < vm->data->gen_count; i++)
 	{
 		print_string("Generation "); print_cell(i); print_string(": ");
-		dump_zone(&data->generations[i]);
+		dump_zone(&vm->data->generations[i]);
 	}
 
-	for(i = 0; i < data->gen_count; i++)
+	for(i = 0; i < vm->data->gen_count; i++)
 	{
 		print_string("Semispace "); print_cell(i); print_string(": ");
-		dump_zone(&data->semispaces[i]);
+		dump_zone(&vm->data->semispaces[i]);
 	}
 
 	print_string("Cards: base=");
-	print_cell((cell)data->cards);
+	print_cell((cell)vm->data->cards);
 	print_string(", size=");
-	print_cell((cell)(data->cards_end - data->cards));
+	print_cell((cell)(vm->data->cards_end - vm->data->cards));
 	nl();
 }
 
 void dump_objects(cell type)
 {
 	coll->gc();
-	data->begin_scan();
+	vm->data->begin_scan();
 
 	cell obj;
-	while((obj = data->next_object()) != F)
+	while((obj = vm->data->next_object()) != F)
 	{
 		if(type == TYPE_COUNT || tagged<object>(obj).type_p(type))
 		{
@@ -258,7 +258,7 @@ void dump_objects(cell type)
 		}
 	}
 
-	data->end_scan();
+	vm->data->end_scan();
 }
 
 cell look_for;
@@ -279,12 +279,12 @@ void find_data_references(cell look_for_)
 {
 	look_for = look_for_;
 
-	data->begin_scan();
+	vm->data->begin_scan();
 
-	while((obj = data->next_object()) != F)
+	while((obj = vm->data->next_object()) != F)
 		do_slots(UNTAG(obj),find_data_references_step);
 
-	data->end_scan();
+	vm->data->end_scan();
 }
 
 /* Dump all code blocks for debugging */
