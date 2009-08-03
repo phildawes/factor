@@ -47,7 +47,6 @@
 #include "bignum.hpp"
 #include "data_heap.hpp"
 #include "vm.hpp"
-
 #include "write_barrier.hpp"
 #include "data_gc.hpp"
 #include "local_roots.hpp"

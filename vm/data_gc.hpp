@@ -102,7 +102,7 @@ inline void check_data_pointer(object *pointer)
 	if(!growing_data_heap)
 	{
 		assert((cell)pointer >= vm->data->seg->start
-		       vm->&& (cell)pointer < data->seg->end);
+		       && (cell)pointer < vm->data->seg->end);
 	}
 #endif
 }
