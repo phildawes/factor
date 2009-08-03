@@ -6,8 +6,7 @@ namespace factor
     /* Set by the -securegc command line argument */
     bool secure_gc;
 
-
-    datacollector *dgc;
+    datacollector datagc;
 
   };
 

@@ -13,7 +13,7 @@ static void check_frame(stack_frame *frame)
 
 callstack *allot_callstack(cell size)
 {
-	callstack *stack = vm->dgc->allot<callstack>(callstack_size(size));
+	callstack *stack = vm->datagc.allot<callstack>(callstack_size(size));
 	stack->length = tag_fixnum(size);
 	return stack;
 }
@@ -93,7 +93,7 @@ cell frame_executing(stack_frame *frame)
 	{
 		array *literals = untag<array>(compiled->literals);
 		cell executing = array_nth(literals,0);
-		vm->dgc->check_data_pointer((object *)executing);
+		vm->datagc.check_data_pointer((object *)executing);
 		return executing;
 	}
 }

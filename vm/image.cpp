@@ -29,9 +29,9 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		p->tenured_size,
 		p->secure_gc);
 
-	vm->dgc->clear_gc_stats();
+	vm->datagc.clear_gc_stats();
 
-	zone *tenured = &vm->dgc->heap->generations[vm->dgc->heap->tenured()];
+	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
 
 	fixnum bytes_read = fread((void*)tenured->start,1,h->data_size,file);
 
@@ -90,7 +90,7 @@ bool save_image(const vm_char *filename)
 		return false;
 	}
 
-	zone *tenured = &vm->dgc->heap->generations[vm->dgc->heap->tenured()];
+	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
 
 	h.magic = image_magic;
 	h.version = image_version;
@@ -125,7 +125,7 @@ bool save_image(const vm_char *filename)
 PRIMITIVE(save_image)
 {
 	/* do a full GC to push everything into tenured space */
-	vm->dgc->gc();
+	vm->datagc.gc();
 
 	gc_root<byte_array> path(dpop());
 	path.untag_check();
@@ -147,9 +147,9 @@ PRIMITIVE(save_image_and_exit)
 	}
 
 	/* do a full GC + code heap compaction */
-	vm->dgc->performing_compaction = true;
+	vm->datagc.performing_compaction = true;
 	compact_code_heap();
-	vm->dgc->performing_compaction = false;
+	vm->datagc.performing_compaction = false;
 
 	/* Save the image */
 	if(save_image((vm_char *)(path.untagged() + 1)))
@@ -163,7 +163,7 @@ static void data_fixup(cell *cell)
 	if(immediate_p(*cell))
 		return;
 
-	zone *tenured = &vm->dgc->heap->generations[vm->dgc->heap->tenured()];
+	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
 	*cell += (tenured->start - data_relocation_base);
 }
 
@@ -269,7 +269,7 @@ void relocate_data()
 	data_fixup(&bignum_pos_one);
 	data_fixup(&bignum_neg_one);
 
-	zone *tenured = &vm->dgc->heap->generations[vm->dgc->heap->tenured()];
+	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
 
 	for(relocating = tenured->start;
 		relocating < tenured->here;

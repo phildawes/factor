@@ -286,22 +286,22 @@ void update_literal_references(code_block *compiled)
 aging and nursery collections */
 void copy_literal_references(code_block *compiled)
 {
-	if(vm->dgc->collecting_gen >= compiled->last_scan)
+	if(vm->datagc.collecting_gen >= compiled->last_scan)
 	{
-		if(vm->dgc->collecting_accumulation_gen_p())
-			compiled->last_scan = vm->dgc->collecting_gen;
+		if(vm->datagc.collecting_accumulation_gen_p())
+			compiled->last_scan = vm->datagc.collecting_gen;
 		else
-			compiled->last_scan = vm->dgc->collecting_gen + 1;
+			compiled->last_scan = vm->datagc.collecting_gen + 1;
 
 		/* initialize chase pointer */
-		cell scan = vm->dgc->newspace->here;
+		cell scan = vm->datagc.newspace->here;
 
-		vm->dgc->copy_handle(&compiled->literals);
-		vm->dgc->copy_handle(&compiled->relocation);
+		vm->datagc.copy_handle(&compiled->literals);
+		vm->datagc.copy_handle(&compiled->relocation);
 
 		/* do some tracing so that all reachable literals are now
 		at their final address */
-		vm->dgc->copy_reachable_objects(scan,&vm->dgc->newspace->here);
+		vm->datagc.copy_reachable_objects(scan,&vm->datagc.newspace->here);
 
 		update_literal_references(compiled);
 	}
@@ -375,8 +375,8 @@ void mark_code_block(code_block *compiled)
 
 	mark_block(compiled);
 
-	vm->dgc->copy_handle(&compiled->literals);
-	vm->dgc->copy_handle(&compiled->relocation);
+	vm->datagc.copy_handle(&compiled->literals);
+	vm->datagc.copy_handle(&compiled->relocation);
 }
 
 void mark_stack_frame_step(stack_frame *frame)
@@ -387,7 +387,7 @@ void mark_stack_frame_step(stack_frame *frame)
 /* Mark code blocks executing in currently active stack frames. */
 void mark_active_blocks(context *stacks)
 {
-	if(vm->dgc->collecting_gen == vm->dgc->heap->tenured())
+	if(vm->datagc.collecting_gen == vm->datagc.heap->tenured())
 	{
 		cell top = (cell)stacks->callstack_top;
 		cell bottom = (cell)stacks->callstack_bottom;
@@ -428,7 +428,7 @@ void mark_object_code_block(object *object)
 /* Perform all fixups on a code block */
 void relocate_code_block(code_block *compiled)
 {
-	compiled->last_scan = vm->dgc->heap->nursery();
+	compiled->last_scan = vm->datagc.heap->nursery();
 	compiled->needs_fixup = false;
 	iterate_relocations(compiled,relocate_code_block_step);
 	flush_icache_for(compiled);
@@ -460,7 +460,7 @@ code_block *allot_code_block(cell size)
 	/* If allocation failed, do a code GC */
 	if(block == NULL)
 	{
-		vm->dgc->gc();
+		vm->datagc.gc();
 		block = heap_allot(&code,size + sizeof(code_block));
 
 		/* Insufficient room even after code GC, give up */
@@ -498,7 +498,7 @@ code_block *add_code_block(
 
 	/* compiled header */
 	compiled->type = type;
-	compiled->last_scan = vm->dgc->heap->nursery();
+	compiled->last_scan = vm->datagc.heap->nursery();
 	compiled->needs_fixup = true;
 	compiled->relocation = relocation.value();
 
@@ -517,7 +517,7 @@ code_block *add_code_block(
 
 	/* next time we do a minor GC, we have to scan the code heap for
 	literals */
-	vm->dgc->last_code_heap_scan = vm->dgc->heap->nursery();
+	vm->datagc.last_code_heap_scan = vm->datagc.heap->nursery();
 
 	return compiled;
 }
