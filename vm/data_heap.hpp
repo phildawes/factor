@@ -136,5 +136,7 @@ inline static void do_slots(cell obj, void (* iter)(cell *))
 
 
 /* new objects are allocated here */
-/* VM_C_API factor::zone nursery;*/
+VM_C_API factor::zone nursery;
+
+/* TODO: failed attempt to make thread-local - remove me */
 VM_C_API factor::zone *getnursery();
