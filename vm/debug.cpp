@@ -3,8 +3,6 @@
 namespace factor
 {
 
-static bool fep_disabled;
-static bool full_output;
 
 void print_chars(string* str)
 {
@@ -44,7 +42,7 @@ void print_array(array* array, cell nesting)
 	cell i;
 	bool trimmed;
 
-	if(length > 10 && !full_output)
+	if(length > 10 && !vm->full_output)
 	{
 		trimmed = true;
 		length = 10;
@@ -73,7 +71,7 @@ void print_tuple(tuple *tuple, cell nesting)
 	cell i;
 	bool trimmed;
 
-	if(length > 10 && !full_output)
+	if(length > 10 && !vm->full_output)
 	{
 		trimmed = true;
 		length = 10;
@@ -93,7 +91,7 @@ void print_tuple(tuple *tuple, cell nesting)
 
 void print_nested_obj(cell obj, fixnum nesting)
 {
-	if(nesting <= 0 && !full_output)
+	if(nesting <= 0 && !vm->full_output)
 	{
 		print_string(" ... ");
 		return;
@@ -261,28 +259,26 @@ void dump_objects(cell type)
 	vm->datagc.heap->end_scan();
 }
 
-cell look_for;
-cell obj;
 
 void find_data_references_step(cell *scan)
 {
-	if(look_for == *scan)
+	if(vm->look_for == *scan)
 	{
-		print_cell_hex_pad(obj);
+		print_cell_hex_pad(vm->obj);
 		print_string(" ");
-		print_nested_obj(obj,2);
+		print_nested_obj(vm->obj,2);
 		nl();
 	}
 }
 
 void find_data_references(cell look_for_)
 {
-	look_for = look_for_;
+	vm->look_for = look_for_;
 
 	vm->datagc.heap->begin_scan();
 
-	while((obj = vm->datagc.heap->next_object()) != F)
-		do_slots(UNTAG(obj),find_data_references_step);
+	while((vm->obj = vm->datagc.heap->next_object()) != F)
+		do_slots(UNTAG(vm->obj),find_data_references_step);
 
 	vm->datagc.heap->end_scan();
 }
@@ -330,7 +326,7 @@ void dump_code_heap()
 
 void factorbug()
 {
-	if(fep_disabled)
+	if(vm->fep_disabled)
 	{
 		print_string("Low level debugger disabled\n");
 		exit(1);
@@ -378,7 +374,7 @@ void factorbug()
 				dump stacks. This is useful for builder and
 				other cases where Factor is run with stdin
 				redirected to /dev/null */
-				fep_disabled = true;
+				vm->fep_disabled = true;
 
 				print_datastack();
 				print_retainstack();
@@ -410,7 +406,7 @@ void factorbug()
 			print_string("\n");
 		}
 		else if(strcmp(cmd,"t") == 0)
-			full_output = !full_output;
+			vm->full_output = !vm->full_output;
 		else if(strcmp(cmd,"s") == 0)
 			dump_memory(ds_bot,ds);
 		else if(strcmp(cmd,"r") == 0)

@@ -3,9 +3,6 @@
 namespace factor
 {
 
-cell megamorphic_cache_hits;
-cell megamorphic_cache_misses;
-
 static cell search_lookup_alist(cell table, cell klass)
 {
 	array *elements = untag<array>(table);
@@ -152,7 +149,7 @@ static void update_method_cache(cell cache, cell klass, cell method)
 
 PRIMITIVE(mega_cache_miss)
 {
-	megamorphic_cache_misses++;
+	vm->megamorphic_cache_misses++;
 
 	cell cache = dpop();
 	fixnum index = untag_fixnum(dpop());
@@ -169,14 +166,14 @@ PRIMITIVE(mega_cache_miss)
 
 PRIMITIVE(reset_dispatch_stats)
 {
-	megamorphic_cache_hits = megamorphic_cache_misses = 0;
+	vm->megamorphic_cache_hits = vm->megamorphic_cache_misses = 0;
 }
 
 PRIMITIVE(dispatch_stats)
 {
 	growable_array stats;
-	stats.add(allot_cell(megamorphic_cache_hits));
-	stats.add(allot_cell(megamorphic_cache_misses));
+	stats.add(allot_cell(vm->megamorphic_cache_hits));
+	stats.add(allot_cell(vm->megamorphic_cache_misses));
 	stats.trim();
 	dpush(stats.elements.value());
 }

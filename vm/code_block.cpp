@@ -170,7 +170,7 @@ cell compute_relocation(relocation_entry rel, cell index, code_block *compiled)
 	case RT_UNTAGGED:
 		return untag_fixnum(ARG);
 	case RT_MEGAMORPHIC_CACHE_HITS:
-		return (cell)&megamorphic_cache_hits;
+		return (cell)&vm->megamorphic_cache_hits;
 	default:
 		critical_error("Bad rel type",rel);
 		return 0; /* Can't happen */
