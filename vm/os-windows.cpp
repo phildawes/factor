@@ -3,12 +3,10 @@
 namespace factor
 {
 
-HMODULE hFactorDll;
-
 void init_ffi()
 {
-	hFactorDll = GetModuleHandle(FACTOR_DLL);
-	if(!hFactorDll)
+	vm->hFactorDll = GetModuleHandle(FACTOR_DLL);
+	if(!vm->hFactorDll)
 		fatal_error("GetModuleHandle(\"" FACTOR_DLL_NAME "\") failed", 0);
 }
 
@@ -19,7 +17,7 @@ void ffi_dlopen(dll *dll)
 
 void *ffi_dlsym(dll *dll, symbol_char *symbol)
 {
-	return (void *)GetProcAddress(dll ? (HMODULE)dll->dll : hFactorDll, symbol);
+	return (void *)GetProcAddress(dll ? (HMODULE)dll->dll : vm->hFactorDll, symbol);
 }
 
 void ffi_dlclose(dll *dll)

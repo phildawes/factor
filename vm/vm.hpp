@@ -69,14 +69,42 @@ namespace factor
     cell bignum_pos_one;
     cell bignum_neg_one;
 
+#ifdef WINDOWS
+    HMODULE hFactorDll;
+#endif
 
     factorvm();
-
   };
 
   extern factorvm *vm;   // Ideally we want to get rid of this singleton ptr completely
+
+
+#ifndef WINDOWS
+
+/* On Unix, shared fds such as stdin cannot be set to non-blocking mode
+(http://homepages.tesco.net/J.deBoynePollard/FGA/dont-set-shared-file-descriptors-to-non-blocking-mode.html)
+so we kludge around this by spawning a thread, which waits on a control pipe
+for a signal, upon receiving this signal it reads one block of data from stdin
+and writes it to a data pipe. Upon completion, it writes a 4-byte integer to
+the size pipe, indicating how much data was written to the data pipe.
+
+The read end of the size pipe can be set to non-blocking. */
+extern "C" {
+	extern int stdin_read;
+	extern int stdin_write;
+
+	extern int control_read;
+	extern int control_write;
+
+	extern int size_read;
+	extern int size_write;
+}
+
+#endif
+
 }
 
 // globals to be replaced
 
 VM_C_API factor::context *stack_chain;  
+
