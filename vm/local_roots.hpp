@@ -29,13 +29,16 @@ struct gc_root : public tagged<T>
 };
 
 
+// 
 
 template <typename T>
 struct gc_root2 : public tagged<T>
 {
 	factorvm *myvm;
 
-	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
+	DEFPUSHPOP(gc_local2_,myvm->gc_locals)
+
+	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local2_push((cell)this); }
 	
 	explicit gc_root2(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
 	explicit gc_root2(T *value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
