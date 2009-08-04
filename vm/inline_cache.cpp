@@ -3,18 +3,10 @@
 namespace factor
 {
 
-cell max_pic_size;
-
-cell cold_call_to_ic_transitions;
-cell ic_to_pic_transitions;
-cell pic_to_mega_transitions;
-
-/* PIC_TAG, PIC_HI_TAG, PIC_TUPLE, PIC_HI_TAG_TUPLE */
-cell pic_counts[4];
 
 void init_inline_caching(int max_size)
 {
-	max_pic_size = max_size;
+	vm->max_pic_size = max_size;
 }
 
 void deallocate_inline_cache(cell return_address)
@@ -77,7 +69,7 @@ static cell determine_inline_cache_type(array *cache_entries)
 
 static void update_pic_count(cell type)
 {
-	pic_counts[type - PIC_TAG]++;
+	vm->pic_counts[type - PIC_TAG]++;
 }
 
 struct inline_cache_jit : public jit {
@@ -195,12 +187,12 @@ static cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method
 
 static void update_pic_transitions(cell pic_size)
 {
-	if(pic_size == max_pic_size)
-		pic_to_mega_transitions++;
+	if(pic_size == vm->max_pic_size)
+		vm->pic_to_mega_transitions++;
 	else if(pic_size == 0)
-		cold_call_to_ic_transitions++;
+		vm->cold_call_to_ic_transitions++;
 	else if(pic_size == 1)
-		ic_to_pic_transitions++;
+		vm->ic_to_pic_transitions++;
 }
 
 /* The cache_entries parameter is either f (on cold call site) or an array (on cache miss).
@@ -226,7 +218,7 @@ void *inline_cache_miss(cell return_address)
 
 	update_pic_transitions(pic_size);
 
-	if(pic_size >= max_pic_size)
+	if(pic_size >= vm->max_pic_size)
 		xt = megamorphic_call_stub(generic_word.value());
 	else
 	{
@@ -259,20 +251,20 @@ void *inline_cache_miss(cell return_address)
 
 PRIMITIVE(reset_inline_cache_stats)
 {
-	cold_call_to_ic_transitions = ic_to_pic_transitions = pic_to_mega_transitions = 0;
+	vm->cold_call_to_ic_transitions = vm->ic_to_pic_transitions = vm->pic_to_mega_transitions = 0;
 	cell i;
-	for(i = 0; i < 4; i++) pic_counts[i] = 0;
+	for(i = 0; i < 4; i++) vm->pic_counts[i] = 0;
 }
 
 PRIMITIVE(inline_cache_stats)
 {
 	growable_array stats;
-	stats.add(allot_cell(cold_call_to_ic_transitions));
-	stats.add(allot_cell(ic_to_pic_transitions));
-	stats.add(allot_cell(pic_to_mega_transitions));
+	stats.add(allot_cell(vm->cold_call_to_ic_transitions));
+	stats.add(allot_cell(vm->ic_to_pic_transitions));
+	stats.add(allot_cell(vm->pic_to_mega_transitions));
 	cell i;
 	for(i = 0; i < 4; i++)
-		stats.add(allot_cell(pic_counts[i]));
+		stats.add(allot_cell(vm->pic_counts[i]));
 	stats.trim();
 	dpush(stats.elements.value());
 }

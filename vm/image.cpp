@@ -9,12 +9,11 @@ static void init_objects(image_header *h)
 	memcpy(userenv,h->userenv,sizeof(userenv));
 
 	T = h->t;
-	bignum_zero = h->bignum_zero;
-	bignum_pos_one = h->bignum_pos_one;
-	bignum_neg_one = h->bignum_neg_one;
+	vm->bignum_zero = h->bignum_zero;
+	vm->bignum_pos_one = h->bignum_pos_one;
+	vm->bignum_neg_one = h->bignum_neg_one;
 }
 
-cell data_relocation_base;
 
 static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 {
@@ -46,10 +45,9 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 	}
 
 	tenured->here = tenured->start + h->data_size;
-	data_relocation_base = h->data_relocation_base;
+	vm->data_relocation_base = h->data_relocation_base;
 }
 
-cell code_relocation_base;
 
 static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 {
@@ -72,7 +70,7 @@ static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 		}
 	}
 
-	code_relocation_base = h->code_relocation_base;
+	vm->code_relocation_base = h->code_relocation_base;
 	build_free_list(vm->code,h->code_size);
 }
 
@@ -100,9 +98,9 @@ bool save_image(const vm_char *filename)
 	h.code_size = heap_size(vm->code);
 
 	h.t = T;
-	h.bignum_zero = bignum_zero;
-	h.bignum_pos_one = bignum_pos_one;
-	h.bignum_neg_one = bignum_neg_one;
+	h.bignum_zero = vm->bignum_zero;
+	h.bignum_pos_one = vm->bignum_pos_one;
+	h.bignum_neg_one = vm->bignum_neg_one;
 
 	for(cell i = 0; i < USER_ENV; i++)
 		h.userenv[i] = (save_env_p(i) ? userenv[i] : F);
@@ -164,13 +162,13 @@ static void data_fixup(cell *cell)
 		return;
 
 	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
-	*cell += (tenured->start - data_relocation_base);
+	*cell += (tenured->start - vm->data_relocation_base);
 }
 
 template <typename T> void code_fixup(T **handle)
 {
 	T *ptr = *handle;
-	T *new_ptr = (T *)(((cell)ptr) + (vm->code->seg->start - code_relocation_base));
+	T *new_ptr = (T *)(((cell)ptr) + (vm->code->seg->start - vm->code_relocation_base));
 	*handle = new_ptr;
 }
 
@@ -265,9 +263,9 @@ void relocate_data()
 		data_fixup(&userenv[i]);
 
 	data_fixup(&T);
-	data_fixup(&bignum_zero);
-	data_fixup(&bignum_pos_one);
-	data_fixup(&bignum_neg_one);
+	data_fixup(&vm->bignum_zero);
+	data_fixup(&vm->bignum_pos_one);
+	data_fixup(&vm->bignum_neg_one);
 
 	zone *tenured = &vm->datagc.heap->generations[vm->datagc.heap->tenured()];
 

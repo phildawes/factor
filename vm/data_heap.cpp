@@ -189,11 +189,11 @@ void init_data_heap(cell gens,
 {
 	set_data_heap(alloc_data_heap(gens,young_size,aging_size,tenured_size));
 
-	gc_locals_region = alloc_segment(getpagesize());
-	gc_locals = gc_locals_region->start - sizeof(cell);
+	vm->gc_locals_region = alloc_segment(getpagesize());
+	vm->gc_locals = vm->gc_locals_region->start - sizeof(cell);
 
-	gc_bignums_region = alloc_segment(getpagesize());
-	gc_bignums = gc_bignums_region->start - sizeof(cell);
+	vm->gc_bignums_region = alloc_segment(getpagesize());
+	vm->gc_bignums = vm->gc_bignums_region->start - sizeof(cell);
 
 	vm->secure_gc = secure_gc_;
 

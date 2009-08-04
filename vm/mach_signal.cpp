@@ -15,9 +15,6 @@ Modified for Factor by Slava Pestov */
 namespace factor
 {
 
-/* The exception port on which our thread listens. */
-mach_port_t our_exception_port;
-
 /* The following sources were used as a *reference* for this exception handling
 code:
 1. Apple's mach/xnu documentation
@@ -147,7 +144,7 @@ mach_exception_thread (void *arg)
 
 		/* Wait for a message on the exception port.  */
 		retval = mach_msg (&msg.head, MACH_RCV_MSG | MACH_RCV_LARGE, 0,
-			sizeof (msg), our_exception_port,
+			sizeof (msg), vm->our_exception_port,
 			MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
 		if (retval != MACH_MSG_SUCCESS)
 		{
@@ -177,12 +174,12 @@ void mach_initialize ()
 	self = mach_task_self ();
 
 	/* Allocate a port on which the thread shall listen for exceptions.  */
-	if (mach_port_allocate (self, MACH_PORT_RIGHT_RECEIVE, &our_exception_port)
+	if (mach_port_allocate (self, MACH_PORT_RIGHT_RECEIVE, &vm->our_exception_port)
 		!= KERN_SUCCESS)
 		fatal_error("mach_port_allocate() failed",0);
 
 	/* See http://web.mit.edu/darwin/src/modules/xnu/osfmk/man/mach_port_insert_right.html.  */
-	if (mach_port_insert_right (self, our_exception_port, our_exception_port,
+	if (mach_port_insert_right (self, vm->our_exception_port, vm->our_exception_port,
 		MACH_MSG_TYPE_MAKE_SEND)
 		!= KERN_SUCCESS)
 		fatal_error("mach_port_insert_right() failed",0);
@@ -199,7 +196,7 @@ void mach_initialize ()
 	port gets the message, the thread specific exception port has already
 	been asked, and we don't need to bother about it.
 	See http://web.mit.edu/darwin/src/modules/xnu/osfmk/man/task_set_exception_ports.html.  */
-	if (task_set_exception_ports (self, mask, our_exception_port,
+	if (task_set_exception_ports (self, mask, vm->our_exception_port,
 		EXCEPTION_DEFAULT, MACHINE_THREAD_STATE)
 		!= KERN_SUCCESS)
 		fatal_error("task_set_exception_ports() failed",0);

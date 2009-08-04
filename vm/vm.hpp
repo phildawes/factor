@@ -38,6 +38,37 @@ namespace factor
     cell signal_fault_addr;
     stack_frame *signal_callstack_top;
 
+    // image.cpp
+    cell data_relocation_base;
+    cell code_relocation_base;
+
+
+    // inline_cache.cpp
+    cell max_pic_size;    
+    cell cold_call_to_ic_transitions;
+    cell ic_to_pic_transitions;
+    cell pic_to_mega_transitions;
+    /* PIC_TAG, PIC_HI_TAG, PIC_TUPLE, PIC_HI_TAG_TUPLE */
+    cell pic_counts[4];
+
+
+    // local_roots.cpp
+    segment *gc_locals_region;
+    cell gc_locals;
+    segment *gc_bignums_region;
+    cell gc_bignums;
+
+#ifdef __APPLE__
+    // mach_signal.hpp
+    /* The exception port on which our thread listens. */
+    mach_port_t our_exception_port;
+#endif
+
+    // math.cpp
+    cell bignum_zero;
+    cell bignum_pos_one;
+    cell bignum_neg_one;
+
 
     factorvm();
 

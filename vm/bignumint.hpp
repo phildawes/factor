@@ -78,9 +78,9 @@ typedef fixnum bignum_length_type;
 
 /* These definitions are here to facilitate caching of the constants
    0, 1, and -1. */
-#define BIGNUM_ZERO() untag<bignum>(bignum_zero)
+#define BIGNUM_ZERO() untag<bignum>(vm->bignum_zero)
 #define BIGNUM_ONE(neg_p) \
-   untag<bignum>(neg_p ? bignum_neg_one : bignum_pos_one)
+   untag<bignum>(neg_p ? vm->bignum_neg_one : vm->bignum_pos_one)
 
 #define HD_LOW(digit) ((digit) & BIGNUM_HALF_DIGIT_MASK)
 #define HD_HIGH(digit) ((digit) >> BIGNUM_HALF_DIGIT_LENGTH)

@@ -36,8 +36,8 @@ void throw_error(cell error, stack_frame *callstack_top)
 		vm->gc_off = false;
 
 		/* Reset local roots */
-		gc_locals = gc_locals_region->start - sizeof(cell);
-		gc_bignums = gc_bignums_region->start - sizeof(cell);
+		vm->gc_locals = vm->gc_locals_region->start - sizeof(cell);
+		vm->gc_bignums = vm->gc_bignums_region->start - sizeof(cell);
 
 		/* If we had an underflow or overflow, stack pointers might be
 		out of bounds */

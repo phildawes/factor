@@ -235,17 +235,17 @@ void datacollector::copy_stack_elements(segment *region, cell top)
 
 void datacollector::copy_registered_locals()
 {
-	cell scan = gc_locals_region->start;
+	cell scan = vm->gc_locals_region->start;
 
-	for(; scan <= gc_locals; scan += sizeof(cell))
+	for(; scan <= vm->gc_locals; scan += sizeof(cell))
 		copy_handle(*(cell **)scan);
 }
 
 void datacollector::copy_registered_bignums()
 {
-	cell scan = gc_bignums_region->start;
+	cell scan = vm->gc_bignums_region->start;
 
-	for(; scan <= gc_bignums; scan += sizeof(cell))
+	for(; scan <= vm->gc_bignums; scan += sizeof(cell))
 	{
 		bignum **handle = *(bignum ***)scan;
 		bignum *pointer = *handle;
@@ -267,9 +267,9 @@ the user environment and extra roots registered by local_roots.hpp */
 void datacollector::copy_roots()
 {
 	copy_handle(&T);
-	copy_handle(&bignum_zero);
-	copy_handle(&bignum_pos_one);
-	copy_handle(&bignum_neg_one);
+	copy_handle(&vm->bignum_zero);
+	copy_handle(&vm->bignum_pos_one);
+	copy_handle(&vm->bignum_neg_one);
 
 	copy_registered_locals();
 	copy_registered_bignums();

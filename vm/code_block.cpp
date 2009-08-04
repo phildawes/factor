@@ -63,7 +63,7 @@ void *object_xt(cell obj)
 
 static void *xt_pic(word *w, cell tagged_quot)
 {
-	if(tagged_quot == F || max_pic_size == 0)
+	if(tagged_quot == F || vm->max_pic_size == 0)
 		return w->xt;
 	else
 	{

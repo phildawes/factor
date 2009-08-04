@@ -3,10 +3,6 @@
 namespace factor
 {
 
-cell bignum_zero;
-cell bignum_pos_one;
-cell bignum_neg_one;
-
 PRIMITIVE(bignum_to_fixnum)
 {
 	drepl(tag_fixnum(bignum_to_fixnum(untag<bignum>(dpeek()))));
@@ -246,7 +242,7 @@ cell unbox_array_size()
 		}
 	case BIGNUM_TYPE:
 		{
-			bignum * zero = untag<bignum>(bignum_zero);
+			bignum * zero = untag<bignum>(vm->bignum_zero);
 			bignum * max = cell_to_bignum(array_size_max);
 			bignum * n = untag<bignum>(dpeek());
 			if(bignum_compare(n,zero) != bignum_comparison_less
