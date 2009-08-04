@@ -44,6 +44,11 @@ namespace factor
 		cell data_relocation_base;
 		cell code_relocation_base;
 
+	// from local_roots.cpp
+	segment *gc_locals_region;
+	cell gc_locals;
+	segment *gc_bignums_region;
+	cell gc_bignums;
 
 		// inline_cache.cpp
 		cell max_pic_size;	  
@@ -54,11 +59,6 @@ namespace factor
 		cell pic_counts[4];
 
 
-		// local_roots.cpp
-		segment *gc_locals_region;
-		cell gc_locals;
-		segment *gc_bignums_region;
-		cell gc_bignums;
 
 #ifdef __APPLE__
 		// mach_signal.hpp
@@ -92,7 +92,7 @@ namespace factor
 
 
 
-	// globals to be removed (referenced in factor code)
+// globals to be removed (referenced in factor code)
 
 	// contexts.cpp
 	VM_C_API factor::context *stack_chain;  

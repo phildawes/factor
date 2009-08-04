@@ -1,12 +1,9 @@
 namespace factor
 {
-
-
-
 /* generational copying GC divides memory into zones */
 struct zone {
 	/* allocation pointer is 'here'; its offset is hardcoded in the
-	compiler backends */
+	   compiler backends */
 	cell start;
 	cell here;
 	cell size;
@@ -46,28 +43,25 @@ struct data_heap {
 	bool have_aging_p() { return gen_count > 2; }
 
 
-/* A heap walk allows useful things to be done, like finding all
-references to an object for debugging purposes. */
-cell heap_scan_ptr;
+	/* A heap walk allows useful things to be done, like finding all
+	   references to an object for debugging purposes. */
+	cell heap_scan_ptr;
+
+	data_heap* initial_setup(cell gens,cell young_size,cell aging_size,cell tenured_size);
+
+	void init_card_decks();
+	void clear_cards(cell from, cell to);
+	void clear_decks(cell from, cell to);
+	void clear_allot_markers(cell from, cell to);
+	void reset_generation(cell i);
+	void reset_generations(cell from, cell to);
 
 
-data_heap* initial_setup(cell gens,cell young_size,cell aging_size,cell tenured_size);
-
-void init_card_decks();
-void clear_cards(cell from, cell to);
-void clear_decks(cell from, cell to);
-void clear_allot_markers(cell from, cell to);
-void reset_generation(cell i);
-void reset_generations(cell from, cell to);
-
-
-void begin_scan();
-void end_scan();
-cell next_object();
+	void begin_scan();
+	void end_scan();
+	cell next_object();
 
 };
-
-  // extern data_heap *data;
 
 static const cell max_gen_count = 3;
 
@@ -86,13 +80,13 @@ void dealloc_data_heap(data_heap *data);
 void set_data_heap(data_heap *data_heap_);
 
 void init_data_heap(cell gens,
-	cell young_size,
-	cell aging_size,
-	cell tenured_size,
-	bool secure_gc_);
+					cell young_size,
+					cell aging_size,
+					cell tenured_size,
+					bool secure_gc_);
 
 /* set up guard pages to check for under/overflow.
-size must be a multiple of the page size */
+   size must be a multiple of the page size */
 segment *alloc_segment(cell size);
 void dealloc_segment(segment *block);
 
@@ -113,8 +107,8 @@ PRIMITIVE(end_scan);
 cell find_all_words();
 
 /* Every object has a regular representation in the runtime, which makes GC
-much simpler. Every slot of the object until binary_payload_start is a pointer
-to some other object. */
+   much simpler. Every slot of the object until binary_payload_start is a pointer
+   to some other object. */
 inline static void do_slots(cell obj, void (* iter)(cell *))
 {
 	cell scan = obj;
@@ -124,10 +118,10 @@ inline static void do_slots(cell obj, void (* iter)(cell *))
 	scan += sizeof(cell);
 
 	while(scan < end)
-	{
-		iter((cell *)scan);
-		scan += sizeof(cell);
-	}
+		{
+			iter((cell *)scan);
+			scan += sizeof(cell);
+		}
 }
 
 

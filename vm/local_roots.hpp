@@ -29,6 +29,32 @@ struct gc_root : public tagged<T>
 };
 
 
+
+template <typename T>
+struct gc_root2 : public tagged<T>
+{
+	factorvm *myvm;
+
+	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
+	
+	explicit gc_root2(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
+	explicit gc_root2(T *value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
+
+	const gc_root2<T>& operator=(const T *x) { tagged<T>::operator=(x); return *this; }
+	const gc_root2<T>& operator=(const cell &x) { tagged<T>::operator=(x); return *this; }
+
+	~gc_root2() {
+#ifdef FACTOR_DEBUG
+		cell old = gc_local_pop();
+		assert(old == (cell)this);
+#else
+		gc_local_pop();
+#endif
+	}
+};
+
+
+
 DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
 
 struct gc_bignum
