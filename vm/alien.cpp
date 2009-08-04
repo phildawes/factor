@@ -27,8 +27,8 @@ char *pinned_alien_offset(cell obj)
 /* make an alien */
 cell allot_alien(cell delegate_, cell displacement)
 {
-	gc_root<object> delegate(delegate_);
-	gc_root<alien> new_alien(vm->datagc->allot<alien>(sizeof(alien)));
+	gc_root2<object> delegate(delegate_,vm);
+	gc_root2<alien> new_alien(vm->datagc->allot<alien>(sizeof(alien)),vm);
 
 	if(delegate.type_p(ALIEN_TYPE))
 	{
@@ -113,9 +113,9 @@ DEFINE_ALIEN_ACCESSOR(cell,void *,box_alien,pinned_alien_offset)
 /* open a native library and push a handle */
 PRIMITIVE(dlopen)
 {
-	gc_root<byte_array> path(dpop());
+	gc_root2<byte_array> path(dpop(),vm);
 	path.untag_check();
-	gc_root<dll> library(vm->datagc->allot<dll>(sizeof(dll)));
+	gc_root2<dll> library(vm->datagc->allot<dll>(sizeof(dll)),vm);
 	library->path = path.value();
 	ffi_dlopen(library.untagged());
 	dpush(library.value());
@@ -124,8 +124,8 @@ PRIMITIVE(dlopen)
 /* look up a symbol in a native library */
 PRIMITIVE(dlsym)
 {
-	gc_root<object> library(dpop());
-	gc_root<byte_array> name(dpop());
+	gc_root2<object> library(dpop(),vm);
+	gc_root2<byte_array> name(dpop(),vm);
 	name.untag_check();
 
 	symbol_char *sym = name->data<symbol_char>();

@@ -139,8 +139,8 @@ struct stack_frame_accumulator {
 
 	void operator()(stack_frame *frame)
 	{
-		gc_root<object> executing(frame_executing(frame));
-		gc_root<object> scan(frame_scan(frame));
+		gc_root2<object> executing(frame_executing(frame),vm);
+		gc_root2<object> scan(frame_scan(frame),vm);
 
 		frames.add(executing.value());
 		frames.add(scan.value());
@@ -151,7 +151,7 @@ struct stack_frame_accumulator {
 
 PRIMITIVE(callstack_to_array)
 {
-	gc_root<callstack> callstack(dpop());
+	gc_root2<callstack> callstack(dpop(),vm);
 
 	stack_frame_accumulator accum;
 	iterate_callstack_object(callstack.untagged(),accum);
@@ -193,8 +193,8 @@ PRIMITIVE(innermost_stack_frame_scan)
 
 PRIMITIVE(set_innermost_stack_frame_quot)
 {
-	gc_root<callstack> callstack(dpop());
-	gc_root<quotation> quot(dpop());
+	gc_root2<callstack> callstack(dpop(),vm);
+	gc_root2<quotation> quot(dpop(),vm);
 
 	callstack.untag_check();
 	quot.untag_check();

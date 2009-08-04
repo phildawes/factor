@@ -54,7 +54,7 @@ PRIMITIVE(load_locals)
 
 static cell clone_object(cell obj_)
 {
-	gc_root<object> obj(obj_);
+	gc_root2<object> obj(obj_,vm);
 
 	if(immediate_p(obj.value()))
 		return obj.value();

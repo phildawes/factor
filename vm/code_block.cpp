@@ -488,10 +488,10 @@ code_block *add_code_block(
 	cell relocation_,
 	cell literals_)
 {
-	gc_root<byte_array> code(code_);
-	gc_root<object> labels(labels_);
-	gc_root<byte_array> relocation(relocation_);
-	gc_root<array> literals(literals_);
+	gc_root2<byte_array> code(code_,vm);
+	gc_root2<object> labels(labels_,vm);
+	gc_root2<byte_array> relocation(relocation_,vm);
+	gc_root2<array> literals(literals_,vm);
 
 	cell code_length = align8(array_capacity(code.untagged()));
 	code_block *compiled = allot_code_block(code_length);

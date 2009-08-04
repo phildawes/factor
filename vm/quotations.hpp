@@ -2,12 +2,12 @@ namespace factor
 {
 
 struct quotation_jit : public jit {
-	gc_root<array> elements;
+	gc_root2<array> elements;
 	bool compiling, relocate;
 
 	quotation_jit(cell quot, bool compiling_, bool relocate_)
 		: jit(QUOTATION_TYPE,quot),
-		  elements(owner.as<quotation>().untagged()->array),
+		  elements(owner.as<quotation>().untagged()->array,vm),
 		  compiling(compiling_),
 		  relocate(relocate_) {};
 

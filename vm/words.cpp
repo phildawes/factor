@@ -5,10 +5,10 @@ namespace factor
 
 word *allot_word(cell vocab_, cell name_)
 {
-	gc_root<object> vocab(vocab_);
-	gc_root<object> name(name_);
+	gc_root2<object> vocab(vocab_,vm);
+	gc_root2<object> name(name_,vm);
 
-	gc_root<word> new_word(vm->datagc->allot<word>(sizeof(word)));
+	gc_root2<word> new_word(vm->datagc->allot<word>(sizeof(word)),vm);
 
 	new_word->hashcode = tag_fixnum((rand() << 16) ^ rand());
 	new_word->vocabulary = vocab.value();
@@ -51,7 +51,7 @@ PRIMITIVE(word_xt)
 /* Allocates memory */
 void update_word_xt(cell w_)
 {
-	gc_root<word> w(w_);
+	gc_root2<word> w(w_,vm);
 
 	if(vm->profiling_p)
 	{

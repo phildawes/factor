@@ -3,7 +3,7 @@ namespace factor
 
 struct jit {
 	cell type;
-	gc_root<object> owner;
+	gc_root2<object> owner;
 	growable_byte_array code;
 	growable_byte_array relocation;
 	growable_array literals;
@@ -39,8 +39,8 @@ struct jit {
 	}
 
 	void emit_subprimitive(cell word_) {
-		gc_root<word> word(word_);
-		gc_root<array> code_template(word->subprimitive);
+		gc_root2<word> word(word_,vm);
+		gc_root2<array> code_template(word->subprimitive,vm);
 		if(array_capacity(code_template.untagged()) > 1) literal(vm->T);
 		emit(code_template.value());
 	}

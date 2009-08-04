@@ -33,8 +33,8 @@ void io_error()
 
 PRIMITIVE(fopen)
 {
-	gc_root<byte_array> mode(dpop());
-	gc_root<byte_array> path(dpop());
+	gc_root2<byte_array> mode(dpop(),vm);
+	gc_root2<byte_array> path(dpop(),vm);
 	mode.untag_check();
 	path.untag_check();
 
@@ -88,7 +88,7 @@ PRIMITIVE(fread)
 		return;
 	}
 
-	gc_root<byte_array> buf(allot_array_internal<byte_array>(size));
+	gc_root2<byte_array> buf(allot_array_internal<byte_array>(size),vm);
 
 	for(;;)
 	{

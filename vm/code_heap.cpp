@@ -19,8 +19,8 @@ bool in_code_heap_p(cell ptr)
 /* Compile a word definition with the non-optimizing compiler. Allocates memory */
 void jit_compile_word(cell word_, cell def_, bool relocate)
 {
-	gc_root<word> word(word_);
-	gc_root<quotation> def(def_);
+	gc_root2<word> word(word_,vm);
+	gc_root2<quotation> def(def_,vm);
 
 	jit_compile(def.value(),relocate);
 
@@ -59,7 +59,7 @@ void update_code_heap_words()
 
 PRIMITIVE(modify_code_heap)
 {
-	gc_root<array> alist(dpop());
+	gc_root2<array> alist(dpop(),vm);
 
 	cell count = array_capacity(alist.untagged());
 
@@ -69,10 +69,10 @@ PRIMITIVE(modify_code_heap)
 	cell i;
 	for(i = 0; i < count; i++)
 	{
-		gc_root<array> pair(array_nth(alist.untagged(),i));
+		gc_root2<array> pair(array_nth(alist.untagged(),i),vm);
 
-		gc_root<word> word(array_nth(pair.untagged(),0));
-		gc_root<object> data(array_nth(pair.untagged(),1));
+		gc_root2<word> word(array_nth(pair.untagged(),0),vm);
+		gc_root2<object> data(array_nth(pair.untagged(),1),vm);
 
 		switch(data.type())
 		{

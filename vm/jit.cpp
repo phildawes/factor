@@ -12,7 +12,7 @@ namespace factor
 /* Allocates memory */
 jit::jit(cell type_, cell owner_)
 	: type(type_),
-	  owner(owner_),
+	  owner(owner_,vm),
 	  code(),
 	  relocation(),
 	  literals(),
@@ -25,7 +25,7 @@ jit::jit(cell type_, cell owner_)
 
 void jit::emit_relocation(cell code_template_)
 {
-	gc_root<array> code_template(code_template_);
+	gc_root2<array> code_template(code_template_,vm);
 	cell capacity = array_capacity(code_template.untagged());
 	for(cell i = 1; i < capacity; i += 3)
 	{
@@ -44,11 +44,11 @@ void jit::emit_relocation(cell code_template_)
 /* Allocates memory */
 void jit::emit(cell code_template_)
 {
-	gc_root<array> code_template(code_template_);
+	gc_root2<array> code_template(code_template_,vm);
 
 	emit_relocation(code_template.value());
 
-	gc_root<byte_array> insns(array_nth(code_template.untagged(),0));
+	gc_root2<byte_array> insns(array_nth(code_template.untagged(),0),vm);
 
 	if(computing_offset_p)
 	{
@@ -72,8 +72,8 @@ void jit::emit(cell code_template_)
 }
 
 void jit::emit_with(cell code_template_, cell argument_) {
-	gc_root<array> code_template(code_template_);
-	gc_root<object> argument(argument_);
+	gc_root2<array> code_template(code_template_,vm);
+	gc_root2<object> argument(argument_,vm);
 	literal(argument.value());
 	emit(code_template.value());
 }
