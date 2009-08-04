@@ -10,7 +10,7 @@ DEFPUSHPOP(gc_local_,vm->gc_locals)
 template <typename T>
 struct gc_root : public tagged<T>
 {
-	void push() { vm->datagc.check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
+	void push() { vm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
 	
 	explicit gc_root(cell value_) : tagged<T>(value_) { push(); }
 	explicit gc_root(T *value_) : tagged<T>(value_) { push(); }
@@ -37,7 +37,7 @@ struct gc_bignum
 
 	gc_bignum(bignum **addr_) : addr(addr_) {
 		if(*addr_)
-			vm->datagc.check_data_pointer(*addr_);
+			vm->datagc->check_data_pointer(*addr_);
 		gc_bignum_push((cell)addr);
 	}
 

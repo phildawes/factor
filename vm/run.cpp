@@ -5,7 +5,6 @@ factor::cell userenv[USER_ENV];
 namespace factor
 {
 
-cell T;
 
 PRIMITIVE(getenv)
 {
@@ -62,7 +61,7 @@ static cell clone_object(cell obj_)
 	else
 	{
 		cell size = object_size(obj.value());
-		object *new_obj = vm->datagc.allot_object(obj.type(),size);
+		object *new_obj = vm->datagc->allot_object(obj.type(),size);
 		memcpy(new_obj,obj.untagged(),size);
 		return tag_dynamic(new_obj);
 	}

@@ -60,11 +60,9 @@ inline static card *deck_to_card(card_deck *d)
 
 static const cell invalid_allot_marker = 0xff;
 
-extern cell allot_markers_offset;
-
 inline static card *addr_to_allot_marker(object *a)
 {
-	return (card *)(((cell)a >> card_bits) + allot_markers_offset);
+	return (card *)(((cell)a >> card_bits) + vm->allot_markers_offset);
 }
 
 /* the write barrier must be called any time we are potentially storing a

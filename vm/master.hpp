@@ -33,6 +33,7 @@
 
 /* Factor headers */
 
+
 #include "layouts.hpp"
 #include "platform.hpp"
 #include "primitives.hpp"
@@ -40,6 +41,7 @@
 #include "segments.hpp"
 #include "contexts.hpp"
 #include "run.hpp"
+#include "vm.hpp"
 #include "tagged.hpp"
 #include "profiler.hpp"
 #include "errors.hpp"
@@ -48,7 +50,6 @@
 #include "data_heap.hpp"
 #include "write_barrier.hpp"
 #include "data_gc.hpp"
-#include "vm.hpp"
 #include "local_roots.hpp"
 #include "generic_arrays.hpp"
 #include "debug.hpp"

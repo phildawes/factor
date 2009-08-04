@@ -182,7 +182,7 @@ PRIMITIVE(check_datastack)
 				return;
 			}
 		}
-		dpush(T);
+		dpush(vm->T);
 	}
 }
 

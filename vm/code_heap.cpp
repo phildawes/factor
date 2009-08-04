@@ -134,11 +134,11 @@ void forward_frame_xt(stack_frame *frame)
 
 void forward_object_xts()
 {
-	vm->datagc.heap->begin_scan();
+	vm->datagc->heap->begin_scan();
 
 	cell obj;
 
-	while((obj = vm->datagc.heap->next_object()) != F)
+	while((obj = vm->datagc->heap->next_object()) != F)
 	{
 		switch(tagged<object>(obj).type())
 		{
@@ -171,17 +171,17 @@ void forward_object_xts()
 		}
 	}
 
-	vm->datagc.heap->end_scan();
+	vm->datagc->heap->end_scan();
 }
 
 /* Set the XT fields now that the heap has been compacted */
 void fixup_object_xts()
 {
-	vm->datagc.heap->begin_scan();
+	vm->datagc->heap->begin_scan();
 
 	cell obj;
 
-	while((obj = vm->datagc.heap->next_object()) != F)
+	while((obj = vm->datagc->heap->next_object()) != F)
 	{
 		switch(tagged<object>(obj).type())
 		{
@@ -200,7 +200,7 @@ void fixup_object_xts()
 		}
 	}
 
-	vm->datagc.heap->end_scan();
+	vm->datagc->heap->end_scan();
 }
 
 /* Move all free space to the end of the code heap. This is not very efficient,
@@ -210,7 +210,7 @@ critical here */
 void compact_code_heap()
 {
 	/* Free all unreachable code blocks */
-	vm->datagc.gc();
+	vm->datagc->gc();
 
 	/* Figure out where the code heap blocks are going to end up */
 	cell size = compute_heap_forwarding(vm->code, vm->forwarding);

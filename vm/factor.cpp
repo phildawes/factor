@@ -7,6 +7,7 @@ namespace factor
 
   factorvm::factorvm(){
     code = new heap;
+    datagc = new datacollector;
   }
 
 VM_C_API void default_parameters(vm_parameters *p)
@@ -93,7 +94,7 @@ static void do_stage1_init()
 	fflush(stdout);
 
 	compile_all_words();
-	userenv[STAGE2_ENV] = T;
+	userenv[STAGE2_ENV] = vm->T;
 
 	print_string("done\n");
 	fflush(stdout);
@@ -180,7 +181,7 @@ static void start_factor(vm_parameters *p)
 
 VM_C_API void start_embedded_factor(vm_parameters *p)
 {
-	userenv[EMBEDDED_ENV] = T;
+	userenv[EMBEDDED_ENV] = vm->T;
 	start_factor(p);
 }
 

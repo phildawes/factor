@@ -3,11 +3,10 @@
 namespace factor
 {
 
-bool profiling_p;
 
 void init_profiler()
 {
-	profiling_p = false;
+	vm->profiling_p = false;
 }
 
 /* Allocates memory */
@@ -24,14 +23,14 @@ code_block *compile_profiling_stub(cell word_)
 /* Allocates memory */
 static void set_profiling(bool profiling)
 {
-	if(profiling == profiling_p)
+	if(profiling == vm->profiling_p)
 		return;
 
-	profiling_p = profiling;
+	vm->profiling_p = profiling;
 
 	/* Push everything to tenured space so that we can heap scan
 	and allocate profiling blocks if necessary */
-	vm->datagc.gc();
+	vm->datagc->gc();
 
 	gc_root<array> words(find_all_words());
 
