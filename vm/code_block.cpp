@@ -360,7 +360,7 @@ void update_literal_and_word_references(code_block *compiled)
 static void check_code_address(cell address)
 {
 #ifdef FACTOR_DEBUG
-	assert(address >= code.seg->start && address < code.seg->end);
+	assert(address >= vm->code->seg->start && address < vm->code->seg->end);
 #endif
 }
 

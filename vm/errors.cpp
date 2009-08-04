@@ -3,11 +3,6 @@
 namespace factor
 {
 
-/* Global variables used to pass fault handler state from signal handler to
-user-space */
-cell signal_number;
-cell signal_fault_addr;
-stack_frame *signal_callstack_top;
 
 void out_of_memory()
 {
@@ -143,12 +138,12 @@ PRIMITIVE(unimplemented)
 
 void memory_signal_handler_impl()
 {
-	memory_protection_error(signal_fault_addr,signal_callstack_top);
+	memory_protection_error(vm->signal_fault_addr,vm->signal_callstack_top);
 }
 
 void misc_signal_handler_impl()
 {
-	signal_error(signal_number,signal_callstack_top);
+	signal_error(vm->signal_number,vm->signal_callstack_top);
 }
 
 }
