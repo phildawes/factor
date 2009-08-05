@@ -34,7 +34,7 @@ struct growable_array {
 	cell count;
 	gc_root<array> elements;
 
-	growable_array(cell capacity = 10) : count(0), elements(allot_array(capacity,F)) {}
+	growable_array(cell capacity = 10) : count(0), elements(allot_array(capacity,F),vm) {}
 
 	void add(cell elt);
 	void trim();

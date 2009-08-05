@@ -5,34 +5,8 @@ namespace factor
 allocates memory, it must wrap any local variable references to Factor
 objects in gc_root instances */
 
-DEFPUSHPOP(gc_local_,vm->gc_locals)
-
 template <typename T>
 struct gc_root : public tagged<T>
-{
-	void push() { vm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
-	
-	explicit gc_root(cell value_) : tagged<T>(value_) { push(); }
-	explicit gc_root(T *value_) : tagged<T>(value_) { push(); }
-
-	const gc_root<T>& operator=(const T *x) { tagged<T>::operator=(x); return *this; }
-	const gc_root<T>& operator=(const cell &x) { tagged<T>::operator=(x); return *this; }
-
-	~gc_root() {
-#ifdef FACTOR_DEBUG
-		cell old = gc_local_pop();
-		assert(old == (cell)this);
-#else
-		gc_local_pop();
-#endif
-	}
-};
-
-
-// 
-
-template <typename T>
-struct gc_root2 : public tagged<T>
 {
 	factorvm *myvm;
 
@@ -40,29 +14,30 @@ struct gc_root2 : public tagged<T>
 
 	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local2_push((cell)this); }
 	
-	explicit gc_root2(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
-	explicit gc_root2(T *value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
+	explicit gc_root(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
+	explicit gc_root(T *value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
 
-	const gc_root2<T>& operator=(const T *x) { tagged<T>::operator=(x); return *this; }
-	const gc_root2<T>& operator=(const cell &x) { tagged<T>::operator=(x); return *this; }
+	const gc_root<T>& operator=(const T *x) { tagged<T>::operator=(x); return *this; }
+	const gc_root<T>& operator=(const cell &x) { tagged<T>::operator=(x); return *this; }
 
-	~gc_root2() {
+	~gc_root() {
 #ifdef FACTOR_DEBUG
-		cell old = gc_local_pop();
+		cell old = gc_local2_pop();
 		assert(old == (cell)this);
 #else
-		gc_local_pop();
+		gc_local2_pop();
 #endif
 	}
 };
 
 
 
-DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
 
 struct gc_bignum
 {
 	bignum **addr;
+
+	DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
 
 	gc_bignum(bignum **addr_) : addr(addr_) {
 		if(*addr_)

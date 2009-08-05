@@ -29,7 +29,7 @@ void set_string_nth_fast(string *str, cell index, cell ch)
 
 void set_string_nth_slow(string *str_, cell index, cell ch)
 {
-	gc_root2<string> str(str_,vm);
+	gc_root<string> str(str_,vm);
 
 	byte_array *aux;
 
@@ -78,7 +78,7 @@ string *allot_string_internal(cell capacity)
 /* Allocates memory */
 void fill_string(string *str_, cell start, cell capacity, cell fill)
 {
-	gc_root2<string> str(str_,vm);
+	gc_root<string> str(str_,vm);
 
 	if(fill <= 0x7f)
 		memset(&str->data()[start],fill,capacity - start);
@@ -94,7 +94,7 @@ void fill_string(string *str_, cell start, cell capacity, cell fill)
 /* Allocates memory */
 string *allot_string(cell capacity, cell fill)
 {
-	gc_root2<string> str(allot_string_internal(capacity),vm);
+	gc_root<string> str(allot_string_internal(capacity),vm);
 	fill_string(str.untagged(),0,capacity,fill);
 	return str.untagged();
 }
@@ -115,7 +115,7 @@ static bool reallot_string_in_place_p(string *str, cell capacity)
 
 string* reallot_string(string *str_, cell capacity)
 {
-	gc_root2<string> str(str_,vm);
+	gc_root<string> str(str_,vm);
 
 	if(reallot_string_in_place_p(str.untagged(),capacity))
 	{
@@ -135,7 +135,7 @@ string* reallot_string(string *str_, cell capacity)
 		if(capacity < to_copy)
 			to_copy = capacity;
 
-		gc_root2<string> new_str(allot_string_internal(capacity),vm);
+		gc_root<string> new_str(allot_string_internal(capacity),vm);
 
 		memcpy(new_str->data(),str->data(),to_copy);
 

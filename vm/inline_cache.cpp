@@ -104,9 +104,9 @@ void inline_cache_jit::compile_inline_cache(fixnum index,
 					    cell cache_entries_,
 					    bool tail_call_p)
 {
-	gc_root2<word> generic_word(generic_word_,vm);
-	gc_root2<array> methods(methods_,vm);
-	gc_root2<array> cache_entries(cache_entries_,vm);
+	gc_root<word> generic_word(generic_word_,vm);
+	gc_root<array> methods(methods_,vm);
+	gc_root<array> cache_entries(cache_entries_,vm);
 
 	cell inline_cache_type = determine_inline_cache_type(cache_entries.untagged());
 	update_pic_count(inline_cache_type);
@@ -145,9 +145,9 @@ static code_block *compile_inline_cache(fixnum index,
 					cell cache_entries_,
 					bool tail_call_p)
 {
-	gc_root2<word> generic_word(generic_word_,vm);
-	gc_root2<array> methods(methods_,vm);
-	gc_root2<array> cache_entries(cache_entries_,vm);
+	gc_root<word> generic_word(generic_word_,vm);
+	gc_root<array> methods(methods_,vm);
+	gc_root<array> cache_entries(cache_entries_,vm);
 
 	inline_cache_jit jit(generic_word.value());
 	jit.compile_inline_cache(index,
@@ -174,12 +174,12 @@ static cell inline_cache_size(cell cache_entries)
 /* Allocates memory */
 static cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method_)
 {
-	gc_root2<array> cache_entries(cache_entries_,vm);
-	gc_root2<object> klass(klass_,vm);
-	gc_root2<word> method(method_,vm);
+	gc_root<array> cache_entries(cache_entries_,vm);
+	gc_root<object> klass(klass_,vm);
+	gc_root<word> method(method_,vm);
 
 	cell pic_size = array_capacity(cache_entries.untagged());
-	gc_root2<array> new_cache_entries(reallot_array(cache_entries.untagged(),pic_size + 2),vm);
+	gc_root<array> new_cache_entries(reallot_array(cache_entries.untagged(),pic_size + 2),vm);
 	set_array_nth(new_cache_entries.untagged(),pic_size,klass.value());
 	set_array_nth(new_cache_entries.untagged(),pic_size + 1,method.value());
 	return new_cache_entries.value();
@@ -206,11 +206,11 @@ void *inline_cache_miss(cell return_address)
 	   instead of leaving dead PICs around until the next GC. */
 	deallocate_inline_cache(return_address);
 
-	gc_root2<array> cache_entries(dpop(),vm);
+	gc_root<array> cache_entries(dpop(),vm);
 	fixnum index = untag_fixnum(dpop());
-	gc_root2<array> methods(dpop(),vm);
-	gc_root2<word> generic_word(dpop(),vm);
-	gc_root2<object> object(((cell *)ds)[-index],vm);
+	gc_root<array> methods(dpop(),vm);
+	gc_root<word> generic_word(dpop(),vm);
+	gc_root<object> object(((cell *)ds)[-index],vm);
 
 	void *xt;
 
@@ -225,7 +225,7 @@ void *inline_cache_miss(cell return_address)
 		cell klass = object_class(object.value());
 		cell method = lookup_method(object.value(),methods.value());
 
-		gc_root2<array> new_cache_entries(add_inline_cache_entry(
+		gc_root<array> new_cache_entries(add_inline_cache_entry(
 							   cache_entries.value(),
 							   klass,
 							   method),vm);

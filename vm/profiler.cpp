@@ -12,7 +12,7 @@ void init_profiler()
 /* Allocates memory */
 code_block *compile_profiling_stub(cell word_)
 {
-	gc_root2<word> word(word_,vm);
+	gc_root<word> word(word_,vm);
 
 	jit jit(WORD_TYPE,word.value());
 	jit.emit_with(userenv[JIT_PROFILING],word.value());
@@ -32,7 +32,7 @@ static void set_profiling(bool profiling)
 	and allocate profiling blocks if necessary */
 	vm->datagc->gc();
 
-	gc_root2<array> words(find_all_words(),vm);
+	gc_root<array> words(find_all_words(),vm);
 
 	cell i;
 	cell length = array_capacity(words.untagged());

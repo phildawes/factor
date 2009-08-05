@@ -180,8 +180,8 @@ PRIMITIVE(dispatch_stats)
 
 void quotation_jit::emit_mega_cache_lookup(cell methods_, fixnum index, cell cache_)
 {
-	gc_root2<array> methods(methods_,vm);
-	gc_root2<array> cache(cache_,vm);
+	gc_root<array> methods(methods_,vm);
+	gc_root<array> cache(cache_,vm);
 
 	/* Generate machine code to determine the object's class. */
 	emit_class_lookup(index,PIC_HI_TAG_TUPLE);

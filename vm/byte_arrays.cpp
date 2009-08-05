@@ -43,7 +43,7 @@ void growable_byte_array::append_bytes(void *elts, cell len)
 
 void growable_byte_array::append_byte_array(cell byte_array_)
 {
-	gc_root2<byte_array> byte_array(byte_array_,vm);
+	gc_root<byte_array> byte_array(byte_array_,vm);
 
 	cell len = array_capacity(byte_array.untagged());
 	cell new_size = count + len;

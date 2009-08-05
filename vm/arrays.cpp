@@ -6,8 +6,8 @@ namespace factor
 /* make a new array with an initial element */
 array *allot_array(cell capacity, cell fill_)
 {
-	gc_root2<object> fill(fill_,vm);
-	gc_root2<array> new_array(allot_array_internal<array>(capacity),vm);
+	gc_root<object> fill(fill_,vm);
+	gc_root<array> new_array(allot_array_internal<array>(capacity),vm);
 
 	if(fill.value() == tag_fixnum(0))
 		memset(new_array->data(),'\0',capacity * sizeof(cell));
@@ -33,17 +33,17 @@ PRIMITIVE(array)
 
 cell allot_array_1(cell obj_)
 {
-	gc_root2<object> obj(obj_,vm);
-	gc_root2<array> a(allot_array_internal<array>(1),vm);
+	gc_root<object> obj(obj_,vm);
+	gc_root<array> a(allot_array_internal<array>(1),vm);
 	set_array_nth(a.untagged(),0,obj.value());
 	return a.value();
 }
 
 cell allot_array_2(cell v1_, cell v2_)
 {
-	gc_root2<object> v1(v1_,vm);
-	gc_root2<object> v2(v2_,vm);
-	gc_root2<array> a(allot_array_internal<array>(2),vm);
+	gc_root<object> v1(v1_,vm);
+	gc_root<object> v2(v2_,vm);
+	gc_root<array> a(allot_array_internal<array>(2),vm);
 	set_array_nth(a.untagged(),0,v1.value());
 	set_array_nth(a.untagged(),1,v2.value());
 	return a.value();
@@ -51,11 +51,11 @@ cell allot_array_2(cell v1_, cell v2_)
 
 cell allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 {
-	gc_root2<object> v1(v1_,vm);
-	gc_root2<object> v2(v2_,vm);
-	gc_root2<object> v3(v3_,vm);
-	gc_root2<object> v4(v4_,vm);
-	gc_root2<array> a(allot_array_internal<array>(4),vm);
+	gc_root<object> v1(v1_,vm);
+	gc_root<object> v2(v2_,vm);
+	gc_root<object> v3(v3_,vm);
+	gc_root<object> v4(v4_,vm);
+	gc_root<array> a(allot_array_internal<array>(4),vm);
 	set_array_nth(a.untagged(),0,v1.value());
 	set_array_nth(a.untagged(),1,v2.value());
 	set_array_nth(a.untagged(),2,v3.value());
@@ -72,7 +72,7 @@ PRIMITIVE(resize_array)
 
 void growable_array::add(cell elt_)
 {
-	gc_root2<object> elt(elt_,vm);
+	gc_root<object> elt(elt_,vm);
 	if(count == array_capacity(elements.untagged()))
 		elements = reallot_array(elements.untagged(),count * 2);
 
