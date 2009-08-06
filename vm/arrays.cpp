@@ -72,6 +72,7 @@ PRIMITIVE(resize_array)
 
 void growable_array::add(cell elt_)
 {
+	factorvm *myvm = elements.myvm;
 	gc_root<object> elt(elt_,myvm);
 	if(count == array_capacity(elements.untagged()))
 		elements = myvm->reallot_array(elements.untagged(),count * 2);
@@ -81,7 +82,7 @@ void growable_array::add(cell elt_)
 
 void growable_array::trim()
 {
-	elements = myvm->reallot_array(elements.untagged(),count);
+	elements = elements.myvm->reallot_array(elements.untagged(),count);
 }
 
 }
