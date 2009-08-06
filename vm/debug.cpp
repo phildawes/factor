@@ -278,7 +278,7 @@ void find_data_references(cell look_for_)
 	vm->begin_scan();
 
 	while((vm->obj = vm->next_object()) != F)
-		do_slots(UNTAG(vm->obj),find_data_references_step);
+		vm->do_slots(UNTAG(vm->obj),find_data_references_step);
 
 	vm->end_scan();
 }
@@ -299,13 +299,13 @@ void dump_code_heap()
 			status = "free";
 			break;
 		case B_ALLOCATED:
-			reloc_size += object_size(((code_block *)scan)->relocation);
-			literal_size += object_size(((code_block *)scan)->literals);
+			reloc_size += vm->object_size(((code_block *)scan)->relocation);
+			literal_size += vm->object_size(((code_block *)scan)->literals);
 			status = "allocated";
 			break;
 		case B_MARKED:
-			reloc_size += object_size(((code_block *)scan)->relocation);
-			literal_size += object_size(((code_block *)scan)->literals);
+			reloc_size += vm->object_size(((code_block *)scan)->relocation);
+			literal_size += vm->object_size(((code_block *)scan)->literals);
 			status = "marked";
 			break;
 		default:
@@ -396,7 +396,7 @@ void factorbug()
 		else if(strcmp(cmd,"u") == 0)
 		{
 			cell addr = read_cell_hex();
-			cell count = object_size(addr);
+			cell count = vm->object_size(addr);
 			dump_memory(addr,addr+count);
 		}
 		else if(strcmp(cmd,".") == 0)

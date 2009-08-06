@@ -60,7 +60,7 @@ static cell clone_object(cell obj_)
 		return obj.value();
 	else
 	{
-		cell size = object_size(obj.value());
+		cell size = vm->object_size(obj.value());
 		object *new_obj = vm->allot_object(obj.type(),size);
 		memcpy(new_obj,obj.untagged(),size);
 		return tag_dynamic(new_obj);

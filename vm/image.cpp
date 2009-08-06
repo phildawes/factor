@@ -209,7 +209,7 @@ static void fixup_callstack_object(callstack *stack)
 }
 
 /* Initialize an object in a newly-loaded image */
-static void relocate_object(object *object)
+void factorvm::relocate_object(object *object)
 {
 	cell hi_tag = object->h.hi_tag();
 	

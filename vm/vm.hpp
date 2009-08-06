@@ -46,11 +46,32 @@ struct factorvm {
 	void begin_scan();
 	void end_scan();
 	cell next_object();
+	cell untagged_object_size(object *pointer);
+	cell unaligned_object_size(object *pointer);
+	cell object_size(cell tagged);
+	cell binary_payload_start(object *pointer);
+/* Every object has a regular representation in the runtime, which makes GC
+   much simpler. Every slot of the object until binary_payload_start is a pointer
+   to some other object. */
+inline void do_slots(cell obj, void (* iter)(cell *))
+{
+	cell scan = obj;
+	cell payload_start = binary_payload_start((object *)obj);
+	cell end = obj + payload_start;
+
+	scan += sizeof(cell);
+
+	while(scan < end)
+		{
+			iter((cell *)scan);
+			scan += sizeof(cell);
+		}
+}
+
+	template<typename TYPE> void each_object(TYPE &functor);
 
 
 	unordered_map<heap_block *,char *> forwarding; 
-
-
 
 	// context
 	cell ds_size, rs_size;
@@ -103,7 +124,7 @@ struct factorvm {
 	bool save_image(const vm_char *file);
 	void load_data_heap(FILE *file, image_header *h, vm_parameters *p);
 	void load_code_heap(FILE *file, image_header *h, vm_parameters *p);
-
+	void relocate_object(object *object);
 	// from local_roots.cpp
 	segment *gc_locals_region;
 	cell gc_locals;

@@ -136,8 +136,8 @@ void factorvm::clear_decks(cell from, cell to)
 void factorvm::clear_allot_markers(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = vm->addr_to_allot_marker((object *)data->generations[to].start);
-	card *last_card = vm->addr_to_allot_marker((object *)data->generations[from].end);
+	card *first_card = addr_to_allot_marker((object *)data->generations[to].start);
+	card *last_card = addr_to_allot_marker((object *)data->generations[from].end);
 	memset(first_card,invalid_allot_marker,last_card - first_card);
 }
 
@@ -181,19 +181,19 @@ void factorvm::init_data_heap(cell gens,
 {
 	set_data_heap(alloc_data_heap(gens,young_size,aging_size,tenured_size));
 
-	vm->gc_locals_region = alloc_segment(getpagesize());
-	vm->gc_locals = vm->gc_locals_region->start - sizeof(cell);
+	gc_locals_region = alloc_segment(getpagesize());
+	gc_locals = gc_locals_region->start - sizeof(cell);
 
-	vm->gc_bignums_region = alloc_segment(getpagesize());
-	vm->gc_bignums = vm->gc_bignums_region->start - sizeof(cell);
+	gc_bignums_region = alloc_segment(getpagesize());
+	gc_bignums = gc_bignums_region->start - sizeof(cell);
 
-	vm->secure_gc = secure_gc_;
+	secure_gc = secure_gc_;
 
-	vm->init_data_gc();
+	init_data_gc();
 }
 
 /* Size of the object pointed to by a tagged pointer */
-cell object_size(cell tagged)
+cell factorvm::object_size(cell tagged)
 {
 	if(immediate_p(tagged))
 		return 0;
@@ -202,13 +202,13 @@ cell object_size(cell tagged)
 }
 
 /* Size of the object pointed to by an untagged pointer */
-cell untagged_object_size(object *pointer)
+cell factorvm::untagged_object_size(object *pointer)
 {
 	return align8(unaligned_object_size(pointer));
 }
 
 /* Size of the data area of an object pointed to by an untagged pointer */
-cell unaligned_object_size(object *pointer)
+cell factorvm::unaligned_object_size(object *pointer)
 {
 	switch(pointer->h.hi_tag())
 	{
@@ -237,20 +237,20 @@ cell unaligned_object_size(object *pointer)
 	case CALLSTACK_TYPE:
 		return callstack_size(untag_fixnum(((callstack *)pointer)->length));
 	default:
-		vm->critical_error("Invalid header",(cell)pointer);
+		critical_error("Invalid header",(cell)pointer);
 		return 0; /* can't happen */
 	}
 }
 
 PRIMITIVE(size)
 {
-	box_unsigned_cell(object_size(dpop()));
+	box_unsigned_cell(vm->object_size(dpop()));
 }
 
 /* The number of cells from the start of the object which should be scanned by
 the GC. Some types have a binary payload at the end (string, word, DLL) which
 we ignore. */
-cell binary_payload_start(object *pointer)
+cell factorvm::binary_payload_start(object *pointer)
 {
 	switch(pointer->h.hi_tag())
 	{
@@ -279,7 +279,7 @@ cell binary_payload_start(object *pointer)
 	case WRAPPER_TYPE:
 		return sizeof(wrapper);
 	default:
-		vm->critical_error("Invalid header",(cell)pointer);
+		critical_error("Invalid header",(cell)pointer);
                 return 0; /* can't happen */
 	}
 }
@@ -308,13 +308,13 @@ PRIMITIVE(data_room)
 /* Disables GC and activates next-object ( -- obj ) primitive */
 void factorvm::begin_scan()
 {
-	heap_scan_ptr = vm->data->generations[vm->data->tenured()].start;
-	vm->gc_off = true;
+	heap_scan_ptr = data->generations[data->tenured()].start;
+	gc_off = true;
 }
 
 void factorvm::end_scan()
 {
-	vm->gc_off = false;
+	gc_off = false;
 }
 
 PRIMITIVE(begin_scan)
@@ -324,10 +324,10 @@ PRIMITIVE(begin_scan)
 
 cell factorvm::next_object()
 {
-	if(!vm->gc_off)
-		vm->general_error(ERROR_HEAP_SCAN,F,F,NULL);
+	if(!gc_off)
+		general_error(ERROR_HEAP_SCAN,F,F,NULL);
 
-	if(heap_scan_ptr >= vm->data->generations[vm->data->tenured()].here)
+	if(heap_scan_ptr >= data->generations[data->tenured()].here)
 		return F;
 
 	object *obj = (object *)heap_scan_ptr;
@@ -347,7 +347,7 @@ PRIMITIVE(end_scan)
 	vm->gc_off = false;
 }
 
-template<typename T> void each_object(T &functor)
+template<typename TYPE> void factorvm::each_object(TYPE &functor)
 {
 	vm->begin_scan();
 	cell obj;
@@ -376,9 +376,9 @@ struct word_accumulator {
 cell find_all_words()
 {
 	word_counter counter;
-	each_object(counter);
+	vm->each_object(counter);
 	word_accumulator accum(counter.count);
-	each_object(accum);
+	vm->each_object(accum);
 	accum.words.trim();
 	return accum.words.elements.value();
 }
