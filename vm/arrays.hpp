@@ -28,8 +28,9 @@ PRIMITIVE(resize_array);
 struct growable_array {
 	cell count;
 	gc_root<array> elements;
+	factorvm *myvm;
 
-	growable_array(factorvm *myvm,cell capacity = 10) : count(0), elements(myvm->allot_array(capacity,F),myvm) {}
+	growable_array(factorvm *myvm_,cell capacity = 10) : count(0), elements(myvm->allot_array(capacity,F),myvm_), myvm(myvm_) {}
 
 	void add(cell elt);
 	void trim();
