@@ -186,7 +186,10 @@ struct factorvm {
 	// byte_array
 
 	byte_array *allot_byte_array(cell size);
-	
+
+	// tuples
+
+	tuple *allot_tuple(cell layout_);
 
 	// bignum
 		
