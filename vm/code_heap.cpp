@@ -102,7 +102,7 @@ PRIMITIVE(modify_code_heap)
 			break;
 		}
 
-		update_word_xt(word.value());
+		vm->update_word_xt(word.value());
 	}
 
 	update_code_heap_words();
@@ -175,13 +175,13 @@ void forward_object_xts()
 }
 
 /* Set the XT fields now that the heap has been compacted */
-void fixup_object_xts()
+void factorvm::fixup_object_xts()
 {
-	vm->begin_scan();
+	begin_scan();
 
 	cell obj;
 
-	while((obj = vm->next_object()) != F)
+	while((obj = next_object()) != F)
 	{
 		switch(tagged<object>(obj).type())
 		{
@@ -200,7 +200,7 @@ void fixup_object_xts()
 		}
 	}
 
-	vm->end_scan();
+	end_scan();
 }
 
 /* Move all free space to the end of the code heap. This is not very efficient,
@@ -222,7 +222,7 @@ void compact_code_heap()
 	compact_heap(vm->code,vm->forwarding);
 
 	/* Update word and quotation XTs */
-	fixup_object_xts();
+	vm->fixup_object_xts();
 
 	/* Now update the free list; there will be a single free block at
 	the end */

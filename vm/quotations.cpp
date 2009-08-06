@@ -312,7 +312,7 @@ PRIMITIVE(quotation_xt)
 	drepl(allot_cell((cell)quot->xt));
 }
 
-void compile_all_words()
+void factorvm::compile_all_words()
 {
 	gc_root<array> words(vm->find_all_words(),vm);
 

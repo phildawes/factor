@@ -191,6 +191,22 @@ struct factorvm {
 
 	tuple *allot_tuple(cell layout_);
 
+	// words
+
+	word *allot_word(cell vocab, cell name);
+	void update_word_xt(cell word);
+	
+
+	// code heap
+
+	void fixup_object_xts();
+
+
+	// quotations
+
+	void compile_all_words();
+
+
 	// bignum
 		
 	void bignum_divide(bignum * numerator, bignum * denominator,

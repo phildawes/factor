@@ -28,8 +28,6 @@ fixnum quot_code_offset_to_scan(cell quot, cell offset);
 
 PRIMITIVE(jit_compile);
 
-void compile_all_words();
-
 PRIMITIVE(array_to_quotation);
 PRIMITIVE(quotation_xt);
 

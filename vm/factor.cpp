@@ -92,7 +92,7 @@ static void do_stage1_init()
 	print_string("*** Stage 2 early init... ");
 	fflush(stdout);
 
-	compile_all_words();
+	vm->compile_all_words();
 	userenv[STAGE2_ENV] = vm->T;
 
 	print_string("done\n");

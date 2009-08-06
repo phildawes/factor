@@ -3,12 +3,12 @@
 namespace factor
 {
 
-word *allot_word(cell vocab_, cell name_)
+word *factorvm::allot_word(cell vocab_, cell name_)
 {
-	gc_root<object> vocab(vocab_,vm);
-	gc_root<object> name(name_,vm);
+	gc_root<object> vocab(vocab_,this);
+	gc_root<object> name(name_,this);
 
-	gc_root<word> new_word(vm->allot<word>(sizeof(word)),vm);
+	gc_root<word> new_word(vm->allot<word>(sizeof(word)),this);
 
 	new_word->hashcode = tag_fixnum((rand() << 16) ^ rand());
 	new_word->vocabulary = vocab.value();
@@ -25,8 +25,8 @@ word *allot_word(cell vocab_, cell name_)
 	jit_compile_word(new_word.value(),new_word->def,true);
 	update_word_xt(new_word.value());
 
-	if(vm->profiling_p)
-		relocate_code_block(new_word->profiling,vm);
+	if(profiling_p)
+		relocate_code_block(new_word->profiling,this);
 
 	return new_word.untagged();
 }
@@ -36,7 +36,7 @@ PRIMITIVE(word)
 {
 	cell vocab = dpop();
 	cell name = dpop();
-	dpush(tag<word>(allot_word(vocab,name)));
+	dpush(tag<word>(vm->allot_word(vocab,name)));
 }
 
 /* word-xt ( word -- start end ) */
@@ -49,14 +49,14 @@ PRIMITIVE(word_xt)
 }
 
 /* Allocates memory */
-void update_word_xt(cell w_)
+void factorvm::update_word_xt(cell w_)
 {
 	gc_root<word> w(w_,vm);
 
-	if(vm->profiling_p)
+	if(profiling_p)
 	{
 		if(!w->profiling)
-			w->profiling = vm->compile_profiling_stub(w.value());
+			w->profiling = compile_profiling_stub(w.value());
 
 		w->xt = w->profiling->xt();
 	}

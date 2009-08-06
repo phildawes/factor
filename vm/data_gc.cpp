@@ -647,7 +647,7 @@ PRIMITIVE(become)
 	   quotation in new_objects is not compiled, we might leak memory
 	   by referencing the old quotation unless we recompile all
 	   unoptimized words. */
-	compile_all_words();
+	vm->compile_all_words();
 }
 
 
