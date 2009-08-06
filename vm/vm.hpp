@@ -392,7 +392,7 @@ struct factorvm {
 	void factorbug();
 	//void dump_zone(zone *z);
 	void dump_objects(cell type);
-
+	void dump_code_heap();
 
 	// run.cpp
 	cell T;   

@@ -42,7 +42,7 @@ void factorvm::print_array(array* array, cell nesting)
 	cell i;
 	bool trimmed;
 
-	if(length > 10 && !vm->full_output)
+	if(length > 10 && !full_output)
 	{
 		trimmed = true;
 		length = 10;
@@ -71,7 +71,7 @@ void factorvm::print_tuple(tuple *tuple, cell nesting)
 	cell i;
 	bool trimmed;
 
-	if(length > 10 && !vm->full_output)
+	if(length > 10 && !full_output)
 	{
 		trimmed = true;
 		length = 10;
@@ -91,7 +91,7 @@ void factorvm::print_tuple(tuple *tuple, cell nesting)
 
 void factorvm::print_nested_obj(cell obj, fixnum nesting)
 {
-	if(nesting <= 0 && !vm->full_output)
+	if(nesting <= 0 && !full_output)
 	{
 		print_string(" ... ");
 		return;
@@ -165,11 +165,11 @@ void factorvm::print_retainstack()
 	print_objects((cell *)rs_bot,(cell *)rs);
 }
 
-void print_stack_frame(stack_frame *frame, factorvm *vm)
+void print_stack_frame(stack_frame *frame, factorvm *myvm)
 {
-	vm->print_obj(frame_executing(frame));
+	myvm->print_obj(frame_executing(frame));
 	print_string("\n");
-	vm->print_obj(frame_scan(frame));
+	myvm->print_obj(frame_scan(frame));
 	print_string("\n");
 	print_string("word/quot addr: ");
 	print_cell_hex((cell)frame_executing(frame));
@@ -223,29 +223,29 @@ void factorvm::dump_generations()
 	for(i = 1; i < data->gen_count; i++)
 	{
 		print_string("Generation "); print_cell(i); print_string(": ");
-		dump_zone(&vm->data->generations[i]);
+		dump_zone(&data->generations[i]);
 	}
 
-	for(i = 0; i < vm->data->gen_count; i++)
+	for(i = 0; i < data->gen_count; i++)
 	{
 		print_string("Semispace "); print_cell(i); print_string(": ");
-		dump_zone(&vm->data->semispaces[i]);
+		dump_zone(&data->semispaces[i]);
 	}
 
 	print_string("Cards: base=");
-	print_cell((cell)vm->data->cards);
+	print_cell((cell)data->cards);
 	print_string(", size=");
-	print_cell((cell)(vm->data->cards_end - vm->data->cards));
+	print_cell((cell)(data->cards_end - data->cards));
 	nl();
 }
 
 void factorvm::dump_objects(cell type)
 {
-	vm->gc();
-	vm->begin_scan();
+	gc();
+	begin_scan();
 
 	cell obj;
-	while((obj = vm->next_object()) != F)
+	while((obj = next_object()) != F)
 	{
 		if(type == TYPE_COUNT || tagged<object>(obj).type_p(type))
 		{
@@ -256,7 +256,7 @@ void factorvm::dump_objects(cell type)
 		}
 	}
 
-	vm->end_scan();
+	end_scan();
 }
 
 
@@ -273,22 +273,22 @@ void find_data_references_step(cell *scan,factorvm *myvm)
 
 void factorvm::find_data_references(cell look_for_)
 {
-	vm->look_for = look_for_;
+	look_for = look_for_;
 
-	vm->begin_scan();
+	begin_scan();
 
-	while((vm->obj = vm->next_object()) != F)
-		vm->do_slots(UNTAG(vm->obj),find_data_references_step);
+	while((obj = next_object()) != F)
+		do_slots(UNTAG(obj),find_data_references_step);
 
-	vm->end_scan();
+	end_scan();
 }
 
 /* Dump all code blocks for debugging */
-void dump_code_heap()
+void factorvm::dump_code_heap()
 {
 	cell reloc_size = 0, literal_size = 0;
 
-	heap_block *scan = first_block(vm->code);
+	heap_block *scan = first_block(code);
 
 	while(scan)
 	{
@@ -299,13 +299,13 @@ void dump_code_heap()
 			status = "free";
 			break;
 		case B_ALLOCATED:
-			reloc_size += vm->object_size(((code_block *)scan)->relocation);
-			literal_size += vm->object_size(((code_block *)scan)->literals);
+			reloc_size += object_size(((code_block *)scan)->relocation);
+			literal_size += object_size(((code_block *)scan)->literals);
 			status = "allocated";
 			break;
 		case B_MARKED:
-			reloc_size += vm->object_size(((code_block *)scan)->relocation);
-			literal_size += vm->object_size(((code_block *)scan)->literals);
+			reloc_size += object_size(((code_block *)scan)->relocation);
+			literal_size += object_size(((code_block *)scan)->literals);
 			status = "marked";
 			break;
 		default:
@@ -317,7 +317,7 @@ void dump_code_heap()
 		print_cell_hex(scan->size); print_string(" ");
 		print_string(status); print_string("\n");
 
-		scan = next_block(vm->code,scan);
+		scan = next_block(code,scan);
 	}
 	
 	print_cell(reloc_size); print_string(" bytes of relocation data\n");
@@ -326,7 +326,7 @@ void dump_code_heap()
 
 void factorvm::factorbug()
 {
-	if(vm->fep_disabled)
+	if(fep_disabled)
 	{
 		print_string("Low level debugger disabled\n");
 		exit(1);
@@ -374,7 +374,7 @@ void factorvm::factorbug()
 				dump stacks. This is useful for builder and
 				other cases where Factor is run with stdin
 				redirected to /dev/null */
-				vm->fep_disabled = true;
+				fep_disabled = true;
 
 				print_datastack();
 				print_retainstack();
@@ -396,7 +396,7 @@ void factorvm::factorbug()
 		else if(strcmp(cmd,"u") == 0)
 		{
 			cell addr = read_cell_hex();
-			cell count = vm->object_size(addr);
+			cell count = object_size(addr);
 			dump_memory(addr,addr+count);
 		}
 		else if(strcmp(cmd,".") == 0)
@@ -406,7 +406,7 @@ void factorvm::factorbug()
 			print_string("\n");
 		}
 		else if(strcmp(cmd,"t") == 0)
-			vm->full_output = !vm->full_output;
+			full_output = !full_output;
 		else if(strcmp(cmd,"s") == 0)
 			dump_memory(ds_bot,ds);
 		else if(strcmp(cmd,"r") == 0)
@@ -442,7 +442,7 @@ void factorvm::factorbug()
 		else if(strcmp(cmd,"x") == 0)
 			exit(1);
 		else if(strcmp(cmd,"im") == 0)
-			vm->save_image(STRING_LITERAL("fep.image"));
+			save_image(STRING_LITERAL("fep.image"));
 		else if(strcmp(cmd,"data") == 0)
 			dump_objects(TYPE_COUNT);
 		else if(strcmp(cmd,"refs") == 0)
