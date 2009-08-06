@@ -156,7 +156,7 @@ static code_block *compile_inline_cache(fixnum index,
 				 cache_entries.value(),
 				 tail_call_p);
 	code_block *code = jit.to_code_block();
-	relocate_code_block(code);
+	relocate_code_block(code,vm);
 	return code;
 }
 
@@ -179,7 +179,7 @@ static cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method
 	gc_root<word> method(method_,vm);
 
 	cell pic_size = array_capacity(cache_entries.untagged());
-	gc_root<array> new_cache_entries(reallot_array(cache_entries.untagged(),pic_size + 2),vm);
+	gc_root<array> new_cache_entries(vm->reallot_array(cache_entries.untagged(),pic_size + 2),vm);
 	set_array_nth(new_cache_entries.untagged(),pic_size,klass.value());
 	set_array_nth(new_cache_entries.untagged(),pic_size + 1,method.value());
 	return new_cache_entries.value();

@@ -137,10 +137,10 @@ namespace
 struct stack_frame_accumulator {
 	growable_array frames;
 
-	void operator()(stack_frame *frame)
+	void operator()(stack_frame *frame,factorvm* myvm)
 	{
-		gc_root<object> executing(frame_executing(frame),vm);
-		gc_root<object> scan(frame_scan(frame),vm);
+		gc_root<object> executing(frame_executing(frame),myvm);
+		gc_root<object> scan(frame_scan(frame),myvm);
 
 		frames.add(executing.value());
 		frames.add(scan.value());

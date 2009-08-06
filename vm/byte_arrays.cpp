@@ -5,7 +5,7 @@ namespace factor
 
 byte_array *allot_byte_array(cell size)
 {
-	byte_array *array = allot_array_internal<byte_array>(size);
+	byte_array *array = vm->allot_array_internal<byte_array>(size);
 	memset(array + 1,0,size);
 	return array;
 }
@@ -19,14 +19,14 @@ PRIMITIVE(byte_array)
 PRIMITIVE(uninitialized_byte_array)
 {
 	cell size = unbox_array_size();
-	dpush(tag<byte_array>(allot_array_internal<byte_array>(size)));
+	dpush(tag<byte_array>(vm->allot_array_internal<byte_array>(size)));
 }
 
 PRIMITIVE(resize_byte_array)
 {
 	byte_array *array = untag_check<byte_array>(dpop(),vm);
 	cell capacity = unbox_array_size();
-	dpush(tag<byte_array>(reallot_array(array,capacity)));
+	dpush(tag<byte_array>(vm->reallot_array(array,capacity)));
 }
 
 void growable_byte_array::append_bytes(void *elts, cell len)
@@ -34,7 +34,7 @@ void growable_byte_array::append_bytes(void *elts, cell len)
 	cell new_size = count + len;
 
 	if(new_size >= array_capacity(elements.untagged()))
-		elements = reallot_array(elements.untagged(),new_size * 2);
+		elements = vm->reallot_array(elements.untagged(),new_size * 2);
 
 	memcpy(&elements->data<u8>()[count],elts,len);
 
@@ -49,7 +49,7 @@ void growable_byte_array::append_byte_array(cell byte_array_)
 	cell new_size = count + len;
 
 	if(new_size >= array_capacity(elements.untagged()))
-		elements = reallot_array(elements.untagged(),new_size * 2);
+		elements = vm->reallot_array(elements.untagged(),new_size * 2);
 
 	memcpy(&elements->data<u8>()[count],byte_array->data<u8>(),len);
 
@@ -58,7 +58,7 @@ void growable_byte_array::append_byte_array(cell byte_array_)
 
 void growable_byte_array::trim()
 {
-	elements = reallot_array(elements.untagged(),count);
+	elements = vm->reallot_array(elements.untagged(),count);
 }
 
 }

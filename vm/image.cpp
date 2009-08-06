@@ -156,13 +156,13 @@ PRIMITIVE(save_image_and_exit)
 		exit(1);
 }
 
-static void data_fixup(cell *cell)
+static void data_fixup(cell *cell, factorvm *myvm)
 {
 	if(immediate_p(*cell))
 		return;
 
-	zone *tenured = &vm->data->generations[vm->data->tenured()];
-	*cell += (tenured->start - vm->data_relocation_base);
+	zone *tenured = &myvm->data->generations[myvm->data->tenured()];
+	*cell += (tenured->start - myvm->data_relocation_base);
 }
 
 template <typename T> void code_fixup(T **handle)
@@ -197,7 +197,7 @@ static void fixup_alien(alien *d)
 	d->expired = vm->T;
 }
 
-static void fixup_stack_frame(stack_frame *frame)
+static void fixup_stack_frame(stack_frame *frame, factorvm*)
 {
 	code_fixup(&frame->xt);
 	code_fixup(&FRAME_RETURN_ADDRESS(frame));
@@ -219,17 +219,17 @@ void factorvm::relocate_object(object *object)
 	if(hi_tag == TUPLE_TYPE)
 	{
 		tuple *t = (tuple *)object;
-		data_fixup(&t->layout);
+		data_fixup(&t->layout,this);
 
 		cell *scan = t->data();
 		cell *end = (cell *)((cell)object + untagged_object_size(object));
 
 		for(; scan < end; scan++)
-			data_fixup(scan);
+			data_fixup(scan,this);
 	}
 	else
 	{
-		do_slots((cell)object,data_fixup);
+		vm->do_slots((cell)object,data_fixup);
 
 		switch(hi_tag)
 		{
@@ -260,12 +260,12 @@ void factorvm::relocate_data()
 
 	cell i;
 	for(i = 0; i < USER_ENV; i++)
-		data_fixup(&userenv[i]);
+		data_fixup(&userenv[i],this);
 
-	data_fixup(&vm->T);
-	data_fixup(&vm->bignum_zero);
-	data_fixup(&vm->bignum_pos_one);
-	data_fixup(&vm->bignum_neg_one);
+	data_fixup(&vm->T,this);
+	data_fixup(&vm->bignum_zero,this);
+	data_fixup(&vm->bignum_pos_one,this);
+	data_fixup(&vm->bignum_neg_one,this);
 
 	zone *tenured = &vm->data->generations[vm->data->tenured()];
 
@@ -279,16 +279,16 @@ void factorvm::relocate_data()
 	}
 }
 
-static void fixup_code_block(code_block *compiled)
+static void fixup_code_block(code_block *compiled,factorvm *myvm)
 {
 	/* relocate literal table data */
-	data_fixup(&compiled->relocation);
-	data_fixup(&compiled->literals);
+	data_fixup(&compiled->relocation,myvm);
+	data_fixup(&compiled->literals,myvm);
 
-	relocate_code_block(compiled);
+	relocate_code_block(compiled,myvm);
 }
 
-void relocate_code()
+void factorvm::relocate_code()
 {
 	iterate_code_heap(fixup_code_block);
 }

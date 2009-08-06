@@ -26,7 +26,7 @@ word *allot_word(cell vocab_, cell name_)
 	update_word_xt(new_word.value());
 
 	if(vm->profiling_p)
-		relocate_code_block(new_word->profiling);
+		relocate_code_block(new_word->profiling,vm);
 
 	return new_word.untagged();
 }

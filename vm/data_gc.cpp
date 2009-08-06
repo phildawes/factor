@@ -426,11 +426,11 @@ void factorvm::begin_gc(cell requested_bytes)
 			zone z = data->generations[collecting_gen];
 			data->generations[collecting_gen] = data->semispaces[collecting_gen];
 			data->semispaces[collecting_gen] = z;
-			vm->reset_generation(collecting_gen);
+			reset_generation(collecting_gen);
 			newspace = &data->generations[collecting_gen];
-			vm->clear_cards(collecting_gen,collecting_gen);
-			vm->clear_decks(collecting_gen,collecting_gen);
-			vm->clear_allot_markers(collecting_gen,collecting_gen);
+			clear_cards(collecting_gen,collecting_gen);
+			clear_decks(collecting_gen,collecting_gen);
+			clear_allot_markers(collecting_gen,collecting_gen);
 		}
 	else
 		{
@@ -463,7 +463,7 @@ void factorvm::end_gc(cell gc_elapsed)
 			   if collecting_gen == data->nursery() here, we only have 1 generation;
 			   old-school Cheney collector */
 			if(collecting_gen != data->nursery())
-				vm->reset_generations(data->nursery(),collecting_gen - 1);
+				reset_generations(data->nursery(),collecting_gen - 1);
 		}
 	else if(collecting_gen == data->nursery())
 		{

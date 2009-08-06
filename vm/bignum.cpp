@@ -1356,7 +1356,7 @@ bignum *
 allot_bignum(bignum_length_type length, int negative_p)
 {
   BIGNUM_ASSERT ((length >= 0) || (length < BIGNUM_RADIX));
-  bignum * result = allot_array_internal<bignum>(length + 1);
+  bignum * result = vm->allot_array_internal<bignum>(length + 1);
   BIGNUM_SET_NEGATIVE_P (result, negative_p);
   return (result);
 }
@@ -1374,7 +1374,7 @@ allot_bignum_zeroed(bignum_length_type length, int negative_p)
 }
 
 #define BIGNUM_REDUCE_LENGTH(source, length) \
-	source = reallot_array(source,length + 1)
+	source = vm->reallot_array(source,length + 1)
 
 /* allocates memory */
 bignum *

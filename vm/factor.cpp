@@ -171,7 +171,7 @@ VM_C_API void pass_args_to_factor(int argc, vm_char **argv)
 
 static void start_factor(vm_parameters *p)
 {
-	if(p->fep) factorbug();
+	if(p->fep) vm->factorbug();
 
 	nest_stacks();
 	c_to_factor_toplevel(userenv[BOOT_ENV]);

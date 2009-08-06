@@ -286,7 +286,7 @@ void jit_compile(cell quot_, bool relocating)
 	code_block *compiled = compiler.to_code_block();
 	set_quot_xt(quot.untagged(),compiled);
 
-	if(relocating) relocate_code_block(compiled);
+	if(relocating) relocate_code_block(compiled,vm);
 }
 
 PRIMITIVE(jit_compile)

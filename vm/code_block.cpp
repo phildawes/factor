@@ -273,7 +273,7 @@ void update_literal_references_step(relocation_entry rel, cell index, code_block
 }
 
 /* Update pointers to literals from compiled code. */
-void update_literal_references(code_block *compiled)
+void update_literal_references(code_block *compiled, factorvm *)
 {
 	if(!compiled->needs_fixup)
 	{
@@ -284,26 +284,26 @@ void update_literal_references(code_block *compiled)
 
 /* Copy all literals referenced from a code block to newspace. Only for
 aging and nursery collections */
-void copy_literal_references(code_block *compiled)
+void copy_literal_references(code_block *compiled, factorvm *myvm)
 {
-	if(vm->collecting_gen >= compiled->last_scan)
+	if(myvm->collecting_gen >= compiled->last_scan)
 	{
-		if(vm->collecting_accumulation_gen_p())
-			compiled->last_scan = vm->collecting_gen;
+		if(myvm->collecting_accumulation_gen_p())
+			compiled->last_scan = myvm->collecting_gen;
 		else
-			compiled->last_scan = vm->collecting_gen + 1;
+			compiled->last_scan = myvm->collecting_gen + 1;
 
 		/* initialize chase pointer */
-		cell scan = vm->newspace->here;
+		cell scan = myvm->newspace->here;
 
-		vm->copy_handle(&compiled->literals);
-		vm->copy_handle(&compiled->relocation);
+		myvm->copy_handle(&compiled->literals);
+		myvm->copy_handle(&compiled->relocation);
 
 		/* do some tracing so that all reachable literals are now
 		at their final address */
-		vm->copy_reachable_objects(scan,&vm->newspace->here);
+		myvm->copy_reachable_objects(scan,&myvm->newspace->here);
 
-		update_literal_references(compiled);
+		update_literal_references(compiled,myvm);
 	}
 }
 
@@ -331,10 +331,10 @@ void update_word_references_step(relocation_entry rel, cell index, code_block *c
 dlsyms, and words. For all other words in the code heap, we only need
 to update references to other words, without worrying about literals
 or dlsyms. */
-void update_word_references(code_block *compiled)
+void update_word_references(code_block *compiled, factorvm *myvm)
 {
 	if(compiled->needs_fixup)
-		relocate_code_block(compiled);
+		relocate_code_block(compiled,myvm);
 	/* update_word_references() is always applied to every block in
 	   the code heap. Since it resets all call sites to point to
 	   their canonical XT (cold entry point for non-tail calls,
@@ -343,7 +343,7 @@ void update_word_references(code_block *compiled)
 	   the code heap with dead PICs that will be freed on the next
 	   GC, we add them to the free list immediately. */
 	else if(compiled->type == PIC_TYPE)
-		heap_free(vm->code,compiled);
+		heap_free(myvm->code,compiled);
 	else
 	{
 		iterate_relocations(compiled,update_word_references_step);
@@ -351,10 +351,10 @@ void update_word_references(code_block *compiled)
 	}
 }
 
-void update_literal_and_word_references(code_block *compiled)
+void update_literal_and_word_references(code_block *compiled,factorvm *myvm)
 {
-	update_literal_references(compiled);
-	update_word_references(compiled);
+	update_literal_references(compiled,myvm);
+	update_word_references(compiled,myvm);
 }
 
 static void check_code_address(cell address)
@@ -379,7 +379,7 @@ void mark_code_block(code_block *compiled)
 	vm->copy_handle(&compiled->relocation);
 }
 
-void mark_stack_frame_step(stack_frame *frame)
+void mark_stack_frame_step(stack_frame *frame,factorvm *vm)
 {
 	mark_code_block(frame_code(frame));
 }
@@ -426,9 +426,9 @@ void mark_object_code_block(object *object)
 }
 
 /* Perform all fixups on a code block */
-void relocate_code_block(code_block *compiled)
+void relocate_code_block(code_block *compiled, factorvm *myvm)
 {
-	compiled->last_scan = vm->data->nursery();
+	compiled->last_scan = myvm->data->nursery();
 	compiled->needs_fixup = false;
 	iterate_relocations(compiled,relocate_code_block_step);
 	flush_icache_for(compiled);

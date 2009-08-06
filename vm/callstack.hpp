@@ -28,7 +28,7 @@ template<typename T> void iterate_callstack(cell top, cell bottom, T &iterator)
 
 	while((cell)frame >= top)
 	{
-		iterator(frame);
+		iterator(frame,vm);
 		frame = frame_successor(frame);
 	}
 }
@@ -44,7 +44,7 @@ template<typename T> void iterate_callstack_object(callstack *stack_, T &iterato
 	{
 		stack_frame *frame = stack->frame_at(frame_offset);
 		frame_offset -= frame->size;
-		iterator(frame);
+		iterator(frame,vm);
 	}
 }
 

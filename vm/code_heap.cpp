@@ -38,7 +38,7 @@ void iterate_code_heap(code_heap_iterator iter)
 	while(scan)
 	{
 		if(scan->status != B_FREE)
-			iter((code_block *)scan);
+			iter((code_block *)scan,vm);
 		scan = next_block(vm->code,scan);
 	}
 }
@@ -124,7 +124,7 @@ code_block *forward_xt(code_block *compiled)
 	return (code_block *)vm->forwarding[compiled];
 }
 
-void forward_frame_xt(stack_frame *frame)
+void forward_frame_xt(stack_frame *frame, factorvm *)
 {
 	cell offset = (cell)FRAME_RETURN_ADDRESS(frame) - (cell)frame_code(frame);
 	code_block *forwarded = forward_xt(frame_code(frame));

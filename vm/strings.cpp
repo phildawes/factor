@@ -43,7 +43,7 @@ void set_string_nth_slow(string *str_, cell index, cell ch)
 		if the most significant bit of a
 		character is set. Initially all of
 		the bits are clear. */
-		aux = allot_array_internal<byte_array>(untag_fixnum(str->length) * sizeof(u16));
+		aux = vm->allot_array_internal<byte_array>(untag_fixnum(str->length) * sizeof(u16));
 
 		write_barrier(str.untagged());
 		str->aux = tag<byte_array>(aux);

@@ -88,7 +88,7 @@ PRIMITIVE(fread)
 		return;
 	}
 
-	gc_root<byte_array> buf(allot_array_internal<byte_array>(size),vm);
+	gc_root<byte_array> buf(vm->allot_array_internal<byte_array>(size),vm);
 
 	for(;;)
 	{

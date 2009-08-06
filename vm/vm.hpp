@@ -7,6 +7,25 @@ struct zone;
 struct vm_parameters;
 struct image_header;
 
+template<typename T> cell array_capacity(T *array)
+{
+#ifdef FACTOR_DEBUG
+	assert(array->h.hi_tag() == T::type_number);
+#endif
+	return array->capacity >> TAG_BITS;
+}
+
+template <typename T> cell array_size(cell capacity)
+{
+	return sizeof(T) + capacity * T::element_size;
+}
+
+template <typename T> cell array_size(T *array)
+{
+	return array_size<T>(array_capacity(array));
+}
+
+
 struct factorvm {
 	/* GC is off during heap walking */
 	bool gc_off;
@@ -53,20 +72,20 @@ struct factorvm {
 /* Every object has a regular representation in the runtime, which makes GC
    much simpler. Every slot of the object until binary_payload_start is a pointer
    to some other object. */
-inline void do_slots(cell obj, void (* iter)(cell *))
-{
-	cell scan = obj;
-	cell payload_start = binary_payload_start((object *)obj);
-	cell end = obj + payload_start;
+	inline void do_slots(cell obj, void (* iter)(cell *,factorvm *))
+	{
+		cell scan = obj;
+		cell payload_start = binary_payload_start((object *)obj);
+		cell end = obj + payload_start;
 
-	scan += sizeof(cell);
+		scan += sizeof(cell);
 
-	while(scan < end)
-		{
-			iter((cell *)scan);
-			scan += sizeof(cell);
-		}
-}
+		while(scan < end)
+			{
+				iter((cell *)scan,this);
+				scan += sizeof(cell);
+			}
+	}
 
 	template<typename TYPE> void each_object(TYPE &functor);
 	cell find_all_words();
@@ -125,11 +144,29 @@ inline void do_slots(cell obj, void (* iter)(cell *))
 	void load_data_heap(FILE *file, image_header *h, vm_parameters *p);
 	void load_code_heap(FILE *file, image_header *h, vm_parameters *p);
 	void relocate_object(object *object);
+	void relocate_code();
+
+
 	// from local_roots.cpp
 	segment *gc_locals_region;
 	cell gc_locals;
 	segment *gc_bignums_region;
 	cell gc_bignums;
+
+
+	// generic arrays
+
+	template <typename TYPE> TYPE *allot_array_internal(cell capacity)
+	{
+        TYPE *array = allot<TYPE>(array_size<TYPE>(capacity));
+		array->capacity = tag_fixnum(capacity);
+		return array;
+	}
+
+
+	template <typename TYPE> TYPE *reallot_array(TYPE *array_, cell capacity);
+
+
 
 	// bignum
 		
@@ -338,6 +375,23 @@ inline void do_slots(cell obj, void (* iter)(cell *))
 	void init_profiler();
 	code_block *compile_profiling_stub(cell word);
 	void set_profiling(bool profiling);
+
+
+	// debug.cpp
+	void print_array(array* array, cell nesting);
+	void print_tuple(tuple *tuple, cell nesting);
+	void print_word(word* word, cell nesting);
+	void print_obj(cell obj);
+	void print_nested_obj(cell obj, fixnum nesting);
+	void print_objects(cell *start, cell *end);
+	void print_datastack();
+	void print_retainstack();
+	void print_callstack();
+	void find_data_references(cell look_for_);
+	void dump_generations();
+	void factorbug();
+	//void dump_zone(zone *z);
+	void dump_objects(cell type);
 
 
 	// run.cpp

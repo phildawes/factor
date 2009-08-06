@@ -68,23 +68,23 @@ void iterate_relocations(code_block *compiled, relocation_iterator iter);
 
 void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value);
 
-void relocate_code_block(code_block *compiled);
+void relocate_code_block(code_block *compiled,factorvm *vm);
 
-void update_literal_references(code_block *compiled);
+void update_literal_references(code_block *compiled,factorvm *vm);
 
-void copy_literal_references(code_block *compiled);
+void copy_literal_references(code_block *compiled,factorvm *vm);
 
-void update_word_references(code_block *compiled);
+void update_word_references(code_block *compiled,factorvm *vm);
 
-void update_literal_and_word_references(code_block *compiled);
+void update_literal_and_word_references(code_block *compiled,factorvm *vm);
 
-void mark_code_block(code_block *compiled);
+void mark_code_block(code_block *compiled,factorvm *vm);
 
 void mark_active_blocks(context *stacks);
 
 void mark_object_code_block(object *scan);
 
-void relocate_code_block(code_block *relocating);
+void relocate_code_block(code_block *relocating,factorvm *vm);
 
 inline static bool stack_traces_p()
 {
