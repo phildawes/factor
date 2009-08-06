@@ -5,19 +5,19 @@ factor::context *stack_chain;
 namespace factor
 {
 
-void reset_datastack()
+void factorvm::reset_datastack()
 {
 	ds = ds_bot - sizeof(cell);
 }
 
-void reset_retainstack()
+void factorvm::reset_retainstack()
 {
 	rs = rs_bot - sizeof(cell);
 }
 
 static const cell stack_reserved = (64 * sizeof(cell));
 
-void fix_stacks()
+void factorvm::fix_stacks()
 {
 	if(ds + sizeof(cell) < ds_bot || ds + stack_reserved >= ds_top) reset_datastack();
 	if(rs + sizeof(cell) < rs_bot || rs + stack_reserved >= rs_top) reset_retainstack();
@@ -87,8 +87,8 @@ void nest_stacks()
 	new_context->next = stack_chain;
 	stack_chain = new_context;
 
-	reset_datastack();
-	reset_retainstack();
+	vm->reset_datastack();
+	vm->reset_retainstack();
 }
 
 /* called when leaving a compiled callback */
@@ -107,7 +107,7 @@ void unnest_stacks()
 }
 
 /* called on startup */
-void init_stacks(cell ds_size_, cell rs_size_)
+void factorvm::init_stacks(cell ds_size_, cell rs_size_)
 {
 	vm->ds_size = ds_size_;
 	vm->rs_size = rs_size_;
@@ -133,13 +133,13 @@ bool stack_to_array(cell bottom, cell top)
 PRIMITIVE(datastack)
 {
 	if(!stack_to_array(ds_bot,ds))
-		general_error(ERROR_DS_UNDERFLOW,F,F,NULL);
+		vm->general_error(ERROR_DS_UNDERFLOW,F,F,NULL);
 }
 
 PRIMITIVE(retainstack)
 {
 	if(!stack_to_array(rs_bot,rs))
-		general_error(ERROR_RS_UNDERFLOW,F,F,NULL);
+		vm->general_error(ERROR_RS_UNDERFLOW,F,F,NULL);
 }
 
 /* returns pointer to top of stack */

@@ -41,7 +41,7 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		print_string(" bytes read, ");
 		print_cell(h->data_size);
 		print_string(" bytes expected\n");
-		fatal_error("load_data_heap failed",0);
+		vm->fatal_error("load_data_heap failed",0);
 	}
 
 	tenured->here = tenured->start + h->data_size;
@@ -52,7 +52,7 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 {
 	if(h->code_size > p->code_size)
-		fatal_error("Code heap too small to fit image",h->code_size);
+		vm->fatal_error("Code heap too small to fit image",h->code_size);
 
 	init_code_heap(p->code_size);
 
@@ -66,7 +66,7 @@ static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 			print_string(" bytes read, ");
 			print_cell(h->code_size);
 			print_string(" bytes expected\n");
-			fatal_error("load_code_heap failed",0);
+			vm->fatal_error("load_code_heap failed",0);
 		}
 	}
 
@@ -307,13 +307,13 @@ void load_image(vm_parameters *p)
 
 	image_header h;
 	if(fread(&h,sizeof(image_header),1,file) != 1)
-		fatal_error("Cannot read image header",0);
+		vm->fatal_error("Cannot read image header",0);
 
 	if(h.magic != image_magic)
-		fatal_error("Bad image: magic number check failed",h.magic);
+		vm->fatal_error("Bad image: magic number check failed",h.magic);
 
 	if(h.version != image_version)
-		fatal_error("Bad image: version number check failed",h.version);
+		vm->fatal_error("Bad image: version number check failed",h.version);
 	
 	load_data_heap(file,&h,p);
 	load_code_heap(file,&h,p);

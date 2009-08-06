@@ -11,7 +11,7 @@ const char *vm_executable_path()
 	int size = readlink("/proc/self/exe", path, PATH_MAX);
 	if (size < 0)
 	{
-		fatal_error("Cannot read /proc/self/exe",0);
+		vm->fatal_error("Cannot read /proc/self/exe",0);
 		return NULL;
 	}
 	else

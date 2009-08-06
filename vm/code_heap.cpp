@@ -98,7 +98,7 @@ PRIMITIVE(modify_code_heap)
 			}
 			break;
 		default:
-			critical_error("Expected a quotation or an array",data.value());
+			vm->critical_error("Expected a quotation or an array",data.value());
 			break;
 		}
 

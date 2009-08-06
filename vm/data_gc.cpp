@@ -43,7 +43,7 @@ bool datacollector::should_copy_p(object *untagged)
 		return in_zone(getnursery(),untagged);
 	else
 		{
-			critical_error("Bug in should_copy_p",(cell)untagged);
+			vm->critical_error("Bug in should_copy_p",(cell)untagged);
 			return false;
 		}
 }
@@ -170,7 +170,7 @@ void datacollector::copy_gen_cards(cell gen)
 				unmask = card_mark_mask;
 			else
 				{
-					critical_error("bug in copy_gen_cards",gen);
+					vm->critical_error("bug in copy_gen_cards",gen);
 					return;
 				}
 		}
@@ -195,7 +195,7 @@ void datacollector::copy_gen_cards(cell gen)
 		}
 	else
 		{
-			critical_error("bug in copy_gen_cards",gen);
+			vm->critical_error("bug in copy_gen_cards",gen);
 			return;
 		}
 
@@ -413,7 +413,7 @@ void datacollector::begin_gc(cell requested_bytes)
 	if(growing_data_heap)
 		{
 			if(collecting_gen != vm->datagc->heap->tenured())
-				critical_error("Invalid parameters to begin_gc",0);
+				vm->critical_error("Invalid parameters to begin_gc",0);
 
 			old_data_heap = vm->datagc->heap;
 			set_data_heap(grow_data_heap(old_data_heap,requested_bytes));
@@ -489,7 +489,7 @@ void datacollector::garbage_collection(cell gen,
 {
 	if(vm->gc_off)
 		{
-			critical_error("GC disabled",gen);
+			vm->critical_error("GC disabled",gen);
 			return;
 		}
 
@@ -628,7 +628,7 @@ PRIMITIVE(become)
 
 	cell capacity = array_capacity(new_objects);
 	if(capacity != array_capacity(old_objects))
-		critical_error("bad parameters to become",0);
+		vm->critical_error("bad parameters to become",0);
 
 	cell i;
 

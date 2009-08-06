@@ -46,7 +46,7 @@ data_heap *data_heap::initial_setup(cell gens_,
 		total_size = young_size + 2 * aging_size + 2 * tenured_size;
 	else
 	{
-		fatal_error("Invalid number of generations",gen_count);
+		vm->fatal_error("Invalid number of generations",gen_count);
 		return NULL; /* can't happen */
 	}
 
@@ -86,7 +86,7 @@ data_heap *data_heap::initial_setup(cell gens_,
 	}
 
 	if(seg->end - alloter > deck_size)
-		critical_error("Bug in alloc_data_heap",alloter);
+		vm->critical_error("Bug in alloc_data_heap",alloter);
 
 	return this;
 }
@@ -245,7 +245,7 @@ cell unaligned_object_size(object *pointer)
 	case CALLSTACK_TYPE:
 		return callstack_size(untag_fixnum(((callstack *)pointer)->length));
 	default:
-		critical_error("Invalid header",(cell)pointer);
+		vm->critical_error("Invalid header",(cell)pointer);
 		return 0; /* can't happen */
 	}
 }
@@ -287,7 +287,7 @@ cell binary_payload_start(object *pointer)
 	case WRAPPER_TYPE:
 		return sizeof(wrapper);
 	default:
-		critical_error("Invalid header",(cell)pointer);
+		vm->critical_error("Invalid header",(cell)pointer);
                 return 0; /* can't happen */
 	}
 }
@@ -333,7 +333,7 @@ PRIMITIVE(begin_scan)
 cell data_heap::next_object()
 {
 	if(!vm->gc_off)
-		general_error(ERROR_HEAP_SCAN,F,F,NULL);
+		vm->general_error(ERROR_HEAP_SCAN,F,F,NULL);
 
 	if(heap_scan_ptr >= vm->datagc->heap->generations[vm->datagc->heap->tenured()].here)
 		return F;

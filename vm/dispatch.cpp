@@ -68,7 +68,7 @@ static cell lookup_tuple_method(cell obj, cell methods)
 		echelon--;
 	}
 
-	critical_error("Cannot find tuple method",methods);
+	vm->critical_error("Cannot find tuple method",methods);
 	return F;
 }
 
@@ -98,7 +98,7 @@ static cell lookup_hairy_method(cell obj, cell methods)
 			return lookup_hi_tag_method(obj,method);
 			break;
 		default:
-			critical_error("Bad methods array",methods);
+			vm->critical_error("Bad methods array",methods);
 			return 0;
 		}
 	}

@@ -56,7 +56,7 @@ void update_word_xt(cell w_)
 	if(vm->profiling_p)
 	{
 		if(!w->profiling)
-			w->profiling = compile_profiling_stub(w.value());
+			w->profiling = vm->compile_profiling_stub(w.value());
 
 		w->xt = w->profiling->xt();
 	}

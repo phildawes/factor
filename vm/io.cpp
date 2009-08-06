@@ -28,7 +28,7 @@ void io_error()
 		return;
 #endif
 
-	general_error(ERROR_IO,tag_fixnum(errno),F,NULL);
+	vm->general_error(ERROR_IO,tag_fixnum(errno),F,NULL);
 }
 
 PRIMITIVE(fopen)
@@ -176,7 +176,7 @@ PRIMITIVE(fseek)
 	case 1: whence = SEEK_CUR; break;
 	case 2: whence = SEEK_END; break;
 	default:
-		critical_error("Bad value for whence",whence);
+		vm->critical_error("Bad value for whence",whence);
 		break;
 	}
 
@@ -185,7 +185,7 @@ PRIMITIVE(fseek)
 		io_error();
 
 		/* Still here? EINTR */
-		critical_error("Don't know what to do; EINTR from fseek()?",0);
+		vm->critical_error("Don't know what to do; EINTR from fseek()?",0);
 	}
 }
 

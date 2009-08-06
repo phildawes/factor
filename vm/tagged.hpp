@@ -1,6 +1,9 @@
 namespace factor
 {
 
+struct factorvm;
+extern factorvm *vm;
+
 template <typename T> cell tag(T *value)
 {
 	return RETAG(value,tag_for(T::type_number));
@@ -31,7 +34,7 @@ struct tagged
 
 	T *untag_check() const {
 		if(T::type_number != TYPE_COUNT && !type_p(T::type_number))
-			type_error(T::type_number,value_);
+			vm->type_error(T::type_number,value_);
 		return untagged();
 	}
 

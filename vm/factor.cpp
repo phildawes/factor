@@ -129,7 +129,7 @@ VM_C_API void init_factor(vm_parameters *p)
 
 	srand(current_micros());
 	init_ffi();
-	init_stacks(p->ds_size,p->rs_size);
+	vm->init_stacks(p->ds_size,p->rs_size);
 	load_image(p);
 	init_c_io();
 	init_inline_caching(p->max_pic_size);
@@ -138,7 +138,7 @@ VM_C_API void init_factor(vm_parameters *p)
 	if(p->console)
 		open_console();
 
-	init_profiler();
+	vm->init_profiler();
 
 	userenv[CPU_ENV] = allot_alien(F,(cell)FACTOR_CPU_STRING);
 	userenv[OS_ENV] = allot_alien(F,(cell)FACTOR_OS_STRING);

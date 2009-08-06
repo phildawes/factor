@@ -18,9 +18,18 @@ namespace factor
 		heap *code;
 		unordered_map<heap_block *,char *> forwarding;  // should be in 'code'?
 
+
+
 		// context
 		cell ds_size, rs_size;
 		context *unused_contexts;
+
+		void reset_datastack();
+		void reset_retainstack();
+		void fix_stacks();
+		void init_stacks(cell ds_size, cell rs_size);
+
+
 
 		//debug.cpp
 		bool fep_disabled;
@@ -39,6 +48,19 @@ namespace factor
 		cell signal_number;
 		cell signal_fault_addr;
 		stack_frame *signal_callstack_top;
+
+		void out_of_memory();
+		void fatal_error(const char* msg, cell tagged);
+		void critical_error(const char* msg, cell tagged);
+
+		void throw_error(cell error, stack_frame *native_stack);
+		void general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *native_stack);
+		void divide_by_zero_error();
+		void memory_protection_error(cell addr, stack_frame *native_stack);
+		void signal_error(int signal, stack_frame *native_stack);
+		void type_error(cell type, cell tagged);
+		void not_implemented_error();
+		
 
 		// image.cpp
 		cell data_relocation_base;
@@ -77,6 +99,10 @@ namespace factor
 
 		// profiler.cpp
 		bool profiling_p;
+		void init_profiler();
+		code_block *compile_profiling_stub(cell word);
+		void set_profiling(bool profiling);
+
 
 		// run.cpp
 		cell T;   

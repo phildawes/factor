@@ -53,7 +53,7 @@ static cell determine_inline_cache_type(array *cache_entries)
 			seen_tuple = true;
 			break;
 		default:
-			critical_error("Expected a fixnum or array",klass);
+			vm->critical_error("Expected a fixnum or array",klass);
 			break;
 		}
 	}
@@ -63,7 +63,7 @@ static cell determine_inline_cache_type(array *cache_entries)
 	if(!seen_hi_tag && seen_tuple) return PIC_TUPLE;
 	if(!seen_hi_tag && !seen_tuple) return PIC_TAG;
 
-	critical_error("Oops",0);
+	vm->critical_error("Oops",0);
 	return 0;
 }
 

@@ -4,15 +4,15 @@ namespace factor
 {
 
 
-void init_profiler()
+void factorvm::init_profiler()
 {
-	vm->profiling_p = false;
+	profiling_p = false;
 }
 
 /* Allocates memory */
-code_block *compile_profiling_stub(cell word_)
+code_block *factorvm::compile_profiling_stub(cell word_)
 {
-	gc_root<word> word(word_,vm);
+	gc_root<word> word(word_,this);
 
 	jit jit(WORD_TYPE,word.value());
 	jit.emit_with(userenv[JIT_PROFILING],word.value());
@@ -21,18 +21,18 @@ code_block *compile_profiling_stub(cell word_)
 }
 
 /* Allocates memory */
-static void set_profiling(bool profiling)
+void factorvm::set_profiling(bool profiling)
 {
-	if(profiling == vm->profiling_p)
+	if(profiling == profiling_p)
 		return;
 
-	vm->profiling_p = profiling;
+	profiling_p = profiling;
 
 	/* Push everything to tenured space so that we can heap scan
 	and allocate profiling blocks if necessary */
-	vm->datagc->gc();
+	datagc->gc();
 
-	gc_root<array> words(find_all_words(),vm);
+	gc_root<array> words(find_all_words(),this);
 
 	cell i;
 	cell length = array_capacity(words.untagged());
@@ -50,7 +50,7 @@ static void set_profiling(bool profiling)
 
 PRIMITIVE(profiling)
 {
-	set_profiling(to_boolean(dpop()));
+	vm->set_profiling(to_boolean(dpop()));
 }
 
 }

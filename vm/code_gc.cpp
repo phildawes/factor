@@ -15,7 +15,7 @@ void new_heap(heap *heap, cell size)
 {
 	heap->seg = alloc_segment(align_page(size));
 	if(!heap->seg)
-		fatal_error("Out of memory in new_heap",size);
+		vm->fatal_error("Out of memory in new_heap",size);
 
 	clear_free_list(heap);
 }
@@ -61,7 +61,7 @@ void build_free_list(heap *heap, cell size)
 		case B_ALLOCATED:
 			break;
 		default:
-			critical_error("Invalid scan->status",(cell)scan);
+			vm->critical_error("Invalid scan->status",(cell)scan);
 			break;
 		}
 
@@ -94,7 +94,7 @@ void build_free_list(heap *heap, cell size)
 static void assert_free_block(free_heap_block *block)
 {
 	if(block->status != B_FREE)
-		critical_error("Invalid block in free list",(cell)block);
+		vm->critical_error("Invalid block in free list",(cell)block);
 }
 		
 static free_heap_block *find_free_block(heap *heap, cell size)
@@ -188,7 +188,7 @@ void mark_block(heap_block *block)
 		block->status = B_MARKED;
 		break;
 	default:
-		critical_error("Marking the wrong block",(cell)block);
+		vm->critical_error("Marking the wrong block",(cell)block);
 		break;
 	}
 }
@@ -247,7 +247,7 @@ void free_unmarked(heap *heap, heap_iterator iter)
 			iter(scan);
 			break;
 		default:
-			critical_error("Invalid scan->status",(cell)scan);
+			vm->critical_error("Invalid scan->status",(cell)scan);
 		}
 
 		scan = next_block(heap,scan);
@@ -279,7 +279,7 @@ void heap_usage(heap *heap, cell *used, cell *total_free, cell *max_free)
 				*max_free = scan->size;
 			break;
 		default:
-			critical_error("Invalid scan->status",(cell)scan);
+			vm->critical_error("Invalid scan->status",(cell)scan);
 		}
 
 		scan = next_block(heap,scan);
@@ -316,7 +316,7 @@ cell compute_heap_forwarding(heap *heap, unordered_map<heap_block *,char *> &for
 			address += scan->size;
 		}
 		else if(scan->status == B_MARKED)
-			critical_error("Why is the block marked?",0);
+			vm->critical_error("Why is the block marked?",0);
 
 		scan = next_block(heap,scan);
 	}

@@ -255,7 +255,7 @@ cell unbox_array_size()
 		}
 	}
 
-	general_error(ERROR_ARRAY_SIZE,dpop(),tag_fixnum(array_size_max),NULL);
+	vm->general_error(ERROR_ARRAY_SIZE,dpop(),tag_fixnum(array_size_max),NULL);
 	return 0; /* can't happen */
 }
 
@@ -383,7 +383,7 @@ VM_C_API fixnum to_fixnum(cell tagged)
 	case BIGNUM_TYPE:
 		return bignum_to_fixnum(untag<bignum>(tagged));
 	default:
-		type_error(FIXNUM_TYPE,tagged);
+		vm->type_error(FIXNUM_TYPE,tagged);
 		return 0; /* can't happen */
 	}
 }
@@ -450,7 +450,7 @@ VM_C_API s64 to_signed_8(cell obj)
 	case BIGNUM_TYPE:
 		return bignum_to_long_long(untag<bignum>(obj));
 	default:
-		type_error(BIGNUM_TYPE,obj);
+		vm->type_error(BIGNUM_TYPE,obj);
 		return 0;
 	}
 }
@@ -472,7 +472,7 @@ VM_C_API u64 to_unsigned_8(cell obj)
 	case BIGNUM_TYPE:
 		return bignum_to_ulong_long(untag<bignum>(obj));
 	default:
-		type_error(BIGNUM_TYPE,obj);
+		vm->type_error(BIGNUM_TYPE,obj);
 		return 0;
 	}
 }

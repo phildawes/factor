@@ -42,7 +42,7 @@ static int number_of_parameters(relocation_type type)
 	case RT_MEGAMORPHIC_CACHE_HITS:
 		return 0;
 	default:
-		critical_error("Bad rel type",type);
+		vm->critical_error("Bad rel type",type);
 		return -1; /* Can't happen */
 	}
 }
@@ -56,7 +56,7 @@ void *object_xt(cell obj)
 	case QUOTATION_TYPE:
 		return untag<quotation>(obj)->xt;
 	default:
-		critical_error("Expected word or quotation",obj);
+		vm->critical_error("Expected word or quotation",obj);
 		return NULL;
 	}
 }
@@ -89,7 +89,7 @@ void *word_xt_pic_tail(word *w)
 image load */
 void undefined_symbol()
 {
-	general_error(ERROR_UNDEFINED_SYMBOL,F,F,NULL);
+	vm->general_error(ERROR_UNDEFINED_SYMBOL,F,F,NULL);
 }
 
 /* Look up an external library symbol referenced by a compiled code block */
@@ -132,7 +132,7 @@ void *get_rel_symbol(array *literals, cell index)
 			return (void *)undefined_symbol;
 		}
 	default:
-		critical_error("Bad symbol specifier",symbol);
+		vm->critical_error("Bad symbol specifier",symbol);
 		return (void *)undefined_symbol;
 	}
 }
@@ -172,7 +172,7 @@ cell compute_relocation(relocation_entry rel, cell index, code_block *compiled)
 	case RT_MEGAMORPHIC_CACHE_HITS:
 		return (cell)&vm->megamorphic_cache_hits;
 	default:
-		critical_error("Bad rel type",rel);
+		vm->critical_error("Bad rel type",rel);
 		return 0; /* Can't happen */
 	}
 
@@ -210,7 +210,7 @@ static void store_address_masked(cell *ptr, fixnum value, cell mask, fixnum shif
 	/* This is unaccurate but good enough */
 	fixnum test = (fixnum)mask >> 1;
 	if(value <= -test || value >= test)
-		critical_error("Value does not fit inside relocation",0);
+		vm->critical_error("Value does not fit inside relocation",0);
 
 	*ptr = ((*ptr & ~mask) | ((value >> shift) & mask));
 }
@@ -256,7 +256,7 @@ void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value)
 			rel_indirect_arm_mask,0);
 		break;
 	default:
-		critical_error("Bad rel class",klass);
+		vm->critical_error("Bad rel class",klass);
 		break;
 	}
 }
@@ -473,7 +473,7 @@ code_block *allot_code_block(cell size)
 			print_string("Used: "); print_cell(used); nl();
 			print_string("Total free space: "); print_cell(total_free); nl();
 			print_string("Largest free block: "); print_cell(max_free); nl();
-			fatal_error("Out of memory in add-compiled-block",0);
+			vm->fatal_error("Out of memory in add-compiled-block",0);
 		}
 	}
 

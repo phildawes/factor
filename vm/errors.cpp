@@ -4,21 +4,21 @@ namespace factor
 {
 
 
-void out_of_memory()
+void factorvm::out_of_memory()
 {
 	print_string("Out of memory\n\n");
 	dump_generations();
 	exit(1);
 }
 
-void fatal_error(const char* msg, cell tagged)
+void factorvm::fatal_error(const char* msg, cell tagged)
 {
 	print_string("fatal_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
 	exit(1);
 }
 
-void critical_error(const char* msg, cell tagged)
+void factorvm::critical_error(const char* msg, cell tagged)
 {
 	print_string("You have triggered a bug in Factor. Please report.\n");
 	print_string("critical_error: "); print_string(msg);
@@ -26,7 +26,7 @@ void critical_error(const char* msg, cell tagged)
 	factorbug();
 }
 
-void throw_error(cell error, stack_frame *callstack_top)
+void factorvm::throw_error(cell error, stack_frame *callstack_top)
 {
 	/* If the error handler is set, we rewind any C stack frames and
 	pass the error to user-space. */
@@ -41,7 +41,7 @@ void throw_error(cell error, stack_frame *callstack_top)
 
 		/* If we had an underflow or overflow, stack pointers might be
 		out of bounds */
-		fix_stacks();
+		vm->fix_stacks();
 
 		dpush(error);
 
@@ -71,19 +71,19 @@ void throw_error(cell error, stack_frame *callstack_top)
 	}
 }
 
-void general_error(vm_error_type error, cell arg1, cell arg2,
+void factorvm::general_error(vm_error_type error, cell arg1, cell arg2,
 	stack_frame *callstack_top)
 {
 	throw_error(allot_array_4(userenv[ERROR_ENV],
 		tag_fixnum(error),arg1,arg2),callstack_top);
 }
 
-void type_error(cell type, cell tagged)
+void factorvm::type_error(cell type, cell tagged)
 {
 	general_error(ERROR_TYPE,tag_fixnum(type),tagged,NULL);
 }
 
-void not_implemented_error()
+void factorvm::not_implemented_error()
 {
 	general_error(ERROR_NOT_IMPLEMENTED,F,F,NULL);
 }
@@ -99,7 +99,7 @@ bool in_page(cell fault, cell area, cell area_size, int offset)
 	return fault >= area && fault <= area + pagesize;
 }
 
-void memory_protection_error(cell addr, stack_frame *native_stack)
+void factorvm::memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ds_bot, 0, -1))
 		general_error(ERROR_DS_UNDERFLOW,F,F,native_stack);
@@ -115,12 +115,12 @@ void memory_protection_error(cell addr, stack_frame *native_stack)
 		general_error(ERROR_MEMORY,allot_cell(addr),F,native_stack);
 }
 
-void signal_error(int signal, stack_frame *native_stack)
+void factorvm::signal_error(int signal, stack_frame *native_stack)
 {
 	general_error(ERROR_SIGNAL,tag_fixnum(signal),F,native_stack);
 }
 
-void divide_by_zero_error()
+void factorvm::divide_by_zero_error()
 {
 	general_error(ERROR_DIVIDE_BY_ZERO,F,F,NULL);
 }
@@ -133,17 +133,17 @@ PRIMITIVE(call_clear)
 /* For testing purposes */
 PRIMITIVE(unimplemented)
 {
-	not_implemented_error();
+	vm->not_implemented_error();
 }
 
 void memory_signal_handler_impl()
 {
-	memory_protection_error(vm->signal_fault_addr,vm->signal_callstack_top);
+	vm->memory_protection_error(vm->signal_fault_addr,vm->signal_callstack_top);
 }
 
 void misc_signal_handler_impl()
 {
-	signal_error(vm->signal_number,vm->signal_callstack_top);
+	vm->signal_error(vm->signal_number,vm->signal_callstack_top);
 }
 
 }

@@ -13,13 +13,13 @@ char *pinned_alien_offset(cell obj)
 		{
 			alien *ptr = untag<alien>(obj);
 			if(ptr->expired != F)
-				general_error(ERROR_EXPIRED,obj,F,NULL);
+				vm->general_error(ERROR_EXPIRED,obj,F,NULL);
 			return pinned_alien_offset(ptr->alien) + ptr->displacement;
 		}
 	case F_TYPE:
 		return NULL;
 	default:
-		type_error(ALIEN_TYPE,obj);
+		vm->type_error(ALIEN_TYPE,obj);
 		return NULL; /* can't happen */
 	}
 }
@@ -63,7 +63,7 @@ PRIMITIVE(displaced_alien)
 			dpush(allot_alien(alien,displacement));
 			break;
 		default:
-			type_error(ALIEN_TYPE,alien);
+			vm->type_error(ALIEN_TYPE,alien);
 			break;
 		}
 	}
@@ -171,13 +171,13 @@ VM_C_API char *alien_offset(cell obj)
 		{
 			alien *ptr = untag<alien>(obj);
 			if(ptr->expired != F)
-				general_error(ERROR_EXPIRED,obj,F,NULL);
+				vm->general_error(ERROR_EXPIRED,obj,F,NULL);
 			return alien_offset(ptr->alien) + ptr->displacement;
 		}
 	case F_TYPE:
 		return NULL;
 	default:
-		type_error(ALIEN_TYPE,obj);
+		vm->type_error(ALIEN_TYPE,obj);
 		return NULL; /* can't happen */
 	}
 }

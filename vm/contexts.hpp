@@ -45,10 +45,6 @@ struct context {
 DEFPUSHPOP(d,ds)
 DEFPUSHPOP(r,rs)
 
-void reset_datastack();
-void reset_retainstack();
-void fix_stacks();
-void init_stacks(cell ds_size, cell rs_size);
 
 PRIMITIVE(datastack);
 PRIMITIVE(retainstack);

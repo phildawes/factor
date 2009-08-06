@@ -70,7 +70,7 @@ PRIMITIVE(set_callstack)
 		memcpy);
 
 	/* We cannot return here ... */
-	critical_error("Bug in set_callstack()",0);
+	vm->critical_error("Bug in set_callstack()",0);
 }
 
 code_block *frame_code(stack_frame *frame)
@@ -126,7 +126,7 @@ cell frame_scan(stack_frame *frame)
 	case WORD_TYPE:
 		return F;
 	default:
-		critical_error("Bad frame type",frame_type(frame));
+		vm->critical_error("Bad frame type",frame_type(frame));
 		return F;
 	}
 }
