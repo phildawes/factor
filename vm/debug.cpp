@@ -242,10 +242,10 @@ void dump_generations()
 void dump_objects(cell type)
 {
 	vm->gc();
-	vm->data->begin_scan();
+	vm->begin_scan();
 
 	cell obj;
-	while((obj = vm->data->next_object()) != F)
+	while((obj = vm->next_object()) != F)
 	{
 		if(type == TYPE_COUNT || tagged<object>(obj).type_p(type))
 		{
@@ -256,7 +256,7 @@ void dump_objects(cell type)
 		}
 	}
 
-	vm->data->end_scan();
+	vm->end_scan();
 }
 
 
@@ -275,12 +275,12 @@ void find_data_references(cell look_for_)
 {
 	vm->look_for = look_for_;
 
-	vm->data->begin_scan();
+	vm->begin_scan();
 
-	while((vm->obj = vm->data->next_object()) != F)
+	while((vm->obj = vm->next_object()) != F)
 		do_slots(UNTAG(vm->obj),find_data_references_step);
 
-	vm->data->end_scan();
+	vm->end_scan();
 }
 
 /* Dump all code blocks for debugging */

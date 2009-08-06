@@ -5,6 +5,7 @@ struct data_heap;
 struct datacollector;
 struct zone;
 struct vm_parameters;
+struct image_header;
 
 struct factorvm {
 	/* GC is off during heap walking */
@@ -16,6 +17,36 @@ struct factorvm {
 	code_heap *code;
 	/* the heap */
 	data_heap *data;
+
+	/* A heap walk allows useful things to be done, like finding all
+	   references to an object for debugging purposes. */
+	cell heap_scan_ptr;
+
+
+	// data_heap.cpp
+
+	void init_card_decks();
+	void clear_cards(cell from, cell to);
+	void clear_decks(cell from, cell to);
+	void clear_allot_markers(cell from, cell to);
+	void reset_generation(cell i);
+	void reset_generations(cell from, cell to);
+
+	data_heap *alloc_data_heap(cell gens,
+							   cell young_size,
+							   cell aging_size,
+							   cell tenured_size);
+	void init_data_heap(cell gens,
+					cell young_size,
+					cell aging_size,
+					cell tenured_size,
+						bool secure_gc_);
+	data_heap *grow_data_heap(data_heap *data, cell requested_bytes);
+	void set_data_heap(data_heap *data_);
+	void begin_scan();
+	void end_scan();
+	cell next_object();
+
 
 	unordered_map<heap_block *,char *> forwarding; 
 
@@ -70,7 +101,8 @@ struct factorvm {
 	void relocate_data();
 	void load_image(vm_parameters *p);
 	bool save_image(const vm_char *file);
-
+	void load_data_heap(FILE *file, image_header *h, vm_parameters *p);
+	void load_code_heap(FILE *file, image_header *h, vm_parameters *p);
 
 	// from local_roots.cpp
 	segment *gc_locals_region;

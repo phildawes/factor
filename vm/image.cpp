@@ -15,7 +15,7 @@ static void init_objects(image_header *h)
 }
 
 
-static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
+void factorvm::load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 {
 	cell good_size = h->data_size + (1 << 20);
 
@@ -49,7 +49,7 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 }
 
 
-static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
+void factorvm::load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 {
 	if(h->code_size > p->code_size)
 		vm->fatal_error("Code heap too small to fit image",h->code_size);

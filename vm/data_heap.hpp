@@ -42,25 +42,6 @@ struct data_heap {
 	
 	bool have_aging_p() { return gen_count > 2; }
 
-
-	/* A heap walk allows useful things to be done, like finding all
-	   references to an object for debugging purposes. */
-	cell heap_scan_ptr;
-
-	data_heap* initial_setup(cell gens,cell young_size,cell aging_size,cell tenured_size);
-
-	void init_card_decks();
-	void clear_cards(cell from, cell to);
-	void clear_decks(cell from, cell to);
-	void clear_allot_markers(cell from, cell to);
-	void reset_generation(cell i);
-	void reset_generations(cell from, cell to);
-
-
-	void begin_scan();
-	void end_scan();
-	cell next_object();
-
 };
 
 static const cell max_gen_count = 3;
@@ -72,18 +53,8 @@ inline static bool in_zone(zone *z, object *pointer)
 
 cell init_zone(zone *z, cell size, cell base);
 
-data_heap *grow_data_heap(data_heap *data, cell requested_bytes);
-
 void dealloc_data_heap(data_heap *data);
 
-
-void set_data_heap(data_heap *data_heap_);
-
-void init_data_heap(cell gens,
-					cell young_size,
-					cell aging_size,
-					cell tenured_size,
-					bool secure_gc_);
 
 /* set up guard pages to check for under/overflow.
    size must be a multiple of the page size */

@@ -21,90 +21,82 @@ cell init_zone(zone *z, cell size, cell start)
 	return z->end;
 }
 
-void data_heap::init_card_decks()
+void factorvm::init_card_decks()
 {
-	cell start = align(seg->start,deck_size);
-	vm->allot_markers_offset = (cell)allot_markers - (start >> card_bits);
-	cards_offset = (cell)cards - (start >> card_bits);
-	decks_offset = (cell)decks - (start >> deck_bits);
+	cell start = align(data->seg->start,deck_size);
+	allot_markers_offset = (cell)data->allot_markers - (start >> card_bits);
+	cards_offset = (cell)data->cards - (start >> card_bits);
+	decks_offset = (cell)data->decks - (start >> deck_bits);
 }
 
-data_heap *data_heap::initial_setup(cell gens_,
-			 cell young_size_,
-			 cell aging_size_,
-			 cell tenured_size_){
-
-	young_size = young_size_;
-	aging_size = aging_size_;
-	tenured_size = tenured_size_;
-	gen_count = gens_;
-
-	cell total_size;
-	if(gen_count == 2)
-		total_size = young_size + 2 * tenured_size;
-	else if(gen_count == 3)
-		total_size = young_size + 2 * aging_size + 2 * tenured_size;
-	else
-	{
-		vm->fatal_error("Invalid number of generations",gen_count);
-		return NULL; /* can't happen */
-	}
-
-	total_size += deck_size;
-
-	seg = alloc_segment(total_size);
-
-	generations = (zone *)safe_malloc(sizeof(zone) * gen_count);
-	semispaces = (zone *)safe_malloc(sizeof(zone) * gen_count);
-
-	cell cards_size = total_size >> card_bits;
-	allot_markers = (cell *)safe_malloc(cards_size);
-	allot_markers_end = allot_markers + cards_size;
-
-	cards = (cell *)safe_malloc(cards_size);
-	cards_end = cards + cards_size;
-
-	cell decks_size = total_size >> deck_bits;
-	decks = (cell *)safe_malloc(decks_size);
-	decks_end = decks + decks_size;
-
-	cell alloter = align(seg->start,deck_size);
-
-	alloter = init_zone(&generations[tenured()],tenured_size,alloter);
-	alloter = init_zone(&semispaces[tenured()],tenured_size,alloter);
-
-	if(gen_count == 3)
-	{
-		alloter = init_zone(&generations[aging()],aging_size,alloter);
-		alloter = init_zone(&semispaces[aging()],aging_size,alloter);
-	}
-
-	if(gen_count >= 2)
-	{
-		alloter = init_zone(&generations[nursery()],young_size,alloter);
-		alloter = init_zone(&semispaces[nursery()],0,alloter);
-	}
-
-	if(seg->end - alloter > deck_size)
-		vm->critical_error("Bug in alloc_data_heap",alloter);
-
-	return this;
-}
-
-data_heap *alloc_data_heap(cell gens,
-	cell young_size,
-	cell aging_size,
-	cell tenured_size)
+data_heap *factorvm::alloc_data_heap(cell gens,
+						   cell young_size,
+						   cell aging_size,
+						   cell tenured_size)
 {
 	young_size = align(young_size,deck_size);
 	aging_size = align(aging_size,deck_size);
 	tenured_size = align(tenured_size,deck_size);
 
 	data_heap *data = (data_heap *)safe_malloc(sizeof(data_heap));
-	return data->initial_setup(gens,young_size,aging_size,tenured_size);
+	data->young_size = young_size;
+	data->aging_size = aging_size;
+	data->tenured_size = tenured_size;
+	data->gen_count = gens;
+
+	cell total_size;
+	if(data->gen_count == 2)
+		total_size = young_size + 2 * tenured_size;
+	else if(data->gen_count == 3)
+		total_size = young_size + 2 * aging_size + 2 * tenured_size;
+	else
+        {
+			fatal_error("Invalid number of generations",data->gen_count);
+			return NULL; /* can't happen */
+        }
+
+	total_size += deck_size;
+
+	data->seg = alloc_segment(total_size);
+
+	data->generations = (zone *)safe_malloc(sizeof(zone) * data->gen_count);
+	data->semispaces = (zone *)safe_malloc(sizeof(zone) * data->gen_count);
+
+	cell cards_size = total_size >> card_bits;
+	data->allot_markers = (cell *)safe_malloc(cards_size);
+	data->allot_markers_end = data->allot_markers + cards_size;
+
+	data->cards = (cell *)safe_malloc(cards_size);
+	data->cards_end = data->cards + cards_size;
+
+	cell decks_size = total_size >> deck_bits;
+	data->decks = (cell *)safe_malloc(decks_size);
+	data->decks_end = data->decks + decks_size;
+
+	cell alloter = align(data->seg->start,deck_size);
+
+	alloter = init_zone(&data->generations[data->tenured()],tenured_size,alloter);
+	alloter = init_zone(&data->semispaces[data->tenured()],tenured_size,alloter);
+
+	if(data->gen_count == 3)
+        {
+			alloter = init_zone(&data->generations[data->aging()],aging_size,alloter);
+			alloter = init_zone(&data->semispaces[data->aging()],aging_size,alloter);
+        }
+
+	if(data->gen_count >= 2)
+        {
+			alloter = init_zone(&data->generations[data->nursery()],young_size,alloter);
+			alloter = init_zone(&data->semispaces[data->nursery()],0,alloter);
+        }
+
+	if(data->seg->end - alloter > deck_size)
+		critical_error("Bug in alloc_data_heap",alloter);
+
+	return data;
 }
 
-data_heap *grow_data_heap(data_heap *data, cell requested_bytes)
+data_heap *factorvm::grow_data_heap(data_heap *data, cell requested_bytes)
 {
 	cell new_tenured_size = (data->tenured_size * 2) + requested_bytes;
 
@@ -125,42 +117,42 @@ void dealloc_data_heap(data_heap *data)
 	free(data);
 }
 
-void data_heap::clear_cards(cell from, cell to)
+void factorvm::clear_cards(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = addr_to_card(generations[to].start);
-	card *last_card = addr_to_card(generations[from].end);
+	card *first_card = addr_to_card(data->generations[to].start);
+	card *last_card = addr_to_card(data->generations[from].end);
 	memset(first_card,0,last_card - first_card);
 }
 
-void data_heap::clear_decks(cell from, cell to)
+void factorvm::clear_decks(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card_deck *first_deck = addr_to_deck(generations[to].start);
-	card_deck *last_deck = addr_to_deck(generations[from].end);
+	card_deck *first_deck = addr_to_deck(data->generations[to].start);
+	card_deck *last_deck = addr_to_deck(data->generations[from].end);
 	memset(first_deck,0,last_deck - first_deck);
 }
 
-void data_heap::clear_allot_markers(cell from, cell to)
+void factorvm::clear_allot_markers(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = vm->addr_to_allot_marker((object *)generations[to].start);
-	card *last_card = vm->addr_to_allot_marker((object *)generations[from].end);
+	card *first_card = vm->addr_to_allot_marker((object *)data->generations[to].start);
+	card *last_card = vm->addr_to_allot_marker((object *)data->generations[from].end);
 	memset(first_card,invalid_allot_marker,last_card - first_card);
 }
 
-void data_heap::reset_generation(cell i)
+void factorvm::reset_generation(cell i)
 {
-  zone *z = (i == nursery() ? &factor::nursery : &generations[i]);
+        zone *z = (i == data->nursery() ? &nursery : &data->generations[i]);
 
-	z->here = z->start;
-	if(vm->secure_gc)
-		memset((void*)z->start,69,z->size);
+        z->here = z->start;
+        if(secure_gc)
+                memset((void*)z->start,69,z->size);
 }
 
 /* After garbage collection, any generations which are now empty need to have
 their allocation pointers and cards reset. */
-void data_heap::reset_generations(cell from, cell to)
+void factorvm::reset_generations(cell from, cell to)
 {
 	cell i;
 	for(i = from; i <= to; i++)
@@ -171,17 +163,17 @@ void data_heap::reset_generations(cell from, cell to)
 	clear_allot_markers(from,to);
 }
 
-void set_data_heap(data_heap *data_)
+void factorvm::set_data_heap(data_heap *data_)
 {
-	vm->data = data_;
-	nursery = vm->data->generations[vm->data->nursery()];
-	vm->data->init_card_decks();
-	vm->data->clear_cards(vm->data->nursery(),vm->data->tenured());
-	vm->data->clear_decks(vm->data->nursery(),vm->data->tenured());
-	vm->data->clear_allot_markers(vm->data->nursery(),vm->data->tenured());
+        data = data_;
+        nursery = data->generations[data->nursery()];
+        init_card_decks();
+        clear_cards(data->nursery(),data->tenured());
+        clear_decks(data->nursery(),data->tenured());
+        clear_allot_markers(data->nursery(),data->tenured());
 }
 
-void init_data_heap(cell gens,
+void factorvm::init_data_heap(cell gens,
 	cell young_size,
 	cell aging_size,
 	cell tenured_size,
@@ -314,23 +306,23 @@ PRIMITIVE(data_room)
 
 
 /* Disables GC and activates next-object ( -- obj ) primitive */
-void data_heap::begin_scan()
+void factorvm::begin_scan()
 {
 	heap_scan_ptr = vm->data->generations[vm->data->tenured()].start;
 	vm->gc_off = true;
 }
 
-void data_heap::end_scan()
+void factorvm::end_scan()
 {
 	vm->gc_off = false;
 }
 
 PRIMITIVE(begin_scan)
 {
-	vm->data->begin_scan();
+	vm->begin_scan();
 }
 
-cell data_heap::next_object()
+cell factorvm::next_object()
 {
 	if(!vm->gc_off)
 		vm->general_error(ERROR_HEAP_SCAN,F,F,NULL);
@@ -346,7 +338,7 @@ cell data_heap::next_object()
 /* Push object at heap scan cursor and advance; pushes f when done */
 PRIMITIVE(next_object)
 {
-	dpush(vm->data->next_object());
+	dpush(vm->next_object());
 }
 
 /* Re-enables GC */
@@ -357,11 +349,11 @@ PRIMITIVE(end_scan)
 
 template<typename T> void each_object(T &functor)
 {
-	vm->data->begin_scan();
+	vm->begin_scan();
 	cell obj;
-	while((obj = vm->data->next_object()) != F)
+	while((obj = vm->next_object()) != F)
 		functor(tagged<object>(obj));
-	vm->data->end_scan();
+	vm->end_scan();
 }
 
 namespace
