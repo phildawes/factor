@@ -152,12 +152,12 @@ cell array_to_stack(array *array, cell bottom)
 
 PRIMITIVE(set_datastack)
 {
-	ds = array_to_stack(untag_check<array>(dpop()),ds_bot);
+	ds = array_to_stack(untag_check<array>(dpop(),vm),ds_bot);
 }
 
 PRIMITIVE(set_retainstack)
 {
-	rs = array_to_stack(untag_check<array>(dpop()),rs_bot);
+	rs = array_to_stack(untag_check<array>(dpop(),vm),rs_bot);
 }
 
 /* Used to implement call( */
@@ -166,7 +166,7 @@ PRIMITIVE(check_datastack)
 	fixnum out = to_fixnum(dpop());
 	fixnum in = to_fixnum(dpop());
 	fixnum height = out - in;
-	array *saved_datastack = untag_check<array>(dpop());
+	array *saved_datastack = untag_check<array>(dpop(),vm);
 	fixnum saved_height = array_capacity(saved_datastack);
 	fixnum current_height = (ds - ds_bot + sizeof(cell)) / sizeof(cell);
 	if(current_height - height != saved_height)

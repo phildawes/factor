@@ -12,6 +12,10 @@ struct gc_root : public tagged<T>
 
 	DEFPUSHPOP(gc_local2_,myvm->gc_locals)
 
+	T *untag_check() const {   // suckage - couldn't work out how to get compiler to delegate to tagged::untag_check(myvm)
+		return tagged<T>::untag_check(myvm);
+	}
+
 	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local2_push((cell)this); }
 	
 	explicit gc_root(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }

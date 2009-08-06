@@ -157,7 +157,7 @@ string* reallot_string(string *str_, cell capacity)
 
 PRIMITIVE(resize_string)
 {
-	string* str = untag_check<string>(dpop());
+	string* str = untag_check<string>(dpop(),vm);
 	cell capacity = unbox_array_size();
 	dpush(tag<string>(reallot_string(str,capacity)));
 }

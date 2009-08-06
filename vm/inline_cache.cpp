@@ -168,7 +168,7 @@ static void *megamorphic_call_stub(cell generic_word)
 
 static cell inline_cache_size(cell cache_entries)
 {
-	return array_capacity(untag_check<array>(cache_entries)) / 2;
+	return array_capacity(untag_check<array>(cache_entries,vm)) / 2;
 }
 
 /* Allocates memory */

@@ -63,7 +63,7 @@ inline static double untag_float(cell tagged)
 
 inline static double untag_float_check(cell tagged)
 {
-	return untag_check<boxed_float>(tagged)->n;
+	return untag_check<boxed_float>(tagged,vm)->n;
 }
 
 inline static cell allot_float(double n)

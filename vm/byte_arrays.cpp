@@ -24,7 +24,7 @@ PRIMITIVE(uninitialized_byte_array)
 
 PRIMITIVE(resize_byte_array)
 {
-	byte_array *array = untag_check<byte_array>(dpop());
+	byte_array *array = untag_check<byte_array>(dpop(),vm);
 	cell capacity = unbox_array_size();
 	dpush(tag<byte_array>(reallot_array(array,capacity)));
 }

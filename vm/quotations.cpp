@@ -308,7 +308,7 @@ PRIMITIVE(array_to_quotation)
 
 PRIMITIVE(quotation_xt)
 {
-	quotation *quot = untag_check<quotation>(dpeek());
+	quotation *quot = untag_check<quotation>(dpeek(),vm);
 	drepl(allot_cell((cell)quot->xt));
 }
 
@@ -356,7 +356,7 @@ VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack)
 PRIMITIVE(quot_compiled_p)
 {
 	tagged<quotation> quot(dpop());
-	quot.untag_check();
+	quot.untag_check(vm);
 	dpush(tag_boolean(quot->code != NULL));
 }
 

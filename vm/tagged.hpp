@@ -32,9 +32,9 @@ struct tagged
 
 	bool type_p(cell type_) const { return type() == type_; }
 
-	T *untag_check() const {
+	T *untag_check(factorvm *myvm) const {
 		if(T::type_number != TYPE_COUNT && !type_p(T::type_number))
-			vm->type_error(T::type_number,value_);
+			myvm->type_error(T::type_number,value_);
 		return untagged();
 	}
 
@@ -62,9 +62,9 @@ struct tagged
 	template<typename X> tagged<X> as() { return tagged<X>(value_); }
 };
 
-template <typename T> T *untag_check(cell value)
+template <typename T> T *untag_check(cell value,factorvm *vm)
 {
-	return tagged<T>(value).untag_check();
+	return tagged<T>(value).untag_check(vm);
 }
 
 template <typename T> T *untag(cell value)

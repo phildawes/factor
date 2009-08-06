@@ -42,7 +42,7 @@ PRIMITIVE(word)
 /* word-xt ( word -- start end ) */
 PRIMITIVE(word_xt)
 {
-	word *w = untag_check<word>(dpop());
+	word *w = untag_check<word>(dpop(),vm);
 	code_block *code = (vm->profiling_p ? w->profiling : w->code);
 	dpush(allot_cell((cell)code->xt()));
 	dpush(allot_cell((cell)code + code->size));
@@ -66,7 +66,7 @@ void update_word_xt(cell w_)
 
 PRIMITIVE(optimized_p)
 {
-	drepl(tag_boolean(word_optimized_p(untag_check<word>(dpeek()))));
+	drepl(tag_boolean(word_optimized_p(untag_check<word>(dpeek(),vm))));
 }
 
 PRIMITIVE(wrapper)

@@ -134,7 +134,7 @@ PRIMITIVE(dlsym)
 		box_alien(ffi_dlsym(NULL,sym));
 	else
 	{
-		dll *d = untag_check<dll>(library.value());
+		dll *d = untag_check<dll>(library.value(),vm);
 
 		if(d->dll == NULL)
 			dpush(F);
@@ -146,7 +146,7 @@ PRIMITIVE(dlsym)
 /* close a native library handle */
 PRIMITIVE(dlclose)
 {
-	dll *d = untag_check<dll>(dpop());
+	dll *d = untag_check<dll>(dpop(),vm);
 	if(d->dll != NULL)
 		ffi_dlclose(d);
 }
@@ -157,7 +157,7 @@ PRIMITIVE(dll_validp)
 	if(library == F)
 		dpush(vm->T);
 	else
-		dpush(untag_check<dll>(library)->dll == NULL ? F : vm->T);
+		dpush(untag_check<dll>(library,vm)->dll == NULL ? F : vm->T);
 }
 
 /* gets the address of an object representing a C pointer */

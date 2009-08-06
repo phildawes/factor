@@ -623,8 +623,8 @@ PRIMITIVE(clear_gc_stats)
    to coalesce equal but distinct quotations and wrappers. */
 PRIMITIVE(become)
 {
-	array *new_objects = untag_check<array>(dpop());
-	array *old_objects = untag_check<array>(dpop());
+	array *new_objects = untag_check<array>(dpop(),vm);
+	array *old_objects = untag_check<array>(dpop(),vm);
 
 	cell capacity = array_capacity(new_objects);
 	if(capacity != array_capacity(old_objects))

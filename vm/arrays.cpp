@@ -65,7 +65,7 @@ cell allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 
 PRIMITIVE(resize_array)
 {
-	array* a = untag_check<array>(dpop());
+	array* a = untag_check<array>(dpop(),vm);
 	cell capacity = unbox_array_size();
 	dpush(tag<array>(reallot_array(a,capacity)));
 }

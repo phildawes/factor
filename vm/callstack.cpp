@@ -62,7 +62,7 @@ PRIMITIVE(callstack)
 
 PRIMITIVE(set_callstack)
 {
-	callstack *stack = untag_check<callstack>(dpop());
+	callstack *stack = untag_check<callstack>(dpop(),vm);
 
 	set_callstack(stack_chain->callstack_bottom,
 		stack->top(),
@@ -175,7 +175,7 @@ stack_frame *innermost_stack_frame(callstack *stack)
 stack_frame *innermost_stack_frame_quot(callstack *callstack)
 {
 	stack_frame *inner = innermost_stack_frame(callstack);
-	tagged<quotation>(frame_executing(inner)).untag_check();
+	tagged<quotation>(frame_executing(inner)).untag_check(vm);
 	return inner;
 }
 
@@ -183,12 +183,12 @@ stack_frame *innermost_stack_frame_quot(callstack *callstack)
 Used by the single stepper. */
 PRIMITIVE(innermost_stack_frame_executing)
 {
-	dpush(frame_executing(innermost_stack_frame(untag_check<callstack>(dpop()))));
+	dpush(frame_executing(innermost_stack_frame(untag_check<callstack>(dpop(),vm))));
 }
 
 PRIMITIVE(innermost_stack_frame_scan)
 {
-	dpush(frame_scan(innermost_stack_frame_quot(untag_check<callstack>(dpop()))));
+	dpush(frame_scan(innermost_stack_frame_quot(untag_check<callstack>(dpop(),vm))));
 }
 
 PRIMITIVE(set_innermost_stack_frame_quot)

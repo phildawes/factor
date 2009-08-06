@@ -138,7 +138,7 @@ PRIMITIVE(fputc)
 PRIMITIVE(fwrite)
 {
 	FILE *file = (FILE *)unbox_alien();
-	byte_array *text = untag_check<byte_array>(dpop());
+	byte_array *text = untag_check<byte_array>(dpop(),vm);
 	cell length = array_capacity(text);
 	char *string = (char *)(text + 1);
 
