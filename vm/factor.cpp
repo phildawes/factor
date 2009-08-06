@@ -6,8 +6,7 @@ namespace factor
   factorvm *vm;
 
   factorvm::factorvm(){
-    code = new heap;
-    datagc = new datacollector;
+    code = new code_heap;
   }
 
 VM_C_API void default_parameters(vm_parameters *p)
@@ -130,7 +129,7 @@ VM_C_API void init_factor(vm_parameters *p)
 	srand(current_micros());
 	init_ffi();
 	vm->init_stacks(p->ds_size,p->rs_size);
-	load_image(p);
+	vm->load_image(p);
 	init_c_io();
 	init_inline_caching(p->max_pic_size);
 	init_signals();

@@ -21,7 +21,7 @@ template <typename T> cell array_size(T *array)
 
 template <typename T> T *allot_array_internal(cell capacity)
 {
-        T *array = vm->datagc->allot<T>(array_size<T>(capacity));
+        T *array = vm->allot<T>(array_size<T>(capacity));
 	array->capacity = tag_fixnum(capacity);
 	return array;
 }

@@ -60,10 +60,6 @@ inline static card *deck_to_card(card_deck *d)
 
 static const cell invalid_allot_marker = 0xff;
 
-inline static card *addr_to_allot_marker(object *a)
-{
-	return (card *)(((cell)a >> card_bits) + vm->allot_markers_offset);
-}
 
 /* the write barrier must be called any time we are potentially storing a
 pointer from an older generation to a younger one */
@@ -73,12 +69,5 @@ inline static void write_barrier(object *obj)
 	*addr_to_deck((cell)obj) = card_mark_mask;
 }
 
-/* we need to remember the first object allocated in the card */
-inline static void allot_barrier(object *address)
-{
-	card *ptr = addr_to_allot_marker(address);
-	if(*ptr == invalid_allot_marker)
-		*ptr = ((cell)address & addr_card_mask);
-}
 
 }

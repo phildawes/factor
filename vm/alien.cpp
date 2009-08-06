@@ -28,7 +28,7 @@ char *pinned_alien_offset(cell obj)
 cell allot_alien(cell delegate_, cell displacement)
 {
 	gc_root<object> delegate(delegate_,vm);
-	gc_root<alien> new_alien(vm->datagc->allot<alien>(sizeof(alien)),vm);
+	gc_root<alien> new_alien(vm->allot<alien>(sizeof(alien)),vm);
 
 	if(delegate.type_p(ALIEN_TYPE))
 	{
@@ -115,7 +115,7 @@ PRIMITIVE(dlopen)
 {
 	gc_root<byte_array> path(dpop(),vm);
 	path.untag_check();
-	gc_root<dll> library(vm->datagc->allot<dll>(sizeof(dll)),vm);
+	gc_root<dll> library(vm->allot<dll>(sizeof(dll)),vm);
 	library->path = path.value();
 	ffi_dlopen(library.untagged());
 	dpush(library.value());

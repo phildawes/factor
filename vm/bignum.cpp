@@ -170,12 +170,12 @@ bignum_multiply(bignum * x, bignum * y)
 
 /* allocates memory */
 void
-bignum_divide(bignum * numerator, bignum * denominator,
+factorvm::bignum_divide(bignum * numerator, bignum * denominator,
                   bignum * * quotient, bignum * * remainder)
 {
   if (BIGNUM_ZERO_P (denominator))
     {
-      vm->divide_by_zero_error();
+      divide_by_zero_error();
       return;
     }
   if (BIGNUM_ZERO_P (numerator))
@@ -243,11 +243,11 @@ bignum_divide(bignum * numerator, bignum * denominator,
 
 /* allocates memory */
 bignum *
-bignum_quotient(bignum * numerator, bignum * denominator)
+factorvm::bignum_quotient(bignum * numerator, bignum * denominator)
 {
   if (BIGNUM_ZERO_P (denominator))
     {
-      vm->divide_by_zero_error();
+      divide_by_zero_error();
       return (BIGNUM_OUT_OF_BAND);
     }
   if (BIGNUM_ZERO_P (numerator))
@@ -296,11 +296,11 @@ bignum_quotient(bignum * numerator, bignum * denominator)
 
 /* allocates memory */
 bignum *
-bignum_remainder(bignum * numerator, bignum * denominator)
+factorvm::bignum_remainder(bignum * numerator, bignum * denominator)
 {
   if (BIGNUM_ZERO_P (denominator))
     {
-      vm->divide_by_zero_error();
+      divide_by_zero_error();
       return (BIGNUM_OUT_OF_BAND);
     }
   if (BIGNUM_ZERO_P (numerator))

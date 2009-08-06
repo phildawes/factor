@@ -3,15 +3,15 @@
 namespace factor
 {
 
-void datacollector::init_data_gc()
+void factorvm::init_data_gc()
 {
 	performing_gc = false;
-	last_code_heap_scan = heap->nursery();
+	last_code_heap_scan = data->nursery();
 	collecting_aging_again = false;
 }
 
 /* Given a pointer to oldspace, copy it to newspace */
-object *datacollector::copy_untagged_object_impl(object *pointer, cell size)
+object *factorvm::copy_untagged_object_impl(object *pointer, cell size)
 {
 	if(newspace->here + size >= newspace->end)		longjmp(gc_jmp,1);
 	object *newpointer = allot_zone(newspace,size);
@@ -24,32 +24,32 @@ object *datacollector::copy_untagged_object_impl(object *pointer, cell size)
 	return newpointer;
 }
 
-object *datacollector::copy_object_impl(object *untagged)
+object *factorvm::copy_object_impl(object *untagged)
 {
 	object *newpointer = copy_untagged_object_impl(untagged,untagged_object_size(untagged));
 	untagged->h.forward_to(newpointer);
 	return newpointer;
 }
 
-bool datacollector::should_copy_p(object *untagged)
+bool factorvm::should_copy_p(object *untagged)
 {
 	if(in_zone(newspace,untagged))
 		return false;
-	if(collecting_gen == heap->tenured())
+	if(collecting_gen == data->tenured())
 		return true;
-	else if(heap->have_aging_p() && collecting_gen == heap->aging())
-		return !in_zone(&heap->generations[heap->tenured()],untagged);
-	else if(collecting_gen == heap->nursery())
+	else if(data->have_aging_p() && collecting_gen == data->aging())
+		return !in_zone(&data->generations[data->tenured()],untagged);
+	else if(collecting_gen == data->nursery())
 		return in_zone(getnursery(),untagged);
 	else
 		{
-			vm->critical_error("Bug in should_copy_p",(cell)untagged);
+			critical_error("Bug in should_copy_p",(cell)untagged);
 			return false;
 		}
 }
 
 /* Follow a chain of forwarding pointers */
-object *datacollector::resolve_forwarding(object *untagged)
+object *factorvm::resolve_forwarding(object *untagged)
 {
 	check_data_pointer(untagged);
 
@@ -67,27 +67,27 @@ object *datacollector::resolve_forwarding(object *untagged)
 		}
 }
 
-template <typename T> T *datacollector::copy_untagged_object(T *untagged)
+template <typename TYPE> TYPE *factorvm::copy_untagged_object(TYPE *untagged)
 {
 	check_data_pointer(untagged);
 
 	if(untagged->h.forwarding_pointer_p())
-		untagged = (T *)resolve_forwarding(untagged->h.forwarding_pointer());
+		untagged = (TYPE *)resolve_forwarding(untagged->h.forwarding_pointer());
 	else
 		{
 			untagged->h.check_header();
-			untagged = (T *)copy_object_impl(untagged);
+			untagged = (TYPE *)copy_object_impl(untagged);
 		}
 
 	return untagged;
 }
 
-cell datacollector::copy_object(cell pointer)
+cell factorvm::copy_object(cell pointer)
 {
 	return RETAG(copy_untagged_object(untag<object>(pointer)),TAG(pointer));
 }
 
-void datacollector::copy_handle(cell *handle)
+void factorvm::copy_handle(cell *handle)
 {
 	cell pointer = *handle;
 
@@ -101,9 +101,9 @@ void datacollector::copy_handle(cell *handle)
 }
 
 /* Scan all the objects in the card */
-void datacollector::copy_card(card *ptr, cell gen, cell here)
+void factorvm::copy_card(card *ptr, cell gen, cell here)
 {
-	cell card_scan = card_to_addr(ptr) + card_offset(heap,ptr);
+	cell card_scan = card_to_addr(ptr) + card_offset(data,ptr);
 	cell card_end = card_to_addr(ptr + 1);
 
 	if(here < card_end)
@@ -114,12 +114,12 @@ void datacollector::copy_card(card *ptr, cell gen, cell here)
 	cards_scanned++;
 }
 
-void datacollector::copy_card_deck(card_deck *deck, cell gen, card mask, card unmask)
+void factorvm::copy_card_deck(card_deck *deck, cell gen, card mask, card unmask)
 {
 	card *first_card = deck_to_card(deck);
 	card *last_card = deck_to_card(deck + 1);
 
-	cell here = heap->generations[gen].here;
+	cell here = data->generations[gen].here;
 
 	u32 *quad_ptr;
 	u32 quad_mask = mask | (mask << 8) | (mask << 16) | (mask << 24);
@@ -146,38 +146,38 @@ void datacollector::copy_card_deck(card_deck *deck, cell gen, card mask, card un
 }
 
 /* Copy all newspace objects referenced from marked cards to the destination */
-void datacollector::copy_gen_cards(cell gen)
+void factorvm::copy_gen_cards(cell gen)
 {
-	card_deck *first_deck = addr_to_deck(heap->generations[gen].start);
-	card_deck *last_deck = addr_to_deck(heap->generations[gen].end);
+	card_deck *first_deck = addr_to_deck(data->generations[gen].start);
+	card_deck *last_deck = addr_to_deck(data->generations[gen].end);
 
 	card mask, unmask;
 
 	/* if we are collecting the nursery, we care about old->nursery pointers
 	   but not old->aging pointers */
-	if(collecting_gen == heap->nursery())
+	if(collecting_gen == data->nursery())
 		{
 			mask = card_points_to_nursery;
 
 			/* after the collection, no old->nursery pointers remain
 			   anywhere, but old->aging pointers might remain in tenured
 			   space */
-			if(gen == heap->tenured())
+			if(gen == data->tenured())
 				unmask = card_points_to_nursery;
 			/* after the collection, all cards in aging space can be
 			   cleared */
-			else if(heap->have_aging_p() && gen == heap->aging())
+			else if(data->have_aging_p() && gen == data->aging())
 				unmask = card_mark_mask;
 			else
 				{
-					vm->critical_error("bug in copy_gen_cards",gen);
+					critical_error("bug in copy_gen_cards",gen);
 					return;
 				}
 		}
 	/* if we are collecting aging space into tenured space, we care about
 	   all old->nursery and old->aging pointers. no old->aging pointers can
 	   remain */
-	else if(heap->have_aging_p() && collecting_gen == heap->aging())
+	else if(data->have_aging_p() && collecting_gen == data->aging())
 		{
 			if(collecting_aging_again)
 				{
@@ -195,7 +195,7 @@ void datacollector::copy_gen_cards(cell gen)
 		}
 	else
 		{
-			vm->critical_error("bug in copy_gen_cards",gen);
+			critical_error("bug in copy_gen_cards",gen);
 			return;
 		}
 
@@ -213,19 +213,19 @@ void datacollector::copy_gen_cards(cell gen)
 
 /* Scan cards in all generations older than the one being collected, copying
    old->new references */
-void datacollector::copy_cards()
+void factorvm::copy_cards()
 {
 	u64 start = current_micros();
 
 	cell i;
-	for(i = collecting_gen + 1; i < heap->gen_count; i++)
+	for(i = collecting_gen + 1; i < data->gen_count; i++)
 		copy_gen_cards(i);
 
 	card_scan_time += (current_micros() - start);
 }
 
 /* Copy all tagged pointers in a range of memory */
-void datacollector::copy_stack_elements(segment *region, cell top)
+void factorvm::copy_stack_elements(segment *region, cell top)
 {
 	cell ptr = region->start;
 
@@ -233,19 +233,19 @@ void datacollector::copy_stack_elements(segment *region, cell top)
 		copy_handle((cell*)ptr);
 }
 
-void datacollector::copy_registered_locals()
+void factorvm::copy_registered_locals()
 {
-	cell scan = vm->gc_locals_region->start;
+	cell scan = gc_locals_region->start;
 
-	for(; scan <= vm->gc_locals; scan += sizeof(cell))
+	for(; scan <= gc_locals; scan += sizeof(cell))
 		copy_handle(*(cell **)scan);
 }
 
-void datacollector::copy_registered_bignums()
+void factorvm::copy_registered_bignums()
 {
-	cell scan = vm->gc_bignums_region->start;
+	cell scan = gc_bignums_region->start;
 
-	for(; scan <= vm->gc_bignums; scan += sizeof(cell))
+	for(; scan <= gc_bignums; scan += sizeof(cell))
 		{
 			bignum **handle = *(bignum ***)scan;
 			bignum *pointer = *handle;
@@ -264,12 +264,12 @@ void datacollector::copy_registered_bignums()
 
 /* Copy roots over at the start of GC, namely various constants, stacks,
    the user environment and extra roots registered by local_roots.hpp */
-void datacollector::copy_roots()
+void factorvm::copy_roots()
 {
-	copy_handle(&vm->T);
-	copy_handle(&vm->bignum_zero);
-	copy_handle(&vm->bignum_pos_one);
-	copy_handle(&vm->bignum_neg_one);
+	copy_handle(&T);
+	copy_handle(&bignum_zero);
+	copy_handle(&bignum_pos_one);
+	copy_handle(&bignum_neg_one);
 
 	copy_registered_locals();
 	copy_registered_bignums();
@@ -298,7 +298,7 @@ void datacollector::copy_roots()
 		copy_handle(&userenv[i]);
 }
 
-cell datacollector::copy_next_from_nursery(cell scan)
+cell factorvm::copy_next_from_nursery(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -326,7 +326,7 @@ cell datacollector::copy_next_from_nursery(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-cell datacollector::copy_next_from_aging(cell scan)
+cell factorvm::copy_next_from_aging(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -335,8 +335,8 @@ cell datacollector::copy_next_from_aging(cell scan)
 		{
 			obj++;
 
-			cell tenured_start = vm->datagc->heap->generations[vm->datagc->heap->tenured()].start;
-			cell tenured_end = vm->datagc->heap->generations[vm->datagc->heap->tenured()].end;
+			cell tenured_start = data->generations[data->tenured()].start;
+			cell tenured_end = data->generations[data->tenured()].end;
 
 			cell newspace_start = newspace->start;
 			cell newspace_end = newspace->end;
@@ -358,7 +358,7 @@ cell datacollector::copy_next_from_aging(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-cell datacollector::copy_next_from_tenured(cell scan)
+cell factorvm::copy_next_from_tenured(cell scan)
 {
 	cell *obj = (cell *)scan;
 	cell *end = (cell *)(scan + binary_payload_start((object *)scan));
@@ -388,19 +388,19 @@ cell datacollector::copy_next_from_tenured(cell scan)
 	return scan + untagged_object_size((object *)scan);
 }
 
-void datacollector::copy_reachable_objects(cell scan, cell *end)
+void factorvm::copy_reachable_objects(cell scan, cell *end)
 {
-	if(collecting_gen == vm->datagc->heap->nursery())
+	if(collecting_gen == data->nursery())
 		{
 			while(scan < *end)
 				scan = copy_next_from_nursery(scan);
 		}
-	else if(vm->datagc->heap->have_aging_p() && collecting_gen == vm->datagc->heap->aging())
+	else if(data->have_aging_p() && collecting_gen == data->aging())
 		{
 			while(scan < *end)
 				scan = copy_next_from_aging(scan);
 		}
-	else if(collecting_gen == vm->datagc->heap->tenured())
+	else if(collecting_gen == data->tenured())
 		{
 			while(scan < *end)
 				scan = copy_next_from_tenured(scan);
@@ -408,40 +408,40 @@ void datacollector::copy_reachable_objects(cell scan, cell *end)
 }
 
 /* Prepare to start copying reachable objects into an unused zone */
-void datacollector::begin_gc(cell requested_bytes)
+void factorvm::begin_gc(cell requested_bytes)
 {
 	if(growing_data_heap)
 		{
-			if(collecting_gen != vm->datagc->heap->tenured())
-				vm->critical_error("Invalid parameters to begin_gc",0);
+			if(collecting_gen != data->tenured())
+				critical_error("Invalid parameters to begin_gc",0);
 
-			old_data_heap = vm->datagc->heap;
+			old_data_heap = data;
 			set_data_heap(grow_data_heap(old_data_heap,requested_bytes));
-			newspace = &vm->datagc->heap->generations[vm->datagc->heap->tenured()];
+			newspace = &data->generations[data->tenured()];
 		}
 	else if(collecting_accumulation_gen_p())
 		{
 			/* when collecting one of these generations, rotate it
 			   with the semispace */
-			zone z = vm->datagc->heap->generations[collecting_gen];
-			vm->datagc->heap->generations[collecting_gen] = vm->datagc->heap->semispaces[collecting_gen];
-			vm->datagc->heap->semispaces[collecting_gen] = z;
-			vm->datagc->heap->reset_generation(collecting_gen);
-			newspace = &vm->datagc->heap->generations[collecting_gen];
-			vm->datagc->heap->clear_cards(collecting_gen,collecting_gen);
-			vm->datagc->heap->clear_decks(collecting_gen,collecting_gen);
-			vm->datagc->heap->clear_allot_markers(collecting_gen,collecting_gen);
+			zone z = data->generations[collecting_gen];
+			data->generations[collecting_gen] = data->semispaces[collecting_gen];
+			data->semispaces[collecting_gen] = z;
+			data->reset_generation(collecting_gen);
+			newspace = &data->generations[collecting_gen];
+			data->clear_cards(collecting_gen,collecting_gen);
+			data->clear_decks(collecting_gen,collecting_gen);
+			data->clear_allot_markers(collecting_gen,collecting_gen);
 		}
 	else
 		{
 			/* when collecting a younger generation, we copy
 			   reachable objects to the next oldest generation,
 			   so we set the newspace so the next generation. */
-			newspace = &vm->datagc->heap->generations[collecting_gen + 1];
+			newspace = &data->generations[collecting_gen + 1];
 		}
 }
 
-void datacollector::end_gc(cell gc_elapsed)
+void factorvm::end_gc(cell gc_elapsed)
 {
 	gc_stats *s = &stats[collecting_gen];
 
@@ -460,12 +460,12 @@ void datacollector::end_gc(cell gc_elapsed)
 	if(collecting_accumulation_gen_p())
 		{
 			/* all younger generations except are now empty.
-			   if collecting_gen == vm->datagc->heap->nursery() here, we only have 1 generation;
+			   if collecting_gen == data->nursery() here, we only have 1 generation;
 			   old-school Cheney collector */
-			if(collecting_gen != vm->datagc->heap->nursery())
-				vm->datagc->heap->reset_generations(vm->datagc->heap->nursery(),collecting_gen - 1);
+			if(collecting_gen != data->nursery())
+				data->reset_generations(data->nursery(),collecting_gen - 1);
 		}
-	else if(collecting_gen == vm->datagc->heap->nursery())
+	else if(collecting_gen == data->nursery())
 		{
 			zone *nursery = getnursery();
 			nursery->here = nursery->start;
@@ -474,7 +474,7 @@ void datacollector::end_gc(cell gc_elapsed)
 		{
 			/* all generations up to and including the one
 			   collected are now empty */
-			vm->datagc->heap->reset_generations(vm->datagc->heap->nursery(),collecting_gen);
+			data->reset_generations(data->nursery(),collecting_gen);
 		}
 
 	collecting_aging_again = false;
@@ -483,13 +483,13 @@ void datacollector::end_gc(cell gc_elapsed)
 /* Collect gen and all younger generations.
    If growing_data_heap_ is true, we must grow the data heap to such a size that
    an allocation of requested_bytes won't fail */
-void datacollector::garbage_collection(cell gen,
+void factorvm::garbage_collection(cell gen,
 									   bool growing_data_heap_,
 									   cell requested_bytes)
 {
-	if(vm->gc_off)
+	if(gc_off)
 		{
-			vm->critical_error("GC disabled",gen);
+			critical_error("GC disabled",gen);
 			return;
 		}
 
@@ -504,17 +504,17 @@ void datacollector::garbage_collection(cell gen,
 		{
 			/* We have no older generations we can try collecting, so we
 			   resort to growing the data heap */
-			if(collecting_gen == vm->datagc->heap->tenured())
+			if(collecting_gen == data->tenured())
 				{
 					growing_data_heap = true;
 
 					/* see the comment in unmark_marked() */
-					unmark_marked(vm->code);
+					unmark_marked(code);
 				}
 			/* we try collecting aging space twice before going on to
 			   collect tenured */
-			else if(vm->datagc->heap->have_aging_p()
-					&& collecting_gen == vm->datagc->heap->aging()
+			else if(data->have_aging_p()
+					&& collecting_gen == data->aging()
 					&& !collecting_aging_again)
 				{
 					collecting_aging_again = true;
@@ -545,8 +545,8 @@ void datacollector::garbage_collection(cell gen,
 		{
 			code_heap_scans++;
 
-			if(collecting_gen == vm->datagc->heap->tenured())
-				free_unmarked(vm->code,(heap_iterator)update_literal_and_word_references);
+			if(collecting_gen == data->tenured())
+				free_unmarked(code,(heap_iterator)update_literal_and_word_references);
 			else
 				copy_code_heap_roots();
 
@@ -563,14 +563,14 @@ void datacollector::garbage_collection(cell gen,
 	performing_gc = false;
 }
 
-void datacollector::gc()
+void factorvm::gc()
 {
-	garbage_collection(vm->datagc->heap->tenured(),false,0);
+	garbage_collection(data->tenured(),false,0);
 }
 
 PRIMITIVE(gc)
 {
-	vm->datagc->gc();
+	vm->gc();
 }
 
 PRIMITIVE(gc_stats)
@@ -582,7 +582,7 @@ PRIMITIVE(gc_stats)
 
 	for(i = 0; i < max_gen_count; i++)
 		{
-			gc_stats *s = &vm->datagc->stats[i];
+			gc_stats *s = &vm->stats[i];
 			result.add(allot_cell(s->collections));
 			result.add(tag<bignum>(long_long_to_bignum(s->gc_time)));
 			result.add(tag<bignum>(long_long_to_bignum(s->max_gc_time)));
@@ -594,16 +594,16 @@ PRIMITIVE(gc_stats)
 		}
 
 	result.add(tag<bignum>(ulong_long_to_bignum(total_gc_time)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->datagc->cards_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->datagc->decks_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->datagc->card_scan_time)));
-	result.add(allot_cell(vm->datagc->code_heap_scans));
+	result.add(tag<bignum>(ulong_long_to_bignum(vm->cards_scanned)));
+	result.add(tag<bignum>(ulong_long_to_bignum(vm->decks_scanned)));
+	result.add(tag<bignum>(ulong_long_to_bignum(vm->card_scan_time)));
+	result.add(allot_cell(vm->code_heap_scans));
 
 	result.trim();
 	dpush(result.elements.value());
 }
 
-void datacollector::clear_gc_stats()
+void factorvm::clear_gc_stats()
 {
 	for(cell i = 0; i < max_gen_count; i++)
 		memset(&stats[i],0,sizeof(gc_stats));
@@ -616,7 +616,7 @@ void datacollector::clear_gc_stats()
 
 PRIMITIVE(clear_gc_stats)
 {
-	vm->datagc->clear_gc_stats();
+	vm->clear_gc_stats();
 }
 
 /* classes.tuple uses this to reshape tuples; tools.deploy.shaker uses this
@@ -641,7 +641,7 @@ PRIMITIVE(become)
 				old_obj->h.forward_to(new_obj.untagged());
 		}
 
-	vm->datagc->gc();
+	vm->gc();
 
 	/* If a word's definition quotation was in old_objects and the
 	   quotation in new_objects is not compiled, we might leak memory
@@ -658,7 +658,7 @@ VM_ASM_API void inline_gc(cell *gc_roots_base, cell gc_roots_size)
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_push((cell)&gc_roots_base[i]);
 
-	vm->datagc->garbage_collection(vm->datagc->heap->nursery(),false,0);
+	vm->garbage_collection(vm->data->nursery(),false,0);
 
 	for(cell i = 0; i < gc_roots_size; i++)
 		gc_local_pop();

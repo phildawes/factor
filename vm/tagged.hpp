@@ -62,9 +62,9 @@ struct tagged
 	template<typename X> tagged<X> as() { return tagged<X>(value_); }
 };
 
-template <typename T> T *untag_check(cell value,factorvm *vm)
+template <typename T> T *untag_check(cell value,factorvm *myvm)
 {
-	return tagged<T>(value).untag_check(vm);
+	return tagged<T>(value).untag_check(myvm);
 }
 
 template <typename T> T *untag(cell value)

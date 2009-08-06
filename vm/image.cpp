@@ -28,9 +28,9 @@ static void load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		p->tenured_size,
 		p->secure_gc);
 
-	vm->datagc->clear_gc_stats();
+	vm->clear_gc_stats();
 
-	zone *tenured = &vm->datagc->heap->generations[vm->datagc->heap->tenured()];
+	zone *tenured = &vm->data->generations[vm->data->tenured()];
 
 	fixnum bytes_read = fread((void*)tenured->start,1,h->data_size,file);
 
@@ -75,7 +75,7 @@ static void load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 }
 
 /* Save the current image to disk */
-bool save_image(const vm_char *filename)
+bool factorvm::save_image(const vm_char *filename)
 {
 	FILE* file;
 	image_header h;
@@ -88,7 +88,7 @@ bool save_image(const vm_char *filename)
 		return false;
 	}
 
-	zone *tenured = &vm->datagc->heap->generations[vm->datagc->heap->tenured()];
+	zone *tenured = &vm->data->generations[vm->data->tenured()];
 
 	h.magic = image_magic;
 	h.version = image_version;
@@ -123,11 +123,11 @@ bool save_image(const vm_char *filename)
 PRIMITIVE(save_image)
 {
 	/* do a full GC to push everything into tenured space */
-	vm->datagc->gc();
+	vm->gc();
 
 	gc_root<byte_array> path(dpop(),vm);
 	path.untag_check();
-	save_image((vm_char *)(path.untagged() + 1));
+	vm->save_image((vm_char *)(path.untagged() + 1));
 }
 
 PRIMITIVE(save_image_and_exit)
@@ -145,12 +145,12 @@ PRIMITIVE(save_image_and_exit)
 	}
 
 	/* do a full GC + code heap compaction */
-	vm->datagc->performing_compaction = true;
+	vm->performing_compaction = true;
 	compact_code_heap();
-	vm->datagc->performing_compaction = false;
+	vm->performing_compaction = false;
 
 	/* Save the image */
-	if(save_image((vm_char *)(path.untagged() + 1)))
+	if(vm->save_image((vm_char *)(path.untagged() + 1)))
 		exit(0);
 	else
 		exit(1);
@@ -161,7 +161,7 @@ static void data_fixup(cell *cell)
 	if(immediate_p(*cell))
 		return;
 
-	zone *tenured = &vm->datagc->heap->generations[vm->datagc->heap->tenured()];
+	zone *tenured = &vm->data->generations[vm->data->tenured()];
 	*cell += (tenured->start - vm->data_relocation_base);
 }
 
@@ -254,7 +254,7 @@ static void relocate_object(object *object)
 
 /* Since the image might have been saved with a different base address than
 where it is loaded, we need to fix up pointers in the image. */
-void relocate_data()
+void factorvm::relocate_data()
 {
 	cell relocating;
 
@@ -267,7 +267,7 @@ void relocate_data()
 	data_fixup(&vm->bignum_pos_one);
 	data_fixup(&vm->bignum_neg_one);
 
-	zone *tenured = &vm->datagc->heap->generations[vm->datagc->heap->tenured()];
+	zone *tenured = &vm->data->generations[vm->data->tenured()];
 
 	for(relocating = tenured->start;
 		relocating < tenured->here;
@@ -295,7 +295,7 @@ void relocate_code()
 
 /* Read an image file from disk, only done once during startup */
 /* This function also initializes the data and code heaps */
-void load_image(vm_parameters *p)
+void factorvm::load_image(vm_parameters *p)
 {
 	FILE *file = OPEN_READ(p->image_path);
 	if(file == NULL)

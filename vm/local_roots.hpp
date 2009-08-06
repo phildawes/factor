@@ -10,13 +10,13 @@ struct gc_root : public tagged<T>
 {
 	factorvm *myvm;
 
-	DEFPUSHPOP(gc_local2_,myvm->gc_locals)
+	DEFPUSHPOP(gc_local_,myvm->gc_locals)
 
 	T *untag_check() const {   // suckage - couldn't work out how to get compiler to delegate to tagged::untag_check(myvm)
 		return tagged<T>::untag_check(myvm);
 	}
 
-	void push() { myvm->datagc->check_tagged_pointer(tagged<T>::value()); gc_local2_push((cell)this); }
+	void push() { myvm->check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
 	
 	explicit gc_root(cell value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
 	explicit gc_root(T *value_,factorvm *vm) : tagged<T>(value_) { myvm=vm; push(); }
@@ -26,10 +26,10 @@ struct gc_root : public tagged<T>
 
 	~gc_root() {
 #ifdef FACTOR_DEBUG
-		cell old = gc_local2_pop();
+		cell old = gc_local_pop();
 		assert(old == (cell)this);
 #else
-		gc_local2_pop();
+		gc_local_pop();
 #endif
 	}
 };
@@ -45,7 +45,7 @@ struct gc_bignum
 
 	gc_bignum(bignum **addr_) : addr(addr_) {
 		if(*addr_)
-			vm->datagc->check_data_pointer(*addr_);
+			vm->check_data_pointer(*addr_);
 		gc_bignum_push((cell)addr);
 	}
 

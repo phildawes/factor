@@ -30,7 +30,7 @@ void factorvm::set_profiling(bool profiling)
 
 	/* Push everything to tenured space so that we can heap scan
 	and allocate profiling blocks if necessary */
-	datagc->gc();
+	gc();
 
 	gc_root<array> words(find_all_words(),this);
 

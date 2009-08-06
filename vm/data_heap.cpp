@@ -144,8 +144,8 @@ void data_heap::clear_decks(cell from, cell to)
 void data_heap::clear_allot_markers(cell from, cell to)
 {
 	/* NOTE: reverse order due to heap layout. */
-	card *first_card = addr_to_allot_marker((object *)generations[to].start);
-	card *last_card = addr_to_allot_marker((object *)generations[from].end);
+	card *first_card = vm->addr_to_allot_marker((object *)generations[to].start);
+	card *last_card = vm->addr_to_allot_marker((object *)generations[from].end);
 	memset(first_card,invalid_allot_marker,last_card - first_card);
 }
 
@@ -173,12 +173,12 @@ void data_heap::reset_generations(cell from, cell to)
 
 void set_data_heap(data_heap *data_)
 {
-	vm->datagc->heap = data_;
-	nursery = vm->datagc->heap->generations[vm->datagc->heap->nursery()];
-	vm->datagc->heap->init_card_decks();
-	vm->datagc->heap->clear_cards(vm->datagc->heap->nursery(),vm->datagc->heap->tenured());
-	vm->datagc->heap->clear_decks(vm->datagc->heap->nursery(),vm->datagc->heap->tenured());
-	vm->datagc->heap->clear_allot_markers(vm->datagc->heap->nursery(),vm->datagc->heap->tenured());
+	vm->data = data_;
+	nursery = vm->data->generations[vm->data->nursery()];
+	vm->data->init_card_decks();
+	vm->data->clear_cards(vm->data->nursery(),vm->data->tenured());
+	vm->data->clear_decks(vm->data->nursery(),vm->data->tenured());
+	vm->data->clear_allot_markers(vm->data->nursery(),vm->data->tenured());
 }
 
 void init_data_heap(cell gens,
@@ -197,7 +197,7 @@ void init_data_heap(cell gens,
 
 	vm->secure_gc = secure_gc_;
 
-	vm->datagc->init_data_gc();
+	vm->init_data_gc();
 }
 
 /* Size of the object pointed to by a tagged pointer */
@@ -295,15 +295,15 @@ cell binary_payload_start(object *pointer)
 /* Push memory usage statistics in data heap */
 PRIMITIVE(data_room)
 {
-	dpush(tag_fixnum((vm->datagc->heap->cards_end - vm->datagc->heap->cards) >> 10));
-	dpush(tag_fixnum((vm->datagc->heap->decks_end - vm->datagc->heap->decks) >> 10));
+	dpush(tag_fixnum((vm->data->cards_end - vm->data->cards) >> 10));
+	dpush(tag_fixnum((vm->data->decks_end - vm->data->decks) >> 10));
 
 	growable_array a;
 
 	cell gen;
-	for(gen = 0; gen < vm->datagc->heap->gen_count; gen++)
+	for(gen = 0; gen < vm->data->gen_count; gen++)
 	{
-		zone *z = (gen == vm->datagc->heap->nursery() ? &nursery : &vm->datagc->heap->generations[gen]);
+		zone *z = (gen == vm->data->nursery() ? &nursery : &vm->data->generations[gen]);
 		a.add(tag_fixnum((z->end - z->here) >> 10));
 		a.add(tag_fixnum((z->size) >> 10));
 	}
@@ -316,7 +316,7 @@ PRIMITIVE(data_room)
 /* Disables GC and activates next-object ( -- obj ) primitive */
 void data_heap::begin_scan()
 {
-	heap_scan_ptr = vm->datagc->heap->generations[vm->datagc->heap->tenured()].start;
+	heap_scan_ptr = vm->data->generations[vm->data->tenured()].start;
 	vm->gc_off = true;
 }
 
@@ -327,7 +327,7 @@ void data_heap::end_scan()
 
 PRIMITIVE(begin_scan)
 {
-	vm->datagc->heap->begin_scan();
+	vm->data->begin_scan();
 }
 
 cell data_heap::next_object()
@@ -335,7 +335,7 @@ cell data_heap::next_object()
 	if(!vm->gc_off)
 		vm->general_error(ERROR_HEAP_SCAN,F,F,NULL);
 
-	if(heap_scan_ptr >= vm->datagc->heap->generations[vm->datagc->heap->tenured()].here)
+	if(heap_scan_ptr >= vm->data->generations[vm->data->tenured()].here)
 		return F;
 
 	object *obj = (object *)heap_scan_ptr;
@@ -346,7 +346,7 @@ cell data_heap::next_object()
 /* Push object at heap scan cursor and advance; pushes f when done */
 PRIMITIVE(next_object)
 {
-	dpush(vm->datagc->heap->next_object());
+	dpush(vm->data->next_object());
 }
 
 /* Re-enables GC */
@@ -357,11 +357,11 @@ PRIMITIVE(end_scan)
 
 template<typename T> void each_object(T &functor)
 {
-	vm->datagc->heap->begin_scan();
+	vm->data->begin_scan();
 	cell obj;
-	while((obj = vm->datagc->heap->next_object()) != F)
+	while((obj = vm->data->next_object()) != F)
 		functor(tagged<object>(obj));
-	vm->datagc->heap->end_scan();
+	vm->data->end_scan();
 }
 
 namespace

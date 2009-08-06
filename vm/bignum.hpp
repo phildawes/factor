@@ -50,11 +50,8 @@ bignum * bignum_add(bignum *, bignum *);
 bignum * bignum_subtract(bignum *, bignum *);
 bignum * bignum_negate(bignum *);
 bignum * bignum_multiply(bignum *, bignum *);
-void
-bignum_divide(bignum * numerator, bignum * denominator,
-		  bignum * * quotient, bignum * * remainder);
-bignum * bignum_quotient(bignum *, bignum *);
-bignum * bignum_remainder(bignum *, bignum *);
+
+
 bignum * fixnum_to_bignum(fixnum);
 bignum * cell_to_bignum(cell);
 bignum * long_long_to_bignum(s64 n);

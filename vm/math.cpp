@@ -129,14 +129,14 @@ PRIMITIVE(bignum_multiply)
 PRIMITIVE(bignum_divint)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_quotient(x,y)));
+	dpush(tag<bignum>(vm->bignum_quotient(x,y)));
 }
 
 PRIMITIVE(bignum_divmod)
 {
 	bignum *q, *r;
 	POP_BIGNUMS(x,y);
-	bignum_divide(x,y,&q,&r);
+	vm->bignum_divide(x,y,&q,&r);
 	dpush(tag<bignum>(q));
 	dpush(tag<bignum>(r));
 }
@@ -144,7 +144,7 @@ PRIMITIVE(bignum_divmod)
 PRIMITIVE(bignum_mod)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_remainder(x,y)));
+	dpush(tag<bignum>(vm->bignum_remainder(x,y)));
 }
 
 PRIMITIVE(bignum_and)
