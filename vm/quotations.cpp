@@ -314,7 +314,7 @@ PRIMITIVE(quotation_xt)
 
 void compile_all_words()
 {
-	gc_root<array> words(find_all_words(),vm);
+	gc_root<array> words(vm->find_all_words(),vm);
 
 	cell i;
 	cell length = array_capacity(words.untagged());

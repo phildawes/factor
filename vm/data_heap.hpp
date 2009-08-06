@@ -72,7 +72,6 @@ PRIMITIVE(next_object);
 PRIMITIVE(end_scan);
 
 
-cell find_all_words();
 
 
 

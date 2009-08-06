@@ -69,7 +69,7 @@ inline void do_slots(cell obj, void (* iter)(cell *))
 }
 
 	template<typename TYPE> void each_object(TYPE &functor);
-
+	cell find_all_words();
 
 	unordered_map<heap_block *,char *> forwarding; 
 

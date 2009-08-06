@@ -349,11 +349,11 @@ PRIMITIVE(end_scan)
 
 template<typename TYPE> void factorvm::each_object(TYPE &functor)
 {
-	vm->begin_scan();
+	begin_scan();
 	cell obj;
-	while((obj = vm->next_object()) != F)
+	while((obj = next_object()) != F)
 		functor(tagged<object>(obj));
-	vm->end_scan();
+	end_scan();
 }
 
 namespace
@@ -373,12 +373,12 @@ struct word_accumulator {
 
 }
 
-cell find_all_words()
+cell factorvm::find_all_words()
 {
 	word_counter counter;
-	vm->each_object(counter);
+	each_object(counter);
 	word_accumulator accum(counter.count);
-	vm->each_object(accum);
+	each_object(accum);
 	accum.words.trim();
 	return accum.words.elements.value();
 }
