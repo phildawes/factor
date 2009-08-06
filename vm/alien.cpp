@@ -206,7 +206,7 @@ VM_C_API void to_value_struct(cell src, void *dest, cell size)
 /* for FFI callbacks receiving structs by value */
 VM_C_API void box_value_struct(void *src, cell size)
 {
-	byte_array *bytes = allot_byte_array(size);
+	byte_array *bytes = vm->allot_byte_array(size);
 	memcpy(bytes->data<void>(),src,size);
 	dpush(tag<byte_array>(bytes));
 }

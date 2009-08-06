@@ -13,8 +13,8 @@ namespace factor
 jit::jit(cell type_, cell owner_,factorvm *myvm)
 	: type(type_),
 	  owner(owner_,vm),
-	  code(),
-	  relocation(),
+	  code(myvm),
+	  relocation(myvm),
 	  literals(myvm),
 	  computing_offset_p(false),
 	  position(0),

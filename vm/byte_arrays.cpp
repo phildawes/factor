@@ -3,9 +3,9 @@
 namespace factor
 {
 
-byte_array *allot_byte_array(cell size)
+byte_array *factorvm::allot_byte_array(cell size)
 {
-	byte_array *array = vm->allot_array_internal<byte_array>(size);
+	byte_array *array = allot_array_internal<byte_array>(size);
 	memset(array + 1,0,size);
 	return array;
 }
@@ -13,7 +13,7 @@ byte_array *allot_byte_array(cell size)
 PRIMITIVE(byte_array)
 {
 	cell size = unbox_array_size();
-	dpush(tag<byte_array>(allot_byte_array(size)));
+	dpush(tag<byte_array>(vm->allot_byte_array(size)));
 }
 
 PRIMITIVE(uninitialized_byte_array)
@@ -33,8 +33,10 @@ void growable_byte_array::append_bytes(void *elts, cell len)
 {
 	cell new_size = count + len;
 
-	if(new_size >= array_capacity(elements.untagged()))
-		elements = vm->reallot_array(elements.untagged(),new_size * 2);
+	if(new_size >= array_capacity(elements.untagged())){
+		factorvm *myvm = elements.myvm;
+		elements = myvm->reallot_array(elements.untagged(),new_size * 2);
+	}
 
 	memcpy(&elements->data<u8>()[count],elts,len);
 

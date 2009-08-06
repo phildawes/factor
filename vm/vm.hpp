@@ -174,6 +174,19 @@ struct factorvm {
 	cell allot_array_4(cell v1, cell v2, cell v3, cell v4);
 
 
+	// strings
+
+	string* allot_string_internal(cell capacity);
+	string* allot_string(cell capacity, cell fill);
+	string *reallot_string(string *string, cell capacity);
+	void fill_string(string *str_, cell start, cell capacity, cell fill);
+	void set_string_nth_slow(string *str_, cell index, cell ch);
+	void set_string_nth(string *str, cell index, cell ch);
+	
+	// byte_array
+
+	byte_array *allot_byte_array(cell size);
+	
 
 	// bignum
 		

@@ -285,7 +285,7 @@ PRIMITIVE(str_to_float)
 
 PRIMITIVE(float_to_str)
 {
-	byte_array *array = allot_byte_array(33);
+	byte_array *array = vm->allot_byte_array(33);
 	snprintf((char *)(array + 1),32,"%.16g",untag_float_check(dpop()));
 	dpush(tag<byte_array>(array));
 }

@@ -84,7 +84,7 @@ PRIMITIVE(fread)
 
 	if(size == 0)
 	{
-		dpush(tag<string>(allot_string(0,0)));
+		dpush(tag<string>(vm->allot_string(0,0)));
 		return;
 	}
 
@@ -107,7 +107,7 @@ PRIMITIVE(fread)
 		{
 			if(c != size)
 			{
-				byte_array *new_buf = allot_byte_array(c);
+				byte_array *new_buf = vm->allot_byte_array(c);
 				memcpy(new_buf + 1, buf.untagged() + 1,c);
 				buf = new_buf;
 			}
