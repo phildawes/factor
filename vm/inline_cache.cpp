@@ -75,7 +75,7 @@ static void update_pic_count(cell type)
 struct inline_cache_jit : public jit {
 	fixnum index;
 
-	inline_cache_jit(cell generic_word_) : jit(PIC_TYPE,generic_word_) {};
+	inline_cache_jit(cell generic_word_,factorvm *myvm) : jit(PIC_TYPE,generic_word_,myvm) {};
 
 	void emit_check(cell klass);
 	void compile_inline_cache(fixnum index,
@@ -149,7 +149,7 @@ static code_block *compile_inline_cache(fixnum index,
 	gc_root<array> methods(methods_,vm);
 	gc_root<array> cache_entries(cache_entries_,vm);
 
-	inline_cache_jit jit(generic_word.value());
+	inline_cache_jit jit(generic_word.value(),vm);
 	jit.compile_inline_cache(index,
 				 generic_word.value(),
 				 methods.value(),
@@ -258,7 +258,7 @@ PRIMITIVE(reset_inline_cache_stats)
 
 PRIMITIVE(inline_cache_stats)
 {
-	growable_array stats;
+	growable_array stats(vm);
 	stats.add(allot_cell(vm->cold_call_to_ic_transitions));
 	stats.add(allot_cell(vm->ic_to_pic_transitions));
 	stats.add(allot_cell(vm->pic_to_mega_transitions));

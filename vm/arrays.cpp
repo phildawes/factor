@@ -4,7 +4,7 @@ namespace factor
 {
 
 /* make a new array with an initial element */
-array *allot_array(cell capacity, cell fill_)
+array *factorvm::allot_array(cell capacity, cell fill_)
 {
 	gc_root<object> fill(fill_,vm);
 	gc_root<array> new_array(vm->allot_array_internal<array>(capacity),vm);
@@ -28,10 +28,10 @@ PRIMITIVE(array)
 {
 	cell initial = dpop();
 	cell size = unbox_array_size();
-	dpush(tag<array>(allot_array(size,initial)));
+	dpush(tag<array>(vm->allot_array(size,initial)));
 }
 
-cell allot_array_1(cell obj_)
+cell factorvm::allot_array_1(cell obj_)
 {
 	gc_root<object> obj(obj_,vm);
 	gc_root<array> a(vm->allot_array_internal<array>(1),vm);
@@ -39,7 +39,7 @@ cell allot_array_1(cell obj_)
 	return a.value();
 }
 
-cell allot_array_2(cell v1_, cell v2_)
+cell factorvm::allot_array_2(cell v1_, cell v2_)
 {
 	gc_root<object> v1(v1_,vm);
 	gc_root<object> v2(v2_,vm);
@@ -49,7 +49,7 @@ cell allot_array_2(cell v1_, cell v2_)
 	return a.value();
 }
 
-cell allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
+cell factorvm::allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 {
 	gc_root<object> v1(v1_,vm);
 	gc_root<object> v2(v2_,vm);

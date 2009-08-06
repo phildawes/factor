@@ -166,6 +166,13 @@ struct factorvm {
 
 	template <typename TYPE> TYPE *reallot_array(TYPE *array_, cell capacity);
 
+	// arrays
+
+	array *allot_array(cell capacity, cell fill);
+	cell allot_array_1(cell obj);
+	cell allot_array_2(cell v1, cell v2);
+	cell allot_array_4(cell v1, cell v2, cell v3, cell v4);
+
 
 
 	// bignum

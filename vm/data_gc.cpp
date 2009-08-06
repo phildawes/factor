@@ -575,7 +575,7 @@ PRIMITIVE(gc)
 
 PRIMITIVE(gc_stats)
 {
-	growable_array result;
+	growable_array result(vm);
 
 	cell i;
 	u64 total_gc_time = 0;

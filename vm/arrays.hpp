@@ -21,11 +21,6 @@ inline static void set_array_nth(array *array, cell slot, cell value)
 	write_barrier(array);
 }
 
-array *allot_array(cell capacity, cell fill);
-
-cell allot_array_1(cell obj);
-cell allot_array_2(cell v1, cell v2);
-cell allot_array_4(cell v1, cell v2, cell v3, cell v4);
 
 PRIMITIVE(array);
 PRIMITIVE(resize_array);
@@ -34,7 +29,7 @@ struct growable_array {
 	cell count;
 	gc_root<array> elements;
 
-	growable_array(cell capacity = 10) : count(0), elements(allot_array(capacity,F),vm) {}
+	growable_array(factorvm *myvm,cell capacity = 10) : count(0), elements(myvm->allot_array(capacity,F),myvm) {}
 
 	void add(cell elt);
 	void trim();

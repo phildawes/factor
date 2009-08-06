@@ -171,7 +171,7 @@ PRIMITIVE(reset_dispatch_stats)
 
 PRIMITIVE(dispatch_stats)
 {
-	growable_array stats;
+	growable_array stats(vm);
 	stats.add(allot_cell(vm->megamorphic_cache_hits));
 	stats.add(allot_cell(vm->megamorphic_cache_misses));
 	stats.trim();

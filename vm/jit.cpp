@@ -10,12 +10,12 @@ namespace factor
 - polymorphic inline caches (inline_cache.cpp) */
 
 /* Allocates memory */
-jit::jit(cell type_, cell owner_)
+jit::jit(cell type_, cell owner_,factorvm *myvm)
 	: type(type_),
 	  owner(owner_,vm),
 	  code(),
 	  relocation(),
-	  literals(),
+	  literals(myvm),
 	  computing_offset_p(false),
 	  position(0),
 	  offset(0)

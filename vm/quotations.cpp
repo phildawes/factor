@@ -280,7 +280,7 @@ void jit_compile(cell quot_, bool relocating)
 	gc_root<quotation> quot(quot_,vm);
 	if(quot->code) return;
 
-	quotation_jit compiler(quot.value(),true,relocating);
+	quotation_jit compiler(quot.value(),true,relocating,vm);
 	compiler.iterate_quotation();
 
 	code_block *compiled = compiler.to_code_block();
@@ -338,7 +338,7 @@ fixnum quot_code_offset_to_scan(cell quot_, cell offset)
 	gc_root<quotation> quot(quot_,vm);
 	gc_root<array> array(quot->array,vm);
 
-	quotation_jit compiler(quot.value(),false,false);
+	quotation_jit compiler(quot.value(),false,false,vm);
 	compiler.compute_position(offset);
 	compiler.iterate_quotation();
 

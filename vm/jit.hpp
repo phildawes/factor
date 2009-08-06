@@ -11,7 +11,7 @@ struct jit {
 	fixnum position;
 	cell offset;
 
-	jit(cell jit_type, cell owner);
+	jit(cell jit_type, cell owner, factorvm *myvm);
 	void compute_position(cell offset);
 
 	void emit_relocation(cell code_template);

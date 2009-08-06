@@ -137,6 +137,8 @@ namespace
 struct stack_frame_accumulator {
 	growable_array frames;
 
+	stack_frame_accumulator(factorvm *vm) : frames(vm) {} 
+
 	void operator()(stack_frame *frame,factorvm* myvm)
 	{
 		gc_root<object> executing(frame_executing(frame),myvm);
@@ -153,7 +155,7 @@ PRIMITIVE(callstack_to_array)
 {
 	gc_root<callstack> callstack(dpop(),vm);
 
-	stack_frame_accumulator accum;
+	stack_frame_accumulator accum(vm);
 	iterate_callstack_object(callstack.untagged(),accum);
 	accum.frames.trim();
 
