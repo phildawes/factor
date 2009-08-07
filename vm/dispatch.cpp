@@ -68,7 +68,7 @@ cell factorvm::lookup_tuple_method(cell obj, cell methods)
 		echelon--;
 	}
 
-	vm->critical_error("Cannot find tuple method",methods);
+	critical_error("Cannot find tuple method",methods);
 	return F;
 }
 
@@ -98,7 +98,7 @@ cell factorvm::lookup_hairy_method(cell obj, cell methods)
 			return lookup_hi_tag_method(obj,method);
 			break;
 		default:
-			vm->critical_error("Bad methods array",methods);
+			critical_error("Bad methods array",methods);
 			return 0;
 		}
 	}
