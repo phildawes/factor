@@ -167,12 +167,12 @@ void factorvm::print_retainstack()
 
 void print_stack_frame(stack_frame *frame, factorvm *myvm)
 {
-	myvm->print_obj(frame_executing(frame));
+	myvm->print_obj(myvm->frame_executing(frame));
 	print_string("\n");
-	myvm->print_obj(frame_scan(frame));
+	myvm->print_obj(myvm->frame_scan(frame));
 	print_string("\n");
 	print_string("word/quot addr: ");
-	print_cell_hex((cell)frame_executing(frame));
+	print_cell_hex((cell)myvm->frame_executing(frame));
 	print_string("\n");
 	print_string("word/quot xt: ");
 	print_cell_hex((cell)frame->xt);

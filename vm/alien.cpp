@@ -5,7 +5,7 @@ namespace factor
 
 /* gets the address of an object representing a C pointer, with the
 intention of storing the pointer across code which may potentially GC. */
-char *pinned_alien_offset(cell obj)
+char *factorvm::pinned_alien_offset(cell obj)
 {
 	switch(tagged<object>(obj).type())
 	{
@@ -13,22 +13,22 @@ char *pinned_alien_offset(cell obj)
 		{
 			alien *ptr = untag<alien>(obj);
 			if(ptr->expired != F)
-				vm->general_error(ERROR_EXPIRED,obj,F,NULL);
+				general_error(ERROR_EXPIRED,obj,F,NULL);
 			return pinned_alien_offset(ptr->alien) + ptr->displacement;
 		}
 	case F_TYPE:
 		return NULL;
 	default:
-		vm->type_error(ALIEN_TYPE,obj);
+		type_error(ALIEN_TYPE,obj);
 		return NULL; /* can't happen */
 	}
 }
 
 /* make an alien */
-cell allot_alien(cell delegate_, cell displacement)
+cell factorvm::allot_alien(cell delegate_, cell displacement)
 {
-	gc_root<object> delegate(delegate_,vm);
-	gc_root<alien> new_alien(vm->allot<alien>(sizeof(alien)),vm);
+	gc_root<object> delegate(delegate_,this);
+	gc_root<alien> new_alien(allot<alien>(sizeof(alien)),this);
 
 	if(delegate.type_p(ALIEN_TYPE))
 	{
@@ -60,7 +60,7 @@ PRIMITIVE(displaced_alien)
 		case BYTE_ARRAY_TYPE:
 		case ALIEN_TYPE:
 		case F_TYPE:
-			dpush(allot_alien(alien,displacement));
+			dpush(vm->allot_alien(alien,displacement));
 			break;
 		default:
 			vm->type_error(ALIEN_TYPE,alien);
@@ -73,7 +73,7 @@ PRIMITIVE(displaced_alien)
 if the object is a byte array, as a sanity check. */
 PRIMITIVE(alien_address)
 {
-	box_unsigned_cell((cell)pinned_alien_offset(dpop()));
+	box_unsigned_cell((cell)vm->pinned_alien_offset(dpop()));
 }
 
 /* pop ( alien n ) from datastack, return alien's address plus n */
@@ -108,7 +108,7 @@ DEFINE_ALIEN_ACCESSOR(signed_1,s8,box_signed_1,to_fixnum)
 DEFINE_ALIEN_ACCESSOR(unsigned_1,u8,box_unsigned_1,to_cell)
 DEFINE_ALIEN_ACCESSOR(float,float,box_float,to_float)
 DEFINE_ALIEN_ACCESSOR(double,double,box_double,to_double)
-DEFINE_ALIEN_ACCESSOR(cell,void *,box_alien,pinned_alien_offset)
+DEFINE_ALIEN_ACCESSOR(cell,void *,box_alien,vm->pinned_alien_offset)
 
 /* open a native library and push a handle */
 PRIMITIVE(dlopen)
@@ -194,7 +194,7 @@ VM_C_API void box_alien(void *ptr)
 	if(ptr == NULL)
 		dpush(F);
 	else
-		dpush(allot_alien(F,(cell)ptr));
+		dpush(vm->allot_alien(F,(cell)ptr));
 }
 
 /* for FFI calls passing structs by value */

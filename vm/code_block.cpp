@@ -381,7 +381,7 @@ void factorvm::mark_code_block(code_block *compiled)
 
 void mark_stack_frame_step(stack_frame *frame,factorvm *myvm)
 {
-	myvm->mark_code_block(frame_code(frame));
+	myvm->mark_code_block(myvm->frame_code(frame));
 }
 
 /* Mark code blocks executing in currently active stack frames. */

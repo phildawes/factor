@@ -229,7 +229,7 @@ void factorvm::relocate_object(object *object)
 	}
 	else
 	{
-		vm->do_slots((cell)object,data_fixup);
+		do_slots((cell)object,data_fixup);
 
 		switch(hi_tag)
 		{
@@ -262,12 +262,12 @@ void factorvm::relocate_data()
 	for(i = 0; i < USER_ENV; i++)
 		data_fixup(&userenv[i],this);
 
-	data_fixup(&vm->T,this);
-	data_fixup(&vm->bignum_zero,this);
-	data_fixup(&vm->bignum_pos_one,this);
-	data_fixup(&vm->bignum_neg_one,this);
+	data_fixup(&T,this);
+	data_fixup(&bignum_zero,this);
+	data_fixup(&bignum_pos_one,this);
+	data_fixup(&bignum_neg_one,this);
 
-	zone *tenured = &vm->data->generations[vm->data->tenured()];
+	zone *tenured = &data->generations[data->tenured()];
 
 	for(relocating = tenured->start;
 		relocating < tenured->here;
@@ -307,13 +307,13 @@ void factorvm::load_image(vm_parameters *p)
 
 	image_header h;
 	if(fread(&h,sizeof(image_header),1,file) != 1)
-		vm->fatal_error("Cannot read image header",0);
+		fatal_error("Cannot read image header",0);
 
 	if(h.magic != image_magic)
-		vm->fatal_error("Bad image: magic number check failed",h.magic);
+		fatal_error("Bad image: magic number check failed",h.magic);
 
 	if(h.version != image_version)
-		vm->fatal_error("Bad image: version number check failed",h.version);
+		fatal_error("Bad image: version number check failed",h.version);
 	
 	load_data_heap(file,&h,p);
 	load_code_heap(file,&h,p);

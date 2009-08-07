@@ -13,7 +13,7 @@ void deallocate_inline_cache(cell return_address)
 {
 	/* Find the call target. */
 	void *old_xt = get_call_target(return_address);
-	check_code_pointer((cell)old_xt);
+	vm->check_code_pointer((cell)old_xt);
 
 	code_block *old_block = (code_block *)old_xt - 1;
 	cell old_type = old_block->type;
@@ -199,7 +199,7 @@ static void update_pic_transitions(cell pic_size)
 Called from assembly with the actual return address */
 void *inline_cache_miss(cell return_address)
 {
-	check_code_pointer(return_address);
+	vm->check_code_pointer(return_address);
 
 	/* Since each PIC is only referenced from a single call site,
 	   if the old call target was a PIC, we can deallocate it immediately,

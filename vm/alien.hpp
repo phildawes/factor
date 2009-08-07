@@ -1,7 +1,6 @@
 namespace factor
 {
 
-cell allot_alien(cell delegate, cell displacement);
 
 PRIMITIVE(displaced_alien);
 PRIMITIVE(alien_address);
@@ -37,6 +36,7 @@ PRIMITIVE(dlopen);
 PRIMITIVE(dlsym);
 PRIMITIVE(dlclose);
 PRIMITIVE(dll_validp);
+
 
 VM_C_API char *alien_offset(cell object);
 VM_C_API char *unbox_alien();

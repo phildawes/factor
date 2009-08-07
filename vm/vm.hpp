@@ -538,6 +538,47 @@ struct factorvm {
 	code_block *forward_xt(code_block *compiled);
 	void forward_object_xts();
 
+	inline void check_code_pointer(cell ptr)
+	{
+#ifdef FACTOR_DEBUG
+		assert(in_code_heap_p(ptr));
+#endif
+	}
+
+	// callstack ----------------------------------------------------------------------------
+
+	void check_frame(stack_frame *frame);
+	callstack *allot_callstack(cell size);
+	stack_frame *fix_callstack_top(stack_frame *top, stack_frame *bottom);
+	stack_frame *frame_successor(stack_frame *frame);
+	code_block *frame_code(stack_frame *frame);
+	cell frame_executing(stack_frame *frame);
+	cell frame_scan(stack_frame *frame);
+	cell frame_type(stack_frame *frame);
+	stack_frame *capture_start();
+	stack_frame *innermost_stack_frame(callstack *stack);
+	stack_frame *innermost_stack_frame_quot(callstack *callstack);
+	template<typename TYPE> void iterate_callstack(cell top, cell bottom, TYPE &iterator)
+	{
+		stack_frame *frame = (stack_frame *)bottom - 1;
+		
+		while((cell)frame >= top)
+			{
+				iterator(frame,this);
+				frame = frame_successor(frame);
+			}
+	}
+
+	template<typename TYPE> void iterate_callstack_object(callstack *stack_, TYPE &iterator);
+
+
+	// alien  ----------------------------------------------------------------------------
+
+	cell allot_alien(cell delegate, cell displacement);
+	char *pinned_alien_offset(cell obj);
+	
+
+
 	factorvm();
 };
 

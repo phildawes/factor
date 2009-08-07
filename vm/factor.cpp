@@ -139,10 +139,10 @@ VM_C_API void init_factor(vm_parameters *p)
 
 	vm->init_profiler();
 
-	userenv[CPU_ENV] = allot_alien(F,(cell)FACTOR_CPU_STRING);
-	userenv[OS_ENV] = allot_alien(F,(cell)FACTOR_OS_STRING);
+	userenv[CPU_ENV] = vm->allot_alien(F,(cell)FACTOR_CPU_STRING);
+	userenv[OS_ENV] = vm->allot_alien(F,(cell)FACTOR_OS_STRING);
 	userenv[CELL_SIZE_ENV] = tag_fixnum(sizeof(cell));
-	userenv[EXECUTABLE_ENV] = allot_alien(F,(cell)p->executable_path);
+	userenv[EXECUTABLE_ENV] = vm->allot_alien(F,(cell)p->executable_path);
 	userenv[ARGS_ENV] = F;
 	userenv[EMBEDDED_ENV] = F;
 
@@ -163,7 +163,7 @@ VM_C_API void pass_args_to_factor(int argc, vm_char **argv)
 	int i;
 
 	for(i = 1; i < argc; i++)
-		args.add(allot_alien(F,(cell)argv[i]));
+		args.add(vm->allot_alien(F,(cell)argv[i]));
 
 	args.trim();
 	userenv[ARGS_ENV] = args.elements.value();
