@@ -40,7 +40,7 @@ static cell nth_hashcode(tuple_layout *layout, fixnum echelon)
 	return ptr[echelon * 2 + 1];
 }
 
-static cell lookup_tuple_method(cell obj, cell methods)
+cell factorvm::lookup_tuple_method(cell obj, cell methods)
 {
 	tuple_layout *layout = untag<tuple_layout>(untag<tuple>(obj)->layout);
 
@@ -82,7 +82,7 @@ static cell lookup_hi_tag_method(cell obj, cell methods)
 	return array_nth(hi_tag_methods,tag);
 }
 
-static cell lookup_hairy_method(cell obj, cell methods)
+cell factorvm::lookup_hairy_method(cell obj, cell methods)
 {
 	cell method = array_nth(untag<array>(methods),TAG(obj));
 	if(tagged<object>(method).type_p(WORD_TYPE))
@@ -104,7 +104,7 @@ static cell lookup_hairy_method(cell obj, cell methods)
 	}
 }
 
-cell lookup_method(cell obj, cell methods)
+cell factorvm::lookup_method(cell obj, cell methods)
 {
 	cell tag = TAG(obj);
 	if(tag == TUPLE_TYPE || tag == OBJECT_TYPE)
@@ -117,7 +117,7 @@ PRIMITIVE(lookup_method)
 {
 	cell methods = dpop();
 	cell obj = dpop();
-	dpush(lookup_method(obj,methods));
+	dpush(vm->lookup_method(obj,methods));
 }
 
 cell object_class(cell obj)
@@ -157,7 +157,7 @@ PRIMITIVE(mega_cache_miss)
 
 	cell object = ((cell *)ds)[-index];
 	cell klass = object_class(object);
-	cell method = lookup_method(object,methods);
+	cell method = vm->lookup_method(object,methods);
 
 	update_method_cache(cache,klass,method);
 
@@ -180,8 +180,8 @@ PRIMITIVE(dispatch_stats)
 
 void quotation_jit::emit_mega_cache_lookup(cell methods_, fixnum index, cell cache_)
 {
-	gc_root<array> methods(methods_,vm);
-	gc_root<array> cache(cache_,vm);
+	gc_root<array> methods(methods_,myvm);
+	gc_root<array> cache(cache_,myvm);
 
 	/* Generate machine code to determine the object's class. */
 	emit_class_lookup(index,PIC_HI_TAG_TUPLE);

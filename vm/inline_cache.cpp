@@ -223,7 +223,7 @@ void *inline_cache_miss(cell return_address)
 	else
 	{
 		cell klass = object_class(object.value());
-		cell method = lookup_method(object.value(),methods.value());
+		cell method = vm->lookup_method(object.value(),methods.value());
 
 		gc_root<array> new_cache_entries(add_inline_cache_entry(
 							   cache_entries.value(),

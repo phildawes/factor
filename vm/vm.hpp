@@ -584,6 +584,15 @@ struct factorvm {
 	fixnum quot_code_offset_to_scan(cell quot, cell offset);
 
 
+	// dispatch   ------------------------------------------------------------------------
+
+	cell lookup_hairy_method(cell obj, cell methods);
+	cell lookup_tuple_method(cell obj, cell methods);
+	cell lookup_method(cell object, cell methods);
+	//void jit_emit_class_lookup(jit *jit, fixnum index, cell type);
+	//void jit_emit_mega_cache_lookup(jit *jit, cell methods, fixnum index, cell cache);
+
+
 	factorvm();
 };
 
