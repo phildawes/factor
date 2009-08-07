@@ -108,8 +108,8 @@ void inline_cache_jit::compile_inline_cache(fixnum index,
 	gc_root<array> methods(methods_,myvm);
 	gc_root<array> cache_entries(cache_entries_,myvm);
 
-	cell inline_cache_type = vm->determine_inline_cache_type(cache_entries.untagged());
-	vm->update_pic_count(inline_cache_type);
+	cell inline_cache_type = myvm->determine_inline_cache_type(cache_entries.untagged());
+	myvm->update_pic_count(inline_cache_type);
 
 	/* Generate machine code to determine the object's class. */
 	emit_class_lookup(index,inline_cache_type);

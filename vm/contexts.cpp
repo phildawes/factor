@@ -45,7 +45,7 @@ context *alloc_context()
 	}
 	else
 	{
-		new_context = (context *)safe_malloc(sizeof(context));
+		new_context = (context *)vm->safe_malloc(sizeof(context));
 		new_context->datastack_region = alloc_segment(vm->ds_size);
 		new_context->retainstack_region = alloc_segment(vm->rs_size);
 	}

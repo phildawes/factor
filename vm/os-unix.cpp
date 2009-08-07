@@ -79,7 +79,7 @@ segment *alloc_segment(cell size)
 	if(mprotect(array + pagesize + size,pagesize,PROT_NONE) == -1)
 		vm->fatal_error("Cannot protect high guard page",(cell)array);
 
-	segment *retval = (segment *)safe_malloc(sizeof(segment));
+	segment *retval = (segment *)vm->safe_malloc(sizeof(segment));
 
 	retval->start = (cell)(array + pagesize);
 	retval->size = size;
