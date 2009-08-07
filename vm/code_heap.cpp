@@ -87,7 +87,7 @@ PRIMITIVE(modify_code_heap)
 				cell labels = array_nth(compiled_data,2);
 				cell code = array_nth(compiled_data,3);
 
-				code_block *compiled = add_code_block(
+				code_block *compiled = vm->add_code_block(
 					WORD_TYPE,
 					code,
 					labels,

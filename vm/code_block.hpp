@@ -60,13 +60,16 @@ static const cell rel_relative_arm_3_mask = 0xffffff;
 /* code relocation table consists of a table of entries for each fixup */
 typedef u32 relocation_entry;
 
-void flush_icache_for(code_block *compiled);
+struct factorvm;
 
-typedef void (*relocation_iterator)(relocation_entry rel, cell index, code_block *compiled);
+typedef void (*relocation_iterator)(relocation_entry rel, cell index, code_block *compiled, factorvm *myvm);
 
-void iterate_relocations(code_block *compiled, relocation_iterator iter);
 
-void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value);
+// void flush_icache_for(code_block *compiled);
+
+// void iterate_relocations(code_block *compiled, relocation_iterator iter);
+
+// void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value);
 
 void relocate_code_block(code_block *compiled,factorvm *vm);
 
@@ -80,17 +83,18 @@ void update_literal_and_word_references(code_block *compiled,factorvm *vm);
 
 void mark_code_block(code_block *compiled,factorvm *vm);
 
-void mark_active_blocks(context *stacks);
+// void mark_active_blocks(context *stacks);
 
-void mark_object_code_block(object *scan);
+// void mark_object_code_block(object *scan);
 
-void relocate_code_block(code_block *relocating,factorvm *vm);
+// code_block *add_code_block(cell type, cell code, cell labels, cell relocation, cell literals);
+
+extern "C" cell userenv[USER_ENV];
 
 inline static bool stack_traces_p()
 {
 	return userenv[STACK_TRACES_ENV] != F;
 }
 
-code_block *add_code_block(cell type, cell code, cell labels, cell relocation, cell literals);
 
 }

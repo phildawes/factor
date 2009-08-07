@@ -7,7 +7,10 @@ struct zone;
 struct vm_parameters;
 struct image_header;
 
+
 typedef void (*heap_iterator)(heap_block *compiled);
+
+VM_C_API cell userenv[USER_ENV];
 
 
 template<typename T> cell array_capacity(T *array)
@@ -45,7 +48,7 @@ struct factorvm {
 	cell heap_scan_ptr;
 
 
-	// data_heap.cpp
+	// data_heap  ----------------------------------------------------------------------------
 
 	void init_card_decks();
 	void clear_cards(cell from, cell to);
@@ -95,7 +98,7 @@ struct factorvm {
 
 	unordered_map<heap_block *,char *> forwarding; 
 
-	// context
+	// context     ----------------------------------------------------------------------------
 	cell ds_size, rs_size;
 	context *unused_contexts;
 
@@ -106,18 +109,18 @@ struct factorvm {
 
 
 
-	//debug.cpp
+	//debug  ----------------------------------------------------------------------------
 	bool fep_disabled;
 	bool full_output;
 	cell look_for;
 	cell obj;
     
-	//dispatch.cpp
+	//dispatch  ----------------------------------------------------------------------------
 	cell megamorphic_cache_hits;
 	cell megamorphic_cache_misses;
 
 
-	// errors.cpp
+	// errors  ----------------------------------------------------------------------------
 	/* Global variables used to pass fault handler state from signal handler to
 	   user-space */
 	cell signal_number;
@@ -137,7 +140,7 @@ struct factorvm {
 	void not_implemented_error();
 		
 
-	// image.cpp
+	// image  ----------------------------------------------------------------------------
 	cell data_relocation_base;
 	cell code_relocation_base;
 
@@ -150,14 +153,14 @@ struct factorvm {
 	void relocate_code();
 
 
-	// from local_roots.cpp
+	// from local_roots ------------------------------------------------------------------
 	segment *gc_locals_region;
 	cell gc_locals;
 	segment *gc_bignums_region;
 	cell gc_bignums;
 
 
-	// generic arrays
+	// generic arrays ----------------------------------------------------------------------------
 
 	template <typename TYPE> TYPE *allot_array_internal(cell capacity)
 	{
@@ -169,7 +172,7 @@ struct factorvm {
 
 	template <typename TYPE> TYPE *reallot_array(TYPE *array_, cell capacity);
 
-	// arrays
+	// arrays ----------------------------------------------------------------------------
 
 	array *allot_array(cell capacity, cell fill);
 	cell allot_array_1(cell obj);
@@ -177,7 +180,7 @@ struct factorvm {
 	cell allot_array_4(cell v1, cell v2, cell v3, cell v4);
 
 
-	// strings
+	// strings ----------------------------------------------------------------------------
 
 	string* allot_string_internal(cell capacity);
 	string* allot_string(cell capacity, cell fill);
@@ -186,31 +189,31 @@ struct factorvm {
 	void set_string_nth_slow(string *str_, cell index, cell ch);
 	void set_string_nth(string *str, cell index, cell ch);
 	
-	// byte_array
+	// byte_array ----------------------------------------------------------------------------
 
 	byte_array *allot_byte_array(cell size);
 
-	// tuples
+	// tuples ----------------------------------------------------------------------------
 
 	tuple *allot_tuple(cell layout_);
 
-	// words
+	// words  ----------------------------------------------------------------------------
 
 	word *allot_word(cell vocab, cell name);
 	void update_word_xt(cell word);
 	
 
-	// code heap
+	// code heap  ----------------------------------------------------------------------------
 
 	void fixup_object_xts();
 
 
-	// quotations
+	// quotations  ----------------------------------------------------------------------------
 
 	void compile_all_words();
 
 
-	// bignum
+	// bignum  ----------------------------------------------------------------------------
 		
 	void bignum_divide(bignum * numerator, bignum * denominator,
 					   bignum * * quotient, bignum * * remainder);
@@ -387,7 +390,7 @@ struct factorvm {
 
 
 
-	// inline_cache.cpp
+	// inline_cache  ----------------------------------------------------------------------------
 	cell max_pic_size;	  
 	cell cold_call_to_ic_transitions;
 	cell ic_to_pic_transitions;
@@ -403,7 +406,7 @@ struct factorvm {
 	mach_port_t our_exception_port;
 #endif
 
-	// math.cpp
+	// math  ----------------------------------------------------------------------------
 	cell bignum_zero;
 	cell bignum_pos_one;
 	cell bignum_neg_one;
@@ -418,21 +421,21 @@ struct factorvm {
 #endif
 
 
-	// io.cpp
+	// io   ----------------------------------------------------------------------------
 
 	void init_c_io();
 	void io_error();
 	
 
 
-	// profiler.cpp
+	// profiler  ----------------------------------------------------------------------------
 	bool profiling_p;
 	void init_profiler();
 	code_block *compile_profiling_stub(cell word);
 	void set_profiling(bool profiling);
 
 
-	// debug.cpp
+	// debug   ----------------------------------------------------------------------------
 	void print_array(array* array, cell nesting);
 	void print_tuple(tuple *tuple, cell nesting);
 	void print_word(word* word, cell nesting);
@@ -449,14 +452,28 @@ struct factorvm {
 	void dump_objects(cell type);
 	void dump_code_heap();
 
-	// run.cpp
+	// run   ----------------------------------------------------------------------------
 	cell T;   
 
-	// write_barrier.cpp
+	// write_barrier  ----------------------------------------------------------------------------
 
 	cell allot_markers_offset;
 
-	// code_gc
+
+	inline card *addr_to_allot_marker(object *a)
+	{
+		return (card *)(((cell)a >> card_bits) + allot_markers_offset);
+	}
+
+	/* we need to remember the first object allocated in the card */
+	inline void allot_barrier(object *address)
+	{
+		card *ptr = addr_to_allot_marker(address);
+		if(*ptr == invalid_allot_marker)
+			*ptr = ((cell)address & addr_card_mask);
+	}
+
+	// code_gc  ----------------------------------------------------------------------------
 
 	void new_heap(code_heap *h, cell size);
 	void build_free_list(code_heap *h, cell size);
@@ -472,18 +489,34 @@ struct factorvm {
 	void assert_free_block(free_heap_block *block);
 	free_heap_block *find_free_block(code_heap *heap, cell size);
 
-	inline card *addr_to_allot_marker(object *a)
-	{
-		return (card *)(((cell)a >> card_bits) + allot_markers_offset);
-	}
+	// code_block  ----------------------------------------------------------------------------
 
-	/* we need to remember the first object allocated in the card */
-	inline void allot_barrier(object *address)
-	{
-		card *ptr = addr_to_allot_marker(address);
-		if(*ptr == invalid_allot_marker)
-			*ptr = ((cell)address & addr_card_mask);
-	}
+	/* code relocation table consists of a table of entries for each fixup */
+	typedef u32 relocation_entry;
+	
+	void flush_icache_for(code_block *compiled);
+	void iterate_relocations(code_block *compiled, relocation_iterator iter);
+	void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value);
+	void mark_active_blocks(context *stacks);
+	void mark_object_code_block(object *scan);
+	int number_of_parameters(relocation_type type);
+	void *object_xt(cell obj);
+	void *xt_pic(word *w, cell tagged_quot);
+	void *get_rel_symbol(array *literals, cell index);
+	cell compute_relocation(relocation_entry rel, cell index, code_block *compiled);
+	void store_address_masked(cell *ptr, fixnum value, cell mask, fixnum shift);
+	void check_code_address(cell address);
+	void mark_code_block(code_block *compiled);
+	code_block *allot_code_block(cell size);
+	code_block *add_code_block(cell type,
+							   cell code_,
+							   cell labels_,
+							   cell relocation_,
+							   cell literals_);
+	void *word_xt_pic(word *w);
+	void *word_xt_pic_tail(word *w);
+	void update_literal_references(code_block *compiled);
+	void fixup_labels(array *labels, code_block *compiled);
 
 
 	factorvm();
@@ -500,7 +533,6 @@ VM_C_API factor::context *stack_chain;
 
 // run.cpp
 /* TAGGED user environment data; see getenv/setenv prims */
-VM_C_API factor::cell userenv[USER_ENV];
 
 // write_barrier.cpp
 VM_C_API factor::cell cards_offset;

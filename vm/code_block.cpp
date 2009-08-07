@@ -18,12 +18,12 @@ static cell relocation_offset_of(relocation_entry r)
 	return  (r & 0x00ffffff);
 }
 
-void flush_icache_for(code_block *block)
+void factorvm::flush_icache_for(code_block *block)
 {
 	flush_icache((cell)block,block->size);
 }
 
-static int number_of_parameters(relocation_type type)
+int factorvm::number_of_parameters(relocation_type type)
 {
 	switch(type)
 	{
@@ -42,12 +42,12 @@ static int number_of_parameters(relocation_type type)
 	case RT_MEGAMORPHIC_CACHE_HITS:
 		return 0;
 	default:
-		vm->critical_error("Bad rel type",type);
+		critical_error("Bad rel type",type);
 		return -1; /* Can't happen */
 	}
 }
 
-void *object_xt(cell obj)
+void *factorvm::object_xt(cell obj)
 {
 	switch(tagged<object>(obj).type())
 	{
@@ -56,14 +56,14 @@ void *object_xt(cell obj)
 	case QUOTATION_TYPE:
 		return untag<quotation>(obj)->xt;
 	default:
-		vm->critical_error("Expected word or quotation",obj);
+		critical_error("Expected word or quotation",obj);
 		return NULL;
 	}
 }
 
-static void *xt_pic(word *w, cell tagged_quot)
+void *factorvm::xt_pic(word *w, cell tagged_quot)
 {
-	if(tagged_quot == F || vm->max_pic_size == 0)
+	if(tagged_quot == F || max_pic_size == 0)
 		return w->xt;
 	else
 	{
@@ -75,12 +75,12 @@ static void *xt_pic(word *w, cell tagged_quot)
 	}
 }
 
-void *word_xt_pic(word *w)
+void *factorvm::word_xt_pic(word *w)
 {
 	return xt_pic(w,w->pic_def);
 }
 
-void *word_xt_pic_tail(word *w)
+void *factorvm::word_xt_pic_tail(word *w)
 {
 	return xt_pic(w,w->pic_tail_def);
 }
@@ -93,7 +93,7 @@ void undefined_symbol()
 }
 
 /* Look up an external library symbol referenced by a compiled code block */
-void *get_rel_symbol(array *literals, cell index)
+void *factorvm::get_rel_symbol(array *literals, cell index)
 {
 	cell symbol = array_nth(literals,index);
 	cell library = array_nth(literals,index + 1);
@@ -132,12 +132,12 @@ void *get_rel_symbol(array *literals, cell index)
 			return (void *)undefined_symbol;
 		}
 	default:
-		vm->critical_error("Bad symbol specifier",symbol);
+		critical_error("Bad symbol specifier",symbol);
 		return (void *)undefined_symbol;
 	}
 }
 
-cell compute_relocation(relocation_entry rel, cell index, code_block *compiled)
+cell factorvm::compute_relocation(relocation_entry rel, cell index, code_block *compiled)
 {
 	array *literals = untag<array>(compiled->literals);
 	cell offset = relocation_offset_of(rel) + (cell)compiled->xt();
@@ -170,16 +170,16 @@ cell compute_relocation(relocation_entry rel, cell index, code_block *compiled)
 	case RT_UNTAGGED:
 		return untag_fixnum(ARG);
 	case RT_MEGAMORPHIC_CACHE_HITS:
-		return (cell)&vm->megamorphic_cache_hits;
+		return (cell)&megamorphic_cache_hits;
 	default:
-		vm->critical_error("Bad rel type",rel);
+		critical_error("Bad rel type",rel);
 		return 0; /* Can't happen */
 	}
 
 #undef ARG
 }
 
-void iterate_relocations(code_block *compiled, relocation_iterator iter)
+void factorvm::iterate_relocations(code_block *compiled, relocation_iterator iter)
 {
 	if(compiled->relocation != F)
 	{
@@ -191,7 +191,7 @@ void iterate_relocations(code_block *compiled, relocation_iterator iter)
 		for(cell i = 0; i < length; i++)
 		{
 			relocation_entry rel = relocation->data<relocation_entry>()[i];
-			iter(rel,index,compiled);
+			iter(rel,index,compiled,this);
 			index += number_of_parameters(relocation_type_of(rel));			
 		}
 	}
@@ -205,18 +205,18 @@ static void store_address_2_2(cell *ptr, cell value)
 }
 
 /* Store a value into a bitfield of a PowerPC instruction */
-static void store_address_masked(cell *ptr, fixnum value, cell mask, fixnum shift)
+void factorvm::store_address_masked(cell *ptr, fixnum value, cell mask, fixnum shift)
 {
 	/* This is unaccurate but good enough */
 	fixnum test = (fixnum)mask >> 1;
 	if(value <= -test || value >= test)
-		vm->critical_error("Value does not fit inside relocation",0);
+		critical_error("Value does not fit inside relocation",0);
 
 	*ptr = ((*ptr & ~mask) | ((value >> shift) & mask));
 }
 
 /* Perform a fixup on a code block */
-void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value)
+void factorvm::store_address_in_code_block(cell klass, cell offset, fixnum absolute_value)
 {
 	fixnum relative_value = absolute_value - offset;
 
@@ -256,29 +256,29 @@ void store_address_in_code_block(cell klass, cell offset, fixnum absolute_value)
 			rel_indirect_arm_mask,0);
 		break;
 	default:
-		vm->critical_error("Bad rel class",klass);
+		critical_error("Bad rel class",klass);
 		break;
 	}
 }
 
-void update_literal_references_step(relocation_entry rel, cell index, code_block *compiled)
+void update_literal_references_step(relocation_entry rel, cell index, code_block *compiled, factorvm *myvm)
 {
 	if(relocation_type_of(rel) == RT_IMMEDIATE)
 	{
 		cell offset = relocation_offset_of(rel) + (cell)(compiled + 1);
 		array *literals = untag<array>(compiled->literals);
 		fixnum absolute_value = array_nth(literals,index);
-		store_address_in_code_block(relocation_class_of(rel),offset,absolute_value);
+		myvm->store_address_in_code_block(relocation_class_of(rel),offset,absolute_value);
 	}
 }
 
 /* Update pointers to literals from compiled code. */
-void update_literal_references(code_block *compiled, factorvm *)
+void update_literal_references(code_block *compiled, factorvm *myvm)
 {
 	if(!compiled->needs_fixup)
 	{
-		iterate_relocations(compiled,update_literal_references_step);
-		flush_icache_for(compiled);
+		myvm->iterate_relocations(compiled,update_literal_references_step);
+		myvm->flush_icache_for(compiled);
 	}
 }
 
@@ -308,23 +308,23 @@ void copy_literal_references(code_block *compiled, factorvm *myvm)
 }
 
 /* Compute an address to store at a relocation */
-void relocate_code_block_step(relocation_entry rel, cell index, code_block *compiled)
+void relocate_code_block_step(relocation_entry rel, cell index, code_block *compiled, factorvm *myvm)
 {
 #ifdef FACTOR_DEBUG
 	tagged<array>(compiled->literals).untag_check();
 	tagged<byte_array>(compiled->relocation).untag_check();
 #endif
 
-	store_address_in_code_block(relocation_class_of(rel),
+	myvm->store_address_in_code_block(relocation_class_of(rel),
 				    relocation_offset_of(rel) + (cell)compiled->xt(),
-				    compute_relocation(rel,index,compiled));
+				    myvm->compute_relocation(rel,index,compiled));
 }
 
-void update_word_references_step(relocation_entry rel, cell index, code_block *compiled)
+void update_word_references_step(relocation_entry rel, cell index, code_block *compiled,factorvm *myvm)
 {
 	relocation_type type = relocation_type_of(rel);
 	if(type == RT_XT || type == RT_XT_PIC || type == RT_XT_PIC_TAIL)
-		relocate_code_block_step(rel,index,compiled);
+		relocate_code_block_step(rel,index,compiled,myvm);
 }
 
 /* Relocate new code blocks completely; updating references to literals,
@@ -343,11 +343,11 @@ void update_word_references(code_block *compiled, factorvm *myvm)
 	   the code heap with dead PICs that will be freed on the next
 	   GC, we add them to the free list immediately. */
 	else if(compiled->type == PIC_TYPE)
-		vm->heap_free(myvm->code,compiled);
+		myvm->heap_free(myvm->code,compiled);
 	else
 	{
-		iterate_relocations(compiled,update_word_references_step);
-		flush_icache_for(compiled);
+		myvm->iterate_relocations(compiled,update_word_references_step);
+		myvm->flush_icache_for(compiled);
 	}
 }
 
@@ -357,10 +357,10 @@ void update_literal_and_word_references(code_block *compiled,factorvm *myvm)
 	update_word_references(compiled,myvm);
 }
 
-static void check_code_address(cell address)
+void factorvm::check_code_address(cell address)
 {
 #ifdef FACTOR_DEBUG
-	assert(address >= vm->code->seg->start && address < vm->code->seg->end);
+	assert(address >= code->seg->start && address < code->seg->end);
 #endif
 }
 
@@ -369,25 +369,25 @@ is added to the heap. */
 
 /* Mark all literals referenced from a word XT. Only for tenured
 collections */
-void mark_code_block(code_block *compiled)
+void factorvm::mark_code_block(code_block *compiled)
 {
 	check_code_address((cell)compiled);
 
-	vm->mark_block(compiled);
+	mark_block(compiled);
 
-	vm->copy_handle(&compiled->literals);
-	vm->copy_handle(&compiled->relocation);
+	copy_handle(&compiled->literals);
+	copy_handle(&compiled->relocation);
 }
 
-void mark_stack_frame_step(stack_frame *frame,factorvm *vm)
+void mark_stack_frame_step(stack_frame *frame,factorvm *myvm)
 {
-	mark_code_block(frame_code(frame));
+	myvm->mark_code_block(frame_code(frame));
 }
 
 /* Mark code blocks executing in currently active stack frames. */
-void mark_active_blocks(context *stacks)
+void factorvm::mark_active_blocks(context *stacks)
 {
-	if(vm->collecting_gen == vm->data->tenured())
+	if(collecting_gen == data->tenured())
 	{
 		cell top = (cell)stacks->callstack_top;
 		cell bottom = (cell)stacks->callstack_bottom;
@@ -396,7 +396,7 @@ void mark_active_blocks(context *stacks)
 	}
 }
 
-void mark_object_code_block(object *object)
+void factorvm::mark_object_code_block(object *object)
 {
 	switch(object->h.hi_tag())
 	{
@@ -430,12 +430,12 @@ void relocate_code_block(code_block *compiled, factorvm *myvm)
 {
 	compiled->last_scan = myvm->data->nursery();
 	compiled->needs_fixup = false;
-	iterate_relocations(compiled,relocate_code_block_step);
-	flush_icache_for(compiled);
+	myvm->iterate_relocations(compiled,relocate_code_block_step);
+	myvm->flush_icache_for(compiled);
 }
 
 /* Fixup labels. This is done at compile time, not image load time */
-void fixup_labels(array *labels, code_block *compiled)
+void factorvm::fixup_labels(array *labels, code_block *compiled)
 {
 	cell i;
 	cell size = array_capacity(labels);
@@ -453,27 +453,27 @@ void fixup_labels(array *labels, code_block *compiled)
 }
 
 /* Might GC */
-code_block *allot_code_block(cell size)
+code_block *factorvm::allot_code_block(cell size)
 {
-	heap_block *block = vm->heap_allot(vm->code,size + sizeof(code_block));
+	heap_block *block = heap_allot(code,size + sizeof(code_block));
 
 	/* If allocation failed, do a code GC */
 	if(block == NULL)
 	{
-		vm->gc();
-		block = vm->heap_allot(vm->code,size + sizeof(code_block));
+		gc();
+		block = heap_allot(code,size + sizeof(code_block));
 
 		/* Insufficient room even after code GC, give up */
 		if(block == NULL)
 		{
 			cell used, total_free, max_free;
-			vm->heap_usage(vm->code,&used,&total_free,&max_free);
+			heap_usage(code,&used,&total_free,&max_free);
 
 			print_string("Code heap stats:\n");
 			print_string("Used: "); print_cell(used); nl();
 			print_string("Total free space: "); print_cell(total_free); nl();
 			print_string("Largest free block: "); print_cell(max_free); nl();
-			vm->fatal_error("Out of memory in add-compiled-block",0);
+			fatal_error("Out of memory in add-compiled-block",0);
 		}
 	}
 
@@ -481,24 +481,24 @@ code_block *allot_code_block(cell size)
 }
 
 /* Might GC */
-code_block *add_code_block(
+code_block *factorvm::add_code_block(
 	cell type,
 	cell code_,
 	cell labels_,
 	cell relocation_,
 	cell literals_)
 {
-	gc_root<byte_array> code(code_,vm);
-	gc_root<object> labels(labels_,vm);
-	gc_root<byte_array> relocation(relocation_,vm);
-	gc_root<array> literals(literals_,vm);
+	gc_root<byte_array> code(code_,this);
+	gc_root<object> labels(labels_,this);
+	gc_root<byte_array> relocation(relocation_,this);
+	gc_root<array> literals(literals_,this);
 
 	cell code_length = align8(array_capacity(code.untagged()));
 	code_block *compiled = allot_code_block(code_length);
 
 	/* compiled header */
 	compiled->type = type;
-	compiled->last_scan = vm->data->nursery();
+	compiled->last_scan = data->nursery();
 	compiled->needs_fixup = true;
 	compiled->relocation = relocation.value();
 
@@ -517,7 +517,7 @@ code_block *add_code_block(
 
 	/* next time we do a minor GC, we have to scan the code heap for
 	literals */
-	vm->last_code_heap_scan = vm->data->nursery();
+	last_code_heap_scan = data->nursery();
 
 	return compiled;
 }

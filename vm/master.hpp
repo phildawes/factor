@@ -46,6 +46,8 @@
 #include "data_heap.hpp"
 #include "data_gc.hpp"
 #include "write_barrier.hpp"
+
+#include "code_block.hpp"
 #include "vm.hpp"
 #include "tagged.hpp"
 #include "bignumint.hpp"
@@ -63,7 +65,6 @@
 #include "float_bits.hpp"
 #include "io.hpp"
 #include "code_gc.hpp"
-#include "code_block.hpp"
 #include "code_heap.hpp"
 #include "image.hpp"
 #include "callstack.hpp"
