@@ -7,6 +7,9 @@ struct zone;
 struct vm_parameters;
 struct image_header;
 
+typedef void (*heap_iterator)(heap_block *compiled);
+
+
 template<typename T> cell array_capacity(T *array)
 {
 #ifdef FACTOR_DEBUG
@@ -453,6 +456,21 @@ struct factorvm {
 
 	cell allot_markers_offset;
 
+	// code_gc
+
+	void new_heap(code_heap *h, cell size);
+	void build_free_list(code_heap *h, cell size);
+	heap_block *heap_allot(code_heap *h, cell size);
+	void heap_free(code_heap *h, heap_block *block);
+	void mark_block(heap_block *block);
+	void unmark_marked(code_heap *heap);
+	void free_unmarked(code_heap *heap, heap_iterator iter);
+	void heap_usage(code_heap *h, cell *used, cell *total_free, cell *max_free);
+	cell heap_size(code_heap *h);
+	cell compute_heap_forwarding(code_heap *h, unordered_map<heap_block *,char *> &forwarding);
+	void compact_heap(code_heap *h, unordered_map<heap_block *,char *> &forwarding);
+	void assert_free_block(free_heap_block *block);
+	free_heap_block *find_free_block(code_heap *heap, cell size);
 
 	inline card *addr_to_allot_marker(object *a)
 	{

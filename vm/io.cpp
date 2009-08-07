@@ -28,7 +28,7 @@ void factorvm::io_error()
 		return;
 #endif
 
-	vm->general_error(ERROR_IO,tag_fixnum(errno),F,NULL);
+	general_error(ERROR_IO,tag_fixnum(errno),F,NULL);
 }
 
 PRIMITIVE(fopen)

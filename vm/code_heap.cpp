@@ -8,7 +8,7 @@ namespace factor
 /* Allocate a code heap during startup */
 void init_code_heap(cell size)
 {
-	new_heap(vm->code,size);
+	vm->new_heap(vm->code,size);
 }
 
 bool in_code_heap_p(cell ptr)
@@ -112,7 +112,7 @@ PRIMITIVE(modify_code_heap)
 PRIMITIVE(code_room)
 {
 	cell used, total_free, max_free;
-	heap_usage(vm->code,&used,&total_free,&max_free);
+	vm->heap_usage(vm->code,&used,&total_free,&max_free);
 	dpush(tag_fixnum(vm->code->seg->size / 1024));
 	dpush(tag_fixnum(used / 1024));
 	dpush(tag_fixnum(total_free / 1024));
@@ -213,20 +213,20 @@ void compact_code_heap()
 	vm->gc();
 
 	/* Figure out where the code heap blocks are going to end up */
-	cell size = compute_heap_forwarding(vm->code, vm->forwarding);
+	cell size = vm->compute_heap_forwarding(vm->code, vm->forwarding);
 
 	/* Update word and quotation code pointers */
 	forward_object_xts();
 
 	/* Actually perform the compaction */
-	compact_heap(vm->code,vm->forwarding);
+	vm->compact_heap(vm->code,vm->forwarding);
 
 	/* Update word and quotation XTs */
 	vm->fixup_object_xts();
 
 	/* Now update the free list; there will be a single free block at
 	the end */
-	build_free_list(vm->code,size);
+	vm->build_free_list(vm->code,size);
 }
 
 }

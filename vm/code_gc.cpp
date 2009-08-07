@@ -11,11 +11,11 @@ static void clear_free_list(code_heap *heap)
 /* This malloc-style heap code is reasonably generic. Maybe in the future, it
 will be used for the data heap too, if we ever get incremental
 mark/sweep/compact GC. */
-void new_heap(code_heap *heap, cell size)
+void factorvm::new_heap(code_heap *heap, cell size)
 {
 	heap->seg = alloc_segment(align_page(size));
 	if(!heap->seg)
-		vm->fatal_error("Out of memory in new_heap",size);
+		fatal_error("Out of memory in new_heap",size);
 
 	clear_free_list(heap);
 }
@@ -39,7 +39,7 @@ static void add_to_free_list(code_heap *heap, free_heap_block *block)
 
 In the former case, we must add a large free block from compiling.base + size to
 compiling.limit. */
-void build_free_list(code_heap *heap, cell size)
+void factorvm::build_free_list(code_heap *heap, cell size)
 {
 	heap_block *prev = NULL;
 
@@ -61,7 +61,7 @@ void build_free_list(code_heap *heap, cell size)
 		case B_ALLOCATED:
 			break;
 		default:
-			vm->critical_error("Invalid scan->status",(cell)scan);
+			critical_error("Invalid scan->status",(cell)scan);
 			break;
 		}
 
@@ -91,13 +91,13 @@ void build_free_list(code_heap *heap, cell size)
 
 }
 
-static void assert_free_block(free_heap_block *block)
+void factorvm::assert_free_block(free_heap_block *block)
 {
 	if(block->status != B_FREE)
-		vm->critical_error("Invalid block in free list",(cell)block);
+		critical_error("Invalid block in free list",(cell)block);
 }
 		
-static free_heap_block *find_free_block(code_heap *heap, cell size)
+free_heap_block *factorvm::find_free_block(code_heap *heap, cell size)
 {
 	cell attempt = size;
 
@@ -154,7 +154,7 @@ static free_heap_block *split_free_block(code_heap *heap, free_heap_block *block
 }
 
 /* Allocate a block of memory from the mark and sweep GC code_heap */
-heap_block *heap_allot(code_heap *heap, cell size)
+heap_block *factorvm::heap_allot(code_heap *heap, cell size)
 {
 	size = (size + block_size_increment - 1) & ~(block_size_increment - 1);
 
@@ -171,13 +171,13 @@ heap_block *heap_allot(code_heap *heap, cell size)
 }
 
 /* Deallocates a block manually */
-void heap_free(code_heap *heap, heap_block *block)
+void factorvm::heap_free(code_heap *heap, heap_block *block)
 {
 	block->status = B_FREE;
 	add_to_free_list(heap,(free_heap_block *)block);
 }
 
-void mark_block(heap_block *block)
+void factorvm::mark_block(heap_block *block)
 {
 	/* If already marked, do nothing */
 	switch(block->status)
@@ -188,14 +188,14 @@ void mark_block(heap_block *block)
 		block->status = B_MARKED;
 		break;
 	default:
-		vm->critical_error("Marking the wrong block",(cell)block);
+		critical_error("Marking the wrong block",(cell)block);
 		break;
 	}
 }
 
 /* If in the middle of code GC, we have to grow the heap, data GC restarts from
 scratch, so we have to unmark any marked blocks. */
-void unmark_marked(code_heap *heap)
+void factorvm::unmark_marked(code_heap *heap)
 {
 	heap_block *scan = first_block(heap);
 
@@ -210,7 +210,7 @@ void unmark_marked(code_heap *heap)
 
 /* After code GC, all referenced code blocks have status set to B_MARKED, so any
 which are allocated and not marked can be reclaimed. */
-void free_unmarked(code_heap *heap, heap_iterator iter)
+void factorvm::free_unmarked(code_heap *heap, heap_iterator iter)
 {
 	clear_free_list(heap);
 
@@ -222,7 +222,7 @@ void free_unmarked(code_heap *heap, heap_iterator iter)
 		switch(scan->status)
 		{
 		case B_ALLOCATED:
-			if(vm->secure_gc)
+			if(secure_gc)
 				memset(scan + 1,0,scan->size - sizeof(heap_block));
 
 			if(prev && prev->status == B_FREE)
@@ -247,7 +247,7 @@ void free_unmarked(code_heap *heap, heap_iterator iter)
 			iter(scan);
 			break;
 		default:
-			vm->critical_error("Invalid scan->status",(cell)scan);
+			critical_error("Invalid scan->status",(cell)scan);
 		}
 
 		scan = next_block(heap,scan);
@@ -258,7 +258,7 @@ void free_unmarked(code_heap *heap, heap_iterator iter)
 }
 
 /* Compute total sum of sizes of free blocks, and size of largest free block */
-void heap_usage(code_heap *heap, cell *used, cell *total_free, cell *max_free)
+void factorvm::heap_usage(code_heap *heap, cell *used, cell *total_free, cell *max_free)
 {
 	*used = 0;
 	*total_free = 0;
@@ -279,7 +279,7 @@ void heap_usage(code_heap *heap, cell *used, cell *total_free, cell *max_free)
 				*max_free = scan->size;
 			break;
 		default:
-			vm->critical_error("Invalid scan->status",(cell)scan);
+			critical_error("Invalid scan->status",(cell)scan);
 		}
 
 		scan = next_block(heap,scan);
@@ -287,7 +287,7 @@ void heap_usage(code_heap *heap, cell *used, cell *total_free, cell *max_free)
 }
 
 /* The size of the heap, not including the last block if it's free */
-cell heap_size(code_heap *heap)
+cell factorvm::heap_size(code_heap *heap)
 {
 	heap_block *scan = first_block(heap);
 
@@ -303,7 +303,7 @@ cell heap_size(code_heap *heap)
 }
 
 /* Compute where each block is going to go, after compaction */
-cell compute_heap_forwarding(code_heap *heap, unordered_map<heap_block *,char *> &forwarding)
+cell factorvm::compute_heap_forwarding(code_heap *heap, unordered_map<heap_block *,char *> &forwarding)
 {
 	heap_block *scan = first_block(heap);
 	char *address = (char *)first_block(heap);
@@ -316,7 +316,7 @@ cell compute_heap_forwarding(code_heap *heap, unordered_map<heap_block *,char *>
 			address += scan->size;
 		}
 		else if(scan->status == B_MARKED)
-			vm->critical_error("Why is the block marked?",0);
+			critical_error("Why is the block marked?",0);
 
 		scan = next_block(heap,scan);
 	}
@@ -324,7 +324,7 @@ cell compute_heap_forwarding(code_heap *heap, unordered_map<heap_block *,char *>
 	return (cell)address - heap->seg->start;
 }
 
-void compact_heap(code_heap *heap, unordered_map<heap_block *,char *> &forwarding)
+void factorvm::compact_heap(code_heap *heap, unordered_map<heap_block *,char *> &forwarding)
 {
 	heap_block *scan = first_block(heap);
 
