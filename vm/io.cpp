@@ -14,14 +14,14 @@ The Factor library provides platform-specific code for Unix and Windows
 with many more capabilities so these words are not usually used in
 normal operation. */
 
-void init_c_io()
+void factorvm::init_c_io()
 {
 	userenv[STDIN_ENV] = allot_alien(F,(cell)stdin);
 	userenv[STDOUT_ENV] = allot_alien(F,(cell)stdout);
 	userenv[STDERR_ENV] = allot_alien(F,(cell)stderr);
 }
 
-void io_error()
+void factorvm::io_error()
 {
 #ifndef WINCE
 	if(errno == EINTR)
@@ -43,7 +43,7 @@ PRIMITIVE(fopen)
 		FILE *file = fopen((char *)(path.untagged() + 1),
 				   (char *)(mode.untagged() + 1));
 		if(file == NULL)
-			io_error();
+			vm->io_error();
 		else
 		{
 			box_alien(file);
@@ -67,7 +67,7 @@ PRIMITIVE(fgetc)
 				break;
 			}
 			else
-				io_error();
+				vm->io_error();
 		}
 		else
 		{
@@ -101,7 +101,7 @@ PRIMITIVE(fread)
 				break;
 			}
 			else
-				io_error();
+				vm->io_error();
 		}
 		else
 		{
@@ -126,7 +126,7 @@ PRIMITIVE(fputc)
 	{
 		if(fputc(ch,file) == EOF)
 		{
-			io_error();
+			vm->io_error();
 
 			/* Still here? EINTR */
 		}
@@ -155,7 +155,7 @@ PRIMITIVE(fwrite)
 			if(feof(file))
 				break;
 			else
-				io_error();
+				vm->io_error();
 
 			/* Still here? EINTR */
 			length -= written;
@@ -182,7 +182,7 @@ PRIMITIVE(fseek)
 
 	if(FSEEK(file,offset,whence) == -1)
 	{
-		io_error();
+		vm->io_error();
 
 		/* Still here? EINTR */
 		vm->critical_error("Don't know what to do; EINTR from fseek()?",0);
@@ -195,7 +195,7 @@ PRIMITIVE(fflush)
 	for(;;)
 	{
 		if(fflush(file) == EOF)
-			io_error();
+			vm->io_error();
 		else
 			break;
 	}
@@ -207,7 +207,7 @@ PRIMITIVE(fclose)
 	for(;;)
 	{
 		if(fclose(file) == EOF)
-			io_error();
+			vm->io_error();
 		else
 			break;
 	}

@@ -414,6 +414,14 @@ struct factorvm {
 	HMODULE hFactorDll;
 #endif
 
+
+	// io.cpp
+
+	void init_c_io();
+	void io_error();
+	
+
+
 	// profiler.cpp
 	bool profiling_p;
 	void init_profiler();

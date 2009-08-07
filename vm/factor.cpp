@@ -130,7 +130,7 @@ VM_C_API void init_factor(vm_parameters *p)
 	init_ffi();
 	vm->init_stacks(p->ds_size,p->rs_size);
 	vm->load_image(p);
-	init_c_io();
+	vm->init_c_io();
 	init_inline_caching(p->max_pic_size);
 	init_signals();
 
