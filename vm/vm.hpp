@@ -578,6 +578,11 @@ struct factorvm {
 	char *pinned_alien_offset(cell obj);
 	
 
+	// quotations   ------------------------------------------------------------------------
+	void set_quot_xt(quotation *quot, code_block *code);
+	void jit_compile(cell quot, bool relocate);
+	fixnum quot_code_offset_to_scan(cell quot, cell offset);
+
 
 	factorvm();
 };

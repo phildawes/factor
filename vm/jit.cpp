@@ -10,12 +10,13 @@ namespace factor
 - polymorphic inline caches (inline_cache.cpp) */
 
 /* Allocates memory */
-jit::jit(cell type_, cell owner_,factorvm *myvm)
-	: type(type_),
-	  owner(owner_,vm),
-	  code(myvm),
-	  relocation(myvm),
-	  literals(myvm),
+jit::jit(cell type_, cell owner_,factorvm *myvm_)
+	: myvm(myvm_),
+	  type(type_),
+	  owner(owner_,myvm_),
+	  code(myvm_),
+	  relocation(myvm_),
+	  literals(myvm_),
 	  computing_offset_p(false),
 	  position(0),
 	  offset(0)
@@ -25,7 +26,7 @@ jit::jit(cell type_, cell owner_,factorvm *myvm)
 
 void jit::emit_relocation(cell code_template_)
 {
-	gc_root<array> code_template(code_template_,vm);
+	gc_root<array> code_template(code_template_,myvm);
 	cell capacity = array_capacity(code_template.untagged());
 	for(cell i = 1; i < capacity; i += 3)
 	{
@@ -44,11 +45,11 @@ void jit::emit_relocation(cell code_template_)
 /* Allocates memory */
 void jit::emit(cell code_template_)
 {
-	gc_root<array> code_template(code_template_,vm);
+	gc_root<array> code_template(code_template_,myvm);
 
 	emit_relocation(code_template.value());
 
-	gc_root<byte_array> insns(array_nth(code_template.untagged(),0),vm);
+	gc_root<byte_array> insns(array_nth(code_template.untagged(),0),myvm);
 
 	if(computing_offset_p)
 	{
@@ -72,8 +73,8 @@ void jit::emit(cell code_template_)
 }
 
 void jit::emit_with(cell code_template_, cell argument_) {
-	gc_root<array> code_template(code_template_,vm);
-	gc_root<object> argument(argument_,vm);
+	gc_root<array> code_template(code_template_,myvm);
+	gc_root<object> argument(argument_,myvm);
 	literal(argument.value());
 	emit(code_template.value());
 }
@@ -101,12 +102,11 @@ code_block *jit::to_code_block()
 	relocation.trim();
 	literals.trim();
 
-	return vm->add_code_block(
-		type,
-		code.elements.value(),
-		F, /* no labels */
-		relocation.elements.value(),
-		literals.elements.value());
+	return myvm->add_code_block(type,
+							  code.elements.value(),
+							  F, /* no labels */
+							  relocation.elements.value(),
+							  literals.elements.value());
 }
 
 }

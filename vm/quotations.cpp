@@ -125,7 +125,7 @@ void quotation_jit::iterate_quotation()
 	{
 		set_position(i);
 
-		gc_root<object> obj(array_nth(elements.untagged(),i),vm);
+		gc_root<object> obj(array_nth(elements.untagged(),i),myvm);
 
 		switch(obj.type())
 		{
@@ -198,8 +198,8 @@ void quotation_jit::iterate_quotation()
 
 				if(compiling)
 				{
-					jit_compile(array_nth(elements.untagged(),i),relocate);
-					jit_compile(array_nth(elements.untagged(),i + 1),relocate);
+					myvm->jit_compile(array_nth(elements.untagged(),i),relocate);
+					myvm->jit_compile(array_nth(elements.untagged(),i + 1),relocate);
 				}
 
 				literal(array_nth(elements.untagged(),i));
@@ -214,7 +214,7 @@ void quotation_jit::iterate_quotation()
 			else if(fast_dip_p(i))
 			{
 				if(compiling)
-					jit_compile(obj.value(),relocate);
+					myvm->jit_compile(obj.value(),relocate);
 				emit_with(userenv[JIT_DIP],obj.value());
 				i++;
 				break;
@@ -223,7 +223,7 @@ void quotation_jit::iterate_quotation()
 			else if(fast_2dip_p(i))
 			{
 				if(compiling)
-					jit_compile(obj.value(),relocate);
+					myvm->jit_compile(obj.value(),relocate);
 				emit_with(userenv[JIT_2DIP],obj.value());
 				i++;
 				break;
@@ -232,7 +232,7 @@ void quotation_jit::iterate_quotation()
 			else if(fast_3dip_p(i))
 			{
 				if(compiling)
-					jit_compile(obj.value(),relocate);
+					myvm->jit_compile(obj.value(),relocate);
 				emit_with(userenv[JIT_3DIP],obj.value());
 				i++;
 				break;
@@ -265,33 +265,33 @@ void quotation_jit::iterate_quotation()
 	}
 }
 
-void set_quot_xt(quotation *quot, code_block *code)
+void factorvm::set_quot_xt(quotation *quot, code_block *code)
 {
 	if(code->type != QUOTATION_TYPE)
-		vm->critical_error("Bad param to set_quot_xt",(cell)code);
+		critical_error("Bad param to set_quot_xt",(cell)code);
 
 	quot->code = code;
 	quot->xt = code->xt();
 }
 
 /* Allocates memory */
-void jit_compile(cell quot_, bool relocating)
+void factorvm::jit_compile(cell quot_, bool relocating)
 {
-	gc_root<quotation> quot(quot_,vm);
+	gc_root<quotation> quot(quot_,this);
 	if(quot->code) return;
 
-	quotation_jit compiler(quot.value(),true,relocating,vm);
+	quotation_jit compiler(quot.value(),true,relocating,this);
 	compiler.iterate_quotation();
 
 	code_block *compiled = compiler.to_code_block();
 	set_quot_xt(quot.untagged(),compiled);
 
-	if(relocating) relocate_code_block(compiled,vm);
+	if(relocating) relocate_code_block(compiled,this);
 }
 
 PRIMITIVE(jit_compile)
 {
-	jit_compile(dpop(),true);
+	vm->jit_compile(dpop(),true);
 }
 
 /* push a new quotation on the stack */
@@ -314,13 +314,13 @@ PRIMITIVE(quotation_xt)
 
 void factorvm::compile_all_words()
 {
-	gc_root<array> words(vm->find_all_words(),vm);
+	gc_root<array> words(find_all_words(),this);
 
 	cell i;
 	cell length = array_capacity(words.untagged());
 	for(i = 0; i < length; i++)
 	{
-		gc_root<word> word(array_nth(words.untagged(),i),vm);
+		gc_root<word> word(array_nth(words.untagged(),i),this);
 
 		if(!word->code || !word_optimized_p(word.untagged()))
 			jit_compile_word(word.value(),word->def,false);
@@ -333,12 +333,12 @@ void factorvm::compile_all_words()
 }
 
 /* Allocates memory */
-fixnum quot_code_offset_to_scan(cell quot_, cell offset)
+fixnum factorvm::quot_code_offset_to_scan(cell quot_, cell offset)
 {
-	gc_root<quotation> quot(quot_,vm);
-	gc_root<array> array(quot->array,vm);
+	gc_root<quotation> quot(quot_,this);
+	gc_root<array> array(quot->array,this);
 
-	quotation_jit compiler(quot.value(),false,false,vm);
+	quotation_jit compiler(quot.value(),false,false,this);
 	compiler.compute_position(offset);
 	compiler.iterate_quotation();
 
@@ -349,7 +349,7 @@ VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack)
 {
 	gc_root<quotation> quot(quot_,vm);
 	stack_chain->callstack_top = stack;
-	jit_compile(quot.value(),true);
+	vm->jit_compile(quot.value(),true);
 	return quot.value();
 }
 

@@ -2,6 +2,7 @@ namespace factor
 {
 
 struct jit {
+	factorvm *myvm;
 	cell type;
 	gc_root<object> owner;
 	growable_byte_array code;

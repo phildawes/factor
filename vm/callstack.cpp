@@ -201,7 +201,7 @@ PRIMITIVE(set_innermost_stack_frame_quot)
 	callstack.untag_check();
 	quot.untag_check();
 
-	jit_compile(quot.value(),true);
+	vm->jit_compile(quot.value(),true);
 
 	stack_frame *inner = vm->innermost_stack_frame_quot(callstack.untagged());
 	cell offset = (char *)FRAME_RETURN_ADDRESS(inner) - (char *)inner->xt;
