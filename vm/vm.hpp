@@ -152,6 +152,12 @@ struct factorvm {
 	void relocate_object(object *object);
 	void relocate_code();
 
+	void init_objects(image_header *h);
+	template <typename TYPE> void code_fixup(TYPE **handle);
+	void fixup_word(word *word);
+	void fixup_quotation(quotation *quot);
+	void fixup_alien(alien *d);
+	void fixup_callstack_object(callstack *stack);
 
 	// from local_roots ------------------------------------------------------------------
 	segment *gc_locals_region;

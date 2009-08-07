@@ -4,14 +4,14 @@ namespace factor
 {
 
 /* Certain special objects in the image are known to the runtime */
-static void init_objects(image_header *h)
+void factorvm::init_objects(image_header *h)
 {
 	memcpy(userenv,h->userenv,sizeof(userenv));
 
-	vm->T = h->t;
-	vm->bignum_zero = h->bignum_zero;
-	vm->bignum_pos_one = h->bignum_pos_one;
-	vm->bignum_neg_one = h->bignum_neg_one;
+	T = h->t;
+	bignum_zero = h->bignum_zero;
+	bignum_pos_one = h->bignum_pos_one;
+	bignum_neg_one = h->bignum_neg_one;
 }
 
 
@@ -28,9 +28,9 @@ void factorvm::load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		p->tenured_size,
 		p->secure_gc);
 
-	vm->clear_gc_stats();
+	clear_gc_stats();
 
-	zone *tenured = &vm->data->generations[vm->data->tenured()];
+	zone *tenured = &data->generations[data->tenured()];
 
 	fixnum bytes_read = fread((void*)tenured->start,1,h->data_size,file);
 
@@ -41,24 +41,24 @@ void factorvm::load_data_heap(FILE *file, image_header *h, vm_parameters *p)
 		print_string(" bytes read, ");
 		print_cell(h->data_size);
 		print_string(" bytes expected\n");
-		vm->fatal_error("load_data_heap failed",0);
+		fatal_error("load_data_heap failed",0);
 	}
 
 	tenured->here = tenured->start + h->data_size;
-	vm->data_relocation_base = h->data_relocation_base;
+	data_relocation_base = h->data_relocation_base;
 }
 
 
 void factorvm::load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 {
 	if(h->code_size > p->code_size)
-		vm->fatal_error("Code heap too small to fit image",h->code_size);
+		fatal_error("Code heap too small to fit image",h->code_size);
 
 	init_code_heap(p->code_size);
 
 	if(h->code_size != 0)
 	{
-		size_t bytes_read = fread(first_block(vm->code),1,h->code_size,file);
+		size_t bytes_read = fread(first_block(code),1,h->code_size,file);
 		if(bytes_read != h->code_size)
 		{
 			print_string("truncated image: ");
@@ -66,12 +66,12 @@ void factorvm::load_code_heap(FILE *file, image_header *h, vm_parameters *p)
 			print_string(" bytes read, ");
 			print_cell(h->code_size);
 			print_string(" bytes expected\n");
-			vm->fatal_error("load_code_heap failed",0);
+			fatal_error("load_code_heap failed",0);
 		}
 	}
 
-	vm->code_relocation_base = h->code_relocation_base;
-	build_free_list(vm->code,h->code_size);
+	code_relocation_base = h->code_relocation_base;
+	build_free_list(code,h->code_size);
 }
 
 /* Save the current image to disk */
@@ -88,19 +88,19 @@ bool factorvm::save_image(const vm_char *filename)
 		return false;
 	}
 
-	zone *tenured = &vm->data->generations[vm->data->tenured()];
+	zone *tenured = &data->generations[data->tenured()];
 
 	h.magic = image_magic;
 	h.version = image_version;
 	h.data_relocation_base = tenured->start;
 	h.data_size = tenured->here - tenured->start;
-	h.code_relocation_base = vm->code->seg->start;
-	h.code_size = heap_size(vm->code);
+	h.code_relocation_base = code->seg->start;
+	h.code_size = heap_size(code);
 
-	h.t = vm->T;
-	h.bignum_zero = vm->bignum_zero;
-	h.bignum_pos_one = vm->bignum_pos_one;
-	h.bignum_neg_one = vm->bignum_neg_one;
+	h.t = T;
+	h.bignum_zero = bignum_zero;
+	h.bignum_pos_one = bignum_pos_one;
+	h.bignum_neg_one = bignum_neg_one;
 
 	for(cell i = 0; i < USER_ENV; i++)
 		h.userenv[i] = (save_env_p(i) ? userenv[i] : F);
@@ -109,7 +109,7 @@ bool factorvm::save_image(const vm_char *filename)
 
 	if(fwrite(&h,sizeof(image_header),1,file) != 1) ok = false;
 	if(fwrite((void*)tenured->start,h.data_size,1,file) != 1) ok = false;
-	if(fwrite(first_block(vm->code),h.code_size,1,file) != 1) ok = false;
+	if(fwrite(first_block(code),h.code_size,1,file) != 1) ok = false;
 	if(fclose(file)) ok = false;
 
 	if(!ok)
@@ -165,14 +165,14 @@ static void data_fixup(cell *cell, factorvm *myvm)
 	*cell += (tenured->start - myvm->data_relocation_base);
 }
 
-template <typename T> void code_fixup(T **handle)
+template <typename TYPE> void factorvm::code_fixup(TYPE **handle)
 {
-	T *ptr = *handle;
-	T *new_ptr = (T *)(((cell)ptr) + (vm->code->seg->start - vm->code_relocation_base));
+	TYPE *ptr = *handle;
+	TYPE *new_ptr = (TYPE *)(((cell)ptr) + (code->seg->start - code_relocation_base));
 	*handle = new_ptr;
 }
 
-static void fixup_word(word *word)
+void factorvm::fixup_word(word *word)
 {
 	if(word->code)
 		code_fixup(&word->code);
@@ -181,7 +181,7 @@ static void fixup_word(word *word)
 	code_fixup(&word->xt);
 }
 
-static void fixup_quotation(quotation *quot)
+void factorvm::fixup_quotation(quotation *quot)
 {
 	if(quot->code)
 	{
@@ -192,18 +192,18 @@ static void fixup_quotation(quotation *quot)
 		quot->xt = (void *)lazy_jit_compile;
 }
 
-static void fixup_alien(alien *d)
+void factorvm::fixup_alien(alien *d)
 {
-	d->expired = vm->T;
+	d->expired = T;
 }
 
-static void fixup_stack_frame(stack_frame *frame, factorvm*)
+void fixup_stack_frame(stack_frame *frame, factorvm *myvm)
 {
-	code_fixup(&frame->xt);
-	code_fixup(&FRAME_RETURN_ADDRESS(frame));
+	myvm->code_fixup(&frame->xt);
+	myvm->code_fixup(&FRAME_RETURN_ADDRESS(frame));
 }
 
-static void fixup_callstack_object(callstack *stack)
+void factorvm::fixup_callstack_object(callstack *stack)
 {
 	iterate_callstack_object(stack,fixup_stack_frame);
 }
