@@ -357,7 +357,7 @@ PRIMITIVE(quot_compiled_p)
 {
 	tagged<quotation> quot(dpop());
 	quot.untag_check(vm);
-	dpush(tag_boolean(quot->code != NULL));
+	dpush(vm->tag_boolean(quot->code != NULL));
 }
 
 }

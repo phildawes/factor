@@ -151,7 +151,7 @@ VM_C_API void init_factor(vm_parameters *p)
 
 	if(userenv[STAGE2_ENV] == F)
 	{
-		userenv[STACK_TRACES_ENV] = tag_boolean(p->stack_traces);
+		userenv[STACK_TRACES_ENV] = vm->tag_boolean(p->stack_traces);
 		do_stage1_init();
 	}
 }

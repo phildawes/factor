@@ -34,35 +34,35 @@ void save_stacks()
 	}
 }
 
-context *alloc_context()
+context *factorvm::alloc_context()
 {
 	context *new_context;
 
-	if(vm->unused_contexts)
+	if(unused_contexts)
 	{
-		new_context = vm->unused_contexts;
-		vm->unused_contexts = vm->unused_contexts->next;
+		new_context = unused_contexts;
+		unused_contexts = unused_contexts->next;
 	}
 	else
 	{
-		new_context = (context *)vm->safe_malloc(sizeof(context));
-		new_context->datastack_region = alloc_segment(vm->ds_size);
-		new_context->retainstack_region = alloc_segment(vm->rs_size);
+		new_context = (context *)safe_malloc(sizeof(context));
+		new_context->datastack_region = alloc_segment(ds_size);
+		new_context->retainstack_region = alloc_segment(rs_size);
 	}
 
 	return new_context;
 }
 
-void dealloc_context(context *old_context)
+void factorvm::dealloc_context(context *old_context)
 {
-	old_context->next = vm->unused_contexts;
-	vm->unused_contexts = old_context;
+	old_context->next = unused_contexts;
+	unused_contexts = old_context;
 }
 
 /* called on entry into a compiled callback */
-void nest_stacks()
+void nest_stacks()   // called from factor PD
 {
-	context *new_context = alloc_context();
+	context *new_context = vm->alloc_context();
 
 	new_context->callstack_bottom = (stack_frame *)-1;
 	new_context->callstack_top = (stack_frame *)-1;
@@ -103,19 +103,19 @@ void unnest_stacks()
 
 	context *old_stacks = stack_chain;
 	stack_chain = old_stacks->next;
-	dealloc_context(old_stacks);
+	vm->dealloc_context(old_stacks);
 }
 
 /* called on startup */
 void factorvm::init_stacks(cell ds_size_, cell rs_size_)
 {
-	vm->ds_size = ds_size_;
-	vm->rs_size = rs_size_;
+	ds_size = ds_size_;
+	rs_size = rs_size_;
 	stack_chain = NULL;
-	vm->unused_contexts = NULL;
+	unused_contexts = NULL;
 }
 
-bool stack_to_array(cell bottom, cell top)
+bool factorvm::stack_to_array(cell bottom, cell top)
 {
 	fixnum depth = (fixnum)(top - bottom + sizeof(cell));
 
@@ -123,7 +123,7 @@ bool stack_to_array(cell bottom, cell top)
 		return false;
 	else
 	{
-		array *a = vm->allot_array_internal<array>(depth / sizeof(cell));
+		array *a = allot_array_internal<array>(depth / sizeof(cell));
 		memcpy(a + 1,(void*)bottom,depth);
 		dpush(tag<array>(a));
 		return true;
@@ -132,13 +132,13 @@ bool stack_to_array(cell bottom, cell top)
 
 PRIMITIVE(datastack)
 {
-	if(!stack_to_array(ds_bot,ds))
+	if(!vm->stack_to_array(ds_bot,ds))
 		vm->general_error(ERROR_DS_UNDERFLOW,F,F,NULL);
 }
 
 PRIMITIVE(retainstack)
 {
-	if(!stack_to_array(rs_bot,rs))
+	if(!vm->stack_to_array(rs_bot,rs))
 		vm->general_error(ERROR_RS_UNDERFLOW,F,F,NULL);
 }
 

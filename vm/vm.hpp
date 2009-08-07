@@ -98,6 +98,9 @@ struct factorvm {
 
 	unordered_map<heap_block *,char *> forwarding; 
 
+	// booleans 
+	cell tag_boolean(cell untagged);
+
 	// context     ----------------------------------------------------------------------------
 	cell ds_size, rs_size;
 	context *unused_contexts;
@@ -106,7 +109,11 @@ struct factorvm {
 	void reset_retainstack();
 	void fix_stacks();
 	void init_stacks(cell ds_size, cell rs_size);
-
+	context *alloc_context();
+	void dealloc_context(context *old_context);
+	void nest_stacks();
+	bool stack_to_array(cell bottom, cell top);
+	
 
 
 	//debug  ----------------------------------------------------------------------------

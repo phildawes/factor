@@ -66,7 +66,7 @@ void factorvm::update_word_xt(cell w_)
 
 PRIMITIVE(optimized_p)
 {
-	drepl(tag_boolean(word_optimized_p(untag_check<word>(dpeek(),vm))));
+	drepl(vm->tag_boolean(word_optimized_p(untag_check<word>(dpeek(),vm))));
 }
 
 PRIMITIVE(wrapper)

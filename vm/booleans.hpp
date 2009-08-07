@@ -1,9 +1,9 @@
 namespace factor
 {
 
-inline static cell tag_boolean(cell untagged)
+inline cell factorvm::tag_boolean(cell untagged)
 {
-	return (untagged ? vm->T : F);
+	return (untagged ? T : F);
 }
 
 VM_C_API void box_boolean(bool value);
