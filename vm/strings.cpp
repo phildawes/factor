@@ -102,7 +102,7 @@ string *factorvm::allot_string(cell capacity, cell fill)
 PRIMITIVE(string)
 {
 	cell initial = to_cell(dpop());
-	cell length = unbox_array_size();
+	cell length = vm->unbox_array_size();
 	dpush(tag<string>(vm->allot_string(length,initial)));
 }
 
@@ -158,7 +158,7 @@ string* factorvm::reallot_string(string *str_, cell capacity)
 PRIMITIVE(resize_string)
 {
 	string* str = untag_check<string>(dpop(),vm);
-	cell capacity = unbox_array_size();
+	cell capacity = vm->unbox_array_size();
 	dpush(tag<string>(vm->reallot_string(str,capacity)));
 }
 

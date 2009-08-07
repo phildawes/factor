@@ -80,7 +80,7 @@ PRIMITIVE(fgetc)
 PRIMITIVE(fread)
 {
 	FILE *file = (FILE *)unbox_alien();
-	fixnum size = unbox_array_size();
+	fixnum size = vm->unbox_array_size();
 
 	if(size == 0)
 	{

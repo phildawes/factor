@@ -405,6 +405,11 @@ struct factorvm {
 	cell bignum_pos_one;
 	cell bignum_neg_one;
 
+	cell allot_float(double n);
+
+	cell unbox_array_size();
+
+
 #ifdef WINDOWS
 	HMODULE hFactorDll;
 #endif

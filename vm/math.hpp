@@ -54,7 +54,6 @@ inline static cell allot_cell(cell x)
 		return tag_fixnum(x);
 }
 
-cell unbox_array_size();
 
 inline static double untag_float(cell tagged)
 {
@@ -66,7 +65,7 @@ inline static double untag_float_check(cell tagged)
 	return untag_check<boxed_float>(tagged,vm)->n;
 }
 
-inline static cell allot_float(double n)
+inline cell factorvm::allot_float(double n)
 {
         boxed_float *flo = vm->allot<boxed_float>(sizeof(boxed_float));
 	flo->n = n;

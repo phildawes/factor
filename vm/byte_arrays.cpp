@@ -12,20 +12,20 @@ byte_array *factorvm::allot_byte_array(cell size)
 
 PRIMITIVE(byte_array)
 {
-	cell size = unbox_array_size();
+	cell size = vm->unbox_array_size();
 	dpush(tag<byte_array>(vm->allot_byte_array(size)));
 }
 
 PRIMITIVE(uninitialized_byte_array)
 {
-	cell size = unbox_array_size();
+	cell size = vm->unbox_array_size();
 	dpush(tag<byte_array>(vm->allot_array_internal<byte_array>(size)));
 }
 
 PRIMITIVE(resize_byte_array)
 {
 	byte_array *array = untag_check<byte_array>(dpop(),vm);
-	cell capacity = unbox_array_size();
+	cell capacity = vm->unbox_array_size();
 	dpush(tag<byte_array>(vm->reallot_array(array,capacity)));
 }
 

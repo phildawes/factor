@@ -27,7 +27,7 @@ array *factorvm::allot_array(cell capacity, cell fill_)
 PRIMITIVE(array)
 {
 	cell initial = dpop();
-	cell size = unbox_array_size();
+	cell size = vm->unbox_array_size();
 	dpush(tag<array>(vm->allot_array(size,initial)));
 }
 
@@ -66,7 +66,7 @@ cell factorvm::allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 PRIMITIVE(resize_array)
 {
 	array* a = untag_check<array>(dpop(),vm);
-	cell capacity = unbox_array_size();
+	cell capacity = vm->unbox_array_size();
 	dpush(tag<array>(vm->reallot_array(a,capacity)));
 }
 

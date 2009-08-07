@@ -226,7 +226,7 @@ PRIMITIVE(byte_array_to_bignum)
 	drepl(tag<bignum>(result));
 }
 
-cell unbox_array_size()
+cell factorvm::unbox_array_size()
 {
 	switch(tagged<object>(dpeek()).type())
 	{
@@ -242,7 +242,7 @@ cell unbox_array_size()
 		}
 	case BIGNUM_TYPE:
 		{
-			bignum * zero = untag<bignum>(vm->bignum_zero);
+			bignum * zero = untag<bignum>(bignum_zero);
 			bignum * max = cell_to_bignum(array_size_max);
 			bignum * n = untag<bignum>(dpeek());
 			if(bignum_compare(n,zero) != bignum_comparison_less
@@ -261,12 +261,12 @@ cell unbox_array_size()
 
 PRIMITIVE(fixnum_to_float)
 {
-	drepl(allot_float(fixnum_to_float(dpeek())));
+	drepl(vm->allot_float(fixnum_to_float(dpeek())));
 }
 
 PRIMITIVE(bignum_to_float)
 {
-	drepl(allot_float(bignum_to_float(dpeek())));
+	drepl(vm->allot_float(bignum_to_float(dpeek())));
 }
 
 PRIMITIVE(str_to_float)
@@ -278,7 +278,7 @@ PRIMITIVE(str_to_float)
 	char *end = c_str;
 	double f = strtod(c_str,&end);
 	if(end == c_str + capacity - 1)
-		drepl(allot_float(f));
+		drepl(vm->allot_float(f));
 	else
 		drepl(F);
 }
@@ -479,7 +479,7 @@ VM_C_API u64 to_unsigned_8(cell obj)
 
 VM_C_API void box_float(float flo)
 {
-        dpush(allot_float(flo));
+        dpush(vm->allot_float(flo));
 }
 
 VM_C_API float to_float(cell value)
@@ -489,7 +489,7 @@ VM_C_API float to_float(cell value)
 
 VM_C_API void box_double(double flo)
 {
-        dpush(allot_float(flo));
+        dpush(vm->allot_float(flo));
 }
 
 VM_C_API double to_double(cell value)
