@@ -4,16 +4,16 @@ namespace factor
 {
 
 
-void init_inline_caching(int max_size)
+void factorvm::init_inline_caching(int max_size)
 {
-	vm->max_pic_size = max_size;
+	max_pic_size = max_size;
 }
 
-void deallocate_inline_cache(cell return_address)
+void factorvm::deallocate_inline_cache(cell return_address)
 {
 	/* Find the call target. */
 	void *old_xt = get_call_target(return_address);
-	vm->check_code_pointer((cell)old_xt);
+	check_code_pointer((cell)old_xt);
 
 	code_block *old_block = (code_block *)old_xt - 1;
 	cell old_type = old_block->type;
@@ -25,12 +25,12 @@ void deallocate_inline_cache(cell return_address)
 #endif
 
 	if(old_type == PIC_TYPE)
-		vm->heap_free(vm->code,old_block);
+		heap_free(code,old_block);
 }
 
 /* Figure out what kind of type check the PIC needs based on the methods
 it contains */
-static cell determine_inline_cache_type(array *cache_entries)
+cell factorvm::determine_inline_cache_type(array *cache_entries)
 {
 	bool seen_hi_tag = false, seen_tuple = false;
 
@@ -53,7 +53,7 @@ static cell determine_inline_cache_type(array *cache_entries)
 			seen_tuple = true;
 			break;
 		default:
-			vm->critical_error("Expected a fixnum or array",klass);
+			critical_error("Expected a fixnum or array",klass);
 			break;
 		}
 	}
@@ -63,13 +63,13 @@ static cell determine_inline_cache_type(array *cache_entries)
 	if(!seen_hi_tag && seen_tuple) return PIC_TUPLE;
 	if(!seen_hi_tag && !seen_tuple) return PIC_TAG;
 
-	vm->critical_error("Oops",0);
+	critical_error("Oops",0);
 	return 0;
 }
 
-static void update_pic_count(cell type)
+void factorvm::update_pic_count(cell type)
 {
-	vm->pic_counts[type - PIC_TAG]++;
+	pic_counts[type - PIC_TAG]++;
 }
 
 struct inline_cache_jit : public jit {
@@ -104,12 +104,12 @@ void inline_cache_jit::compile_inline_cache(fixnum index,
 					    cell cache_entries_,
 					    bool tail_call_p)
 {
-	gc_root<word> generic_word(generic_word_,vm);
-	gc_root<array> methods(methods_,vm);
-	gc_root<array> cache_entries(cache_entries_,vm);
+	gc_root<word> generic_word(generic_word_,myvm);
+	gc_root<array> methods(methods_,myvm);
+	gc_root<array> cache_entries(cache_entries_,myvm);
 
-	cell inline_cache_type = determine_inline_cache_type(cache_entries.untagged());
-	update_pic_count(inline_cache_type);
+	cell inline_cache_type = vm->determine_inline_cache_type(cache_entries.untagged());
+	vm->update_pic_count(inline_cache_type);
 
 	/* Generate machine code to determine the object's class. */
 	emit_class_lookup(index,inline_cache_type);
@@ -139,24 +139,24 @@ void inline_cache_jit::compile_inline_cache(fixnum index,
 	word_special(userenv[tail_call_p ? PIC_MISS_TAIL_WORD : PIC_MISS_WORD]);
 }
 
-static code_block *compile_inline_cache(fixnum index,
+code_block *factorvm::compile_inline_cache(fixnum index,
 					cell generic_word_,
 					cell methods_,
 					cell cache_entries_,
 					bool tail_call_p)
 {
-	gc_root<word> generic_word(generic_word_,vm);
-	gc_root<array> methods(methods_,vm);
-	gc_root<array> cache_entries(cache_entries_,vm);
+	gc_root<word> generic_word(generic_word_,this);
+	gc_root<array> methods(methods_,this);
+	gc_root<array> cache_entries(cache_entries_,this);
 
-	inline_cache_jit jit(generic_word.value(),vm);
+	inline_cache_jit jit(generic_word.value(),this);
 	jit.compile_inline_cache(index,
 				 generic_word.value(),
 				 methods.value(),
 				 cache_entries.value(),
 				 tail_call_p);
 	code_block *code = jit.to_code_block();
-	relocate_code_block(code,vm);
+	relocate_code_block(code,this);
 	return code;
 }
 
@@ -166,33 +166,33 @@ static void *megamorphic_call_stub(cell generic_word)
 	return untag<word>(generic_word)->xt;
 }
 
-static cell inline_cache_size(cell cache_entries)
+cell factorvm::inline_cache_size(cell cache_entries)
 {
-	return array_capacity(untag_check<array>(cache_entries,vm)) / 2;
+	return array_capacity(untag_check<array>(cache_entries,this)) / 2;
 }
 
 /* Allocates memory */
-static cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method_)
+cell factorvm::add_inline_cache_entry(cell cache_entries_, cell klass_, cell method_)
 {
-	gc_root<array> cache_entries(cache_entries_,vm);
-	gc_root<object> klass(klass_,vm);
-	gc_root<word> method(method_,vm);
+	gc_root<array> cache_entries(cache_entries_,this);
+	gc_root<object> klass(klass_,this);
+	gc_root<word> method(method_,this);
 
 	cell pic_size = array_capacity(cache_entries.untagged());
-	gc_root<array> new_cache_entries(vm->reallot_array(cache_entries.untagged(),pic_size + 2),vm);
+	gc_root<array> new_cache_entries(reallot_array(cache_entries.untagged(),pic_size + 2),this);
 	set_array_nth(new_cache_entries.untagged(),pic_size,klass.value());
 	set_array_nth(new_cache_entries.untagged(),pic_size + 1,method.value());
 	return new_cache_entries.value();
 }
 
-static void update_pic_transitions(cell pic_size)
+void factorvm::update_pic_transitions(cell pic_size)
 {
-	if(pic_size == vm->max_pic_size)
-		vm->pic_to_mega_transitions++;
+	if(pic_size == max_pic_size)
+		pic_to_mega_transitions++;
 	else if(pic_size == 0)
-		vm->cold_call_to_ic_transitions++;
+		cold_call_to_ic_transitions++;
 	else if(pic_size == 1)
-		vm->ic_to_pic_transitions++;
+		ic_to_pic_transitions++;
 }
 
 /* The cache_entries parameter is either f (on cold call site) or an array (on cache miss).
@@ -204,7 +204,7 @@ void *inline_cache_miss(cell return_address)
 	/* Since each PIC is only referenced from a single call site,
 	   if the old call target was a PIC, we can deallocate it immediately,
 	   instead of leaving dead PICs around until the next GC. */
-	deallocate_inline_cache(return_address);
+	vm->deallocate_inline_cache(return_address);
 
 	gc_root<array> cache_entries(dpop(),vm);
 	fixnum index = untag_fixnum(dpop());
@@ -214,9 +214,9 @@ void *inline_cache_miss(cell return_address)
 
 	void *xt;
 
-	cell pic_size = inline_cache_size(cache_entries.value());
+	cell pic_size = vm->inline_cache_size(cache_entries.value());
 
-	update_pic_transitions(pic_size);
+	vm->update_pic_transitions(pic_size);
 
 	if(pic_size >= vm->max_pic_size)
 		xt = megamorphic_call_stub(generic_word.value());
@@ -225,11 +225,11 @@ void *inline_cache_miss(cell return_address)
 		cell klass = object_class(object.value());
 		cell method = vm->lookup_method(object.value(),methods.value());
 
-		gc_root<array> new_cache_entries(add_inline_cache_entry(
+		gc_root<array> new_cache_entries(vm->add_inline_cache_entry(
 							   cache_entries.value(),
 							   klass,
 							   method),vm);
-		xt = compile_inline_cache(index,
+		xt = vm->compile_inline_cache(index,
 					  generic_word.value(),
 					  methods.value(),
 					  new_cache_entries.value(),

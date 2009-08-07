@@ -589,9 +589,21 @@ struct factorvm {
 	cell lookup_hairy_method(cell obj, cell methods);
 	cell lookup_tuple_method(cell obj, cell methods);
 	cell lookup_method(cell object, cell methods);
-	//void jit_emit_class_lookup(jit *jit, fixnum index, cell type);
-	//void jit_emit_mega_cache_lookup(jit *jit, cell methods, fixnum index, cell cache);
 
+	// inline cache ----------------------------------------------------------------------
+	
+	void init_inline_caching(int max_size);
+	void deallocate_inline_cache(cell return_address);
+	cell determine_inline_cache_type(array *cache_entries);
+	void update_pic_count(cell type);
+code_block *compile_inline_cache(fixnum index,
+					cell generic_word_,
+					cell methods_,
+					cell cache_entries_,
+								 bool tail_call_p);
+	cell inline_cache_size(cell cache_entries);
+	cell add_inline_cache_entry(cell cache_entries_, cell klass_, cell method_);
+	void update_pic_transitions(cell pic_size);
 
 	factorvm();
 };
