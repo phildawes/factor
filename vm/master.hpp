@@ -46,7 +46,6 @@
 #include "data_heap.hpp"
 #include "data_gc.hpp"
 #include "write_barrier.hpp"
-
 #include "code_block.hpp"
 #include "vm.hpp"
 #include "tagged.hpp"

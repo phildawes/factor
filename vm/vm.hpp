@@ -519,6 +519,19 @@ struct factorvm {
 	void fixup_labels(array *labels, code_block *compiled);
 
 
+	// code_heap ----------------------------------------------------------------------------
+
+	void init_code_heap(cell size);
+	bool in_code_heap_p(cell ptr);
+	void jit_compile_word(cell word, cell def, bool relocate);
+	typedef void (*code_heap_iterator)(code_block *compiled, factorvm *vm);
+	void iterate_code_heap(code_heap_iterator iter);
+	void copy_code_heap_roots();
+	void compact_code_heap();
+	void update_code_heap_words();
+	code_block *forward_xt(code_block *compiled);
+	void forward_object_xts();
+
 	factorvm();
 };
 

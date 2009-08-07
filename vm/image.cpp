@@ -146,7 +146,7 @@ PRIMITIVE(save_image_and_exit)
 
 	/* do a full GC + code heap compaction */
 	vm->performing_compaction = true;
-	compact_code_heap();
+	vm->compact_code_heap();
 	vm->performing_compaction = false;
 
 	/* Save the image */
