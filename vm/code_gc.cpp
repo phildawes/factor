@@ -244,7 +244,7 @@ void factorvm::free_unmarked(code_heap *heap, heap_iterator iter)
 				add_to_free_list(heap,(free_heap_block *)prev);
 			scan->status = B_ALLOCATED;
 			prev = scan;
-			iter(scan);
+			iter(scan,this);
 			break;
 		default:
 			critical_error("Invalid scan->status",(cell)scan);

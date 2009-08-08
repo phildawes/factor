@@ -40,13 +40,13 @@ struct tagged
 
 	explicit tagged(cell tagged) : value_(tagged) {
 #ifdef FACTOR_DEBUG
-		untag_check();
+		untag_check(vm);
 #endif
 	}
 
 	explicit tagged(T *untagged) : value_(factor::tag(untagged)) {
 #ifdef FACTOR_DEBUG
-		untag_check();
+		untag_check(vm);
 #endif
 	}
 

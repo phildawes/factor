@@ -8,7 +8,9 @@ struct vm_parameters;
 struct image_header;
 
 
-typedef void (*heap_iterator)(heap_block *compiled);
+typedef void (*heap_iterator)(heap_block *compiled, factorvm *vm);
+
+template <typename T> T *untag(cell value);
 
 VM_C_API cell userenv[USER_ENV];
 
