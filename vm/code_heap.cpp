@@ -86,7 +86,7 @@ PRIMITIVE(modify_code_heap)
 				cell labels = array_nth(compiled_data,2);
 				cell code = array_nth(compiled_data,3);
 
-				code_block *compiled = vm->add_code_block(
+				code_block *compiled = myvm->add_code_block(
 					WORD_TYPE,
 					code,
 					labels,
@@ -97,22 +97,23 @@ PRIMITIVE(modify_code_heap)
 			}
 			break;
 		default:
-			vm->critical_error("Expected a quotation or an array",data.value());
+			myvm->critical_error("Expected a quotation or an array",data.value());
 			break;
 		}
 
-		vm->update_word_xt(word.value());
+		myvm->update_word_xt(word.value());
 	}
 
-	vm->update_code_heap_words();
+	myvm->update_code_heap_words();
 }
 
 /* Push the free space and total size of the code heap */
 PRIMITIVE(code_room)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell used, total_free, max_free;
-	vm->heap_usage(vm->code,&used,&total_free,&max_free);
-	dpush(tag_fixnum(vm->code->seg->size / 1024));
+	myvm->heap_usage(myvm->code,&used,&total_free,&max_free);
+	dpush(tag_fixnum(myvm->code->seg->size / 1024));
 	dpush(tag_fixnum(used / 1024));
 	dpush(tag_fixnum(total_free / 1024));
 	dpush(tag_fixnum(max_free / 1024));
