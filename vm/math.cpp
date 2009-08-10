@@ -5,7 +5,8 @@ namespace factor
 
 PRIMITIVE(bignum_to_fixnum)
 {
-	drepl(tag_fixnum(vm->bignum_to_fixnum(untag<bignum>(dpeek()))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(tag_fixnum(myvm->bignum_to_fixnum(untag<bignum>(dpeek()))));
 }
 
 PRIMITIVE(float_to_fixnum)
@@ -17,22 +18,24 @@ PRIMITIVE(float_to_fixnum)
 by -1. */
 PRIMITIVE(fixnum_divint)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	fixnum y = untag_fixnum(dpop()); \
 	fixnum x = untag_fixnum(dpeek());
 	fixnum result = x / y;
 	if(result == -fixnum_min)
-		drepl(vm->allot_integer(-fixnum_min));
+		drepl(myvm->allot_integer(-fixnum_min));
 	else
 		drepl(tag_fixnum(result));
 }
 
 PRIMITIVE(fixnum_divmod)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell y = ((cell *)ds)[0];
 	cell x = ((cell *)ds)[-1];
 	if(y == tag_fixnum(-1) && x == tag_fixnum(fixnum_min))
 	{
-		((cell *)ds)[-1] = vm->allot_integer(-fixnum_min);
+		((cell *)ds)[-1] = myvm->allot_integer(-fixnum_min);
 		((cell *)ds)[0] = tag_fixnum(0);
 	}
 	else
@@ -63,6 +66,7 @@ static inline fixnum branchless_abs(fixnum x)
 
 PRIMITIVE(fixnum_shift)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	fixnum y = untag_fixnum(dpop());
 	fixnum x = untag_fixnum(dpeek());
 
@@ -84,18 +88,20 @@ PRIMITIVE(fixnum_shift)
 		}
 	}
 
-	drepl(tag<bignum>(vm->bignum_arithmetic_shift(
-		vm->fixnum_to_bignum(x),y)));
+	drepl(tag<bignum>(myvm->bignum_arithmetic_shift(
+		myvm->fixnum_to_bignum(x),y)));
 }
 
 PRIMITIVE(fixnum_to_bignum)
 {
-	drepl(tag<bignum>(vm->fixnum_to_bignum(untag_fixnum(dpeek()))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(tag<bignum>(myvm->fixnum_to_bignum(untag_fixnum(dpeek()))));
 }
 
 PRIMITIVE(float_to_bignum)
 {
-	drepl(tag<bignum>(vm->float_to_bignum(dpeek())));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(tag<bignum>(myvm->float_to_bignum(dpeek())));
 }
 
 #define POP_BIGNUMS(x,y) \
@@ -104,113 +110,131 @@ PRIMITIVE(float_to_bignum)
 
 PRIMITIVE(bignum_eq)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	box_boolean(vm->bignum_equal_p(x,y));
+	box_boolean(myvm->bignum_equal_p(x,y));
 }
 
 PRIMITIVE(bignum_add)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_add(x,y)));
+	dpush(tag<bignum>(myvm->bignum_add(x,y)));
 }
 
 PRIMITIVE(bignum_subtract)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_subtract(x,y)));
+	dpush(tag<bignum>(myvm->bignum_subtract(x,y)));
 }
 
 PRIMITIVE(bignum_multiply)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_multiply(x,y)));
+	dpush(tag<bignum>(myvm->bignum_multiply(x,y)));
 }
 
 PRIMITIVE(bignum_divint)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_quotient(x,y)));
+	dpush(tag<bignum>(myvm->bignum_quotient(x,y)));
 }
 
 PRIMITIVE(bignum_divmod)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	bignum *q, *r;
 	POP_BIGNUMS(x,y);
-	vm->bignum_divide(x,y,&q,&r);
+	myvm->bignum_divide(x,y,&q,&r);
 	dpush(tag<bignum>(q));
 	dpush(tag<bignum>(r));
 }
 
 PRIMITIVE(bignum_mod)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_remainder(x,y)));
+	dpush(tag<bignum>(myvm->bignum_remainder(x,y)));
 }
 
 PRIMITIVE(bignum_and)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_bitwise_and(x,y)));
+	dpush(tag<bignum>(myvm->bignum_bitwise_and(x,y)));
 }
 
 PRIMITIVE(bignum_or)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_bitwise_ior(x,y)));
+	dpush(tag<bignum>(myvm->bignum_bitwise_ior(x,y)));
 }
 
 PRIMITIVE(bignum_xor)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(vm->bignum_bitwise_xor(x,y)));
+	dpush(tag<bignum>(myvm->bignum_bitwise_xor(x,y)));
 }
 
 PRIMITIVE(bignum_shift)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	fixnum y = untag_fixnum(dpop());
         bignum* x = untag<bignum>(dpop());
-	dpush(tag<bignum>(vm->bignum_arithmetic_shift(x,y)));
+	dpush(tag<bignum>(myvm->bignum_arithmetic_shift(x,y)));
 }
 
 PRIMITIVE(bignum_less)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	box_boolean(vm->bignum_compare(x,y) == bignum_comparison_less);
+	box_boolean(myvm->bignum_compare(x,y) == bignum_comparison_less);
 }
 
 PRIMITIVE(bignum_lesseq)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	box_boolean(vm->bignum_compare(x,y) != bignum_comparison_greater);
+	box_boolean(myvm->bignum_compare(x,y) != bignum_comparison_greater);
 }
 
 PRIMITIVE(bignum_greater)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	box_boolean(vm->bignum_compare(x,y) == bignum_comparison_greater);
+	box_boolean(myvm->bignum_compare(x,y) == bignum_comparison_greater);
 }
 
 PRIMITIVE(bignum_greatereq)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	POP_BIGNUMS(x,y);
-	box_boolean(vm->bignum_compare(x,y) != bignum_comparison_less);
+	box_boolean(myvm->bignum_compare(x,y) != bignum_comparison_less);
 }
 
 PRIMITIVE(bignum_not)
 {
-	drepl(tag<bignum>(vm->bignum_bitwise_not(untag<bignum>(dpeek()))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(tag<bignum>(myvm->bignum_bitwise_not(untag<bignum>(dpeek()))));
 }
 
 PRIMITIVE(bignum_bitp)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	fixnum bit = to_fixnum(dpop());
 	bignum *x = untag<bignum>(dpop());
-	box_boolean(vm->bignum_logbitp(bit,x));
+	box_boolean(myvm->bignum_logbitp(bit,x));
 }
 
 PRIMITIVE(bignum_log2)
 {
-	drepl(tag<bignum>(vm->bignum_integer_length(untag<bignum>(dpeek()))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(tag<bignum>(myvm->bignum_integer_length(untag<bignum>(dpeek()))));
 }
 
 unsigned int bignum_producer(unsigned int digit)
@@ -221,8 +245,9 @@ unsigned int bignum_producer(unsigned int digit)
 
 PRIMITIVE(byte_array_to_bignum)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell n_digits = array_capacity(untag_check<byte_array>(dpeek(),vm));
-	bignum * result = vm->digit_stream_to_bignum(n_digits,bignum_producer,0x100,0);
+	bignum * result = myvm->digit_stream_to_bignum(n_digits,bignum_producer,0x100,0);
 	drepl(tag<bignum>(result));
 }
 
@@ -261,16 +286,19 @@ cell factorvm::unbox_array_size()
 
 PRIMITIVE(fixnum_to_float)
 {
-	drepl(vm->allot_float(fixnum_to_float(dpeek())));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(myvm->allot_float(fixnum_to_float(dpeek())));
 }
 
 PRIMITIVE(bignum_to_float)
 {
-	drepl(vm->allot_float(vm->bignum_to_float(dpeek())));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(myvm->allot_float(myvm->bignum_to_float(dpeek())));
 }
 
 PRIMITIVE(str_to_float)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	byte_array *bytes = untag_check<byte_array>(dpeek(),vm);
 	cell capacity = array_capacity(bytes);
 
@@ -278,14 +306,15 @@ PRIMITIVE(str_to_float)
 	char *end = c_str;
 	double f = strtod(c_str,&end);
 	if(end == c_str + capacity - 1)
-		drepl(vm->allot_float(f));
+		drepl(myvm->allot_float(f));
 	else
 		drepl(F);
 }
 
 PRIMITIVE(float_to_str)
 {
-	byte_array *array = vm->allot_byte_array(33);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	byte_array *array = myvm->allot_byte_array(33);
 	snprintf((char *)(array + 1),32,"%.16g",untag_float_check(dpop()));
 	dpush(tag<byte_array>(array));
 }

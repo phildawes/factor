@@ -251,20 +251,22 @@ void *inline_cache_miss(cell return_address)    // referenced from assembly code
 
 PRIMITIVE(reset_inline_cache_stats)
 {
-	vm->cold_call_to_ic_transitions = vm->ic_to_pic_transitions = vm->pic_to_mega_transitions = 0;
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->cold_call_to_ic_transitions = vm->ic_to_pic_transitions = vm->pic_to_mega_transitions = 0;
 	cell i;
-	for(i = 0; i < 4; i++) vm->pic_counts[i] = 0;
+	for(i = 0; i < 4; i++) myvm->pic_counts[i] = 0;
 }
 
 PRIMITIVE(inline_cache_stats)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	growable_array stats(vm);
-	stats.add(vm->allot_cell(vm->cold_call_to_ic_transitions));
-	stats.add(vm->allot_cell(vm->ic_to_pic_transitions));
-	stats.add(vm->allot_cell(vm->pic_to_mega_transitions));
+	stats.add(myvm->allot_cell(myvm->cold_call_to_ic_transitions));
+	stats.add(myvm->allot_cell(myvm->ic_to_pic_transitions));
+	stats.add(myvm->allot_cell(myvm->pic_to_mega_transitions));
 	cell i;
 	for(i = 0; i < 4; i++)
-		stats.add(vm->allot_cell(vm->pic_counts[i]));
+		stats.add(myvm->allot_cell(vm->pic_counts[i]));
 	stats.trim();
 	dpush(stats.elements.value());
 }

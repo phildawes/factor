@@ -33,6 +33,7 @@ void factorvm::io_error()
 
 PRIMITIVE(fopen)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	gc_root<byte_array> mode(dpop(),vm);
 	gc_root<byte_array> path(dpop(),vm);
 	mode.untag_check();
@@ -43,7 +44,7 @@ PRIMITIVE(fopen)
 		FILE *file = fopen((char *)(path.untagged() + 1),
 				   (char *)(mode.untagged() + 1));
 		if(file == NULL)
-			vm->io_error();
+			myvm->io_error();
 		else
 		{
 			box_alien(file);
@@ -54,6 +55,7 @@ PRIMITIVE(fopen)
 
 PRIMITIVE(fgetc)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
 
 	for(;;)
@@ -67,7 +69,7 @@ PRIMITIVE(fgetc)
 				break;
 			}
 			else
-				vm->io_error();
+				myvm->io_error();
 		}
 		else
 		{
@@ -79,16 +81,17 @@ PRIMITIVE(fgetc)
 
 PRIMITIVE(fread)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
-	fixnum size = vm->unbox_array_size();
+	fixnum size = myvm->unbox_array_size();
 
 	if(size == 0)
 	{
-		dpush(tag<string>(vm->allot_string(0,0)));
+		dpush(tag<string>(myvm->allot_string(0,0)));
 		return;
 	}
 
-	gc_root<byte_array> buf(vm->allot_array_internal<byte_array>(size),vm);
+	gc_root<byte_array> buf(myvm->allot_array_internal<byte_array>(size),myvm);
 
 	for(;;)
 	{
@@ -101,13 +104,13 @@ PRIMITIVE(fread)
 				break;
 			}
 			else
-				vm->io_error();
+				myvm->io_error();
 		}
 		else
 		{
 			if(c != size)
 			{
-				byte_array *new_buf = vm->allot_byte_array(c);
+				byte_array *new_buf = myvm->allot_byte_array(c);
 				memcpy(new_buf + 1, buf.untagged() + 1,c);
 				buf = new_buf;
 			}
@@ -119,6 +122,7 @@ PRIMITIVE(fread)
 
 PRIMITIVE(fputc)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
 	fixnum ch = to_fixnum(dpop());
 
@@ -126,7 +130,7 @@ PRIMITIVE(fputc)
 	{
 		if(fputc(ch,file) == EOF)
 		{
-			vm->io_error();
+			myvm->io_error();
 
 			/* Still here? EINTR */
 		}
@@ -137,6 +141,7 @@ PRIMITIVE(fputc)
 
 PRIMITIVE(fwrite)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
 	byte_array *text = untag_check<byte_array>(dpop(),vm);
 	cell length = array_capacity(text);
@@ -155,7 +160,7 @@ PRIMITIVE(fwrite)
 			if(feof(file))
 				break;
 			else
-				vm->io_error();
+				myvm->io_error();
 
 			/* Still here? EINTR */
 			length -= written;
@@ -166,6 +171,7 @@ PRIMITIVE(fwrite)
 
 PRIMITIVE(fseek)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	int whence = to_fixnum(dpop());
 	FILE *file = (FILE *)unbox_alien();
 	off_t offset = to_signed_8(dpop());
@@ -176,26 +182,27 @@ PRIMITIVE(fseek)
 	case 1: whence = SEEK_CUR; break;
 	case 2: whence = SEEK_END; break;
 	default:
-		vm->critical_error("Bad value for whence",whence);
+		myvm->critical_error("Bad value for whence",whence);
 		break;
 	}
 
 	if(FSEEK(file,offset,whence) == -1)
 	{
-		vm->io_error();
+		myvm->io_error();
 
 		/* Still here? EINTR */
-		vm->critical_error("Don't know what to do; EINTR from fseek()?",0);
+		myvm->critical_error("Don't know what to do; EINTR from fseek()?",0);
 	}
 }
 
 PRIMITIVE(fflush)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
 	for(;;)
 	{
 		if(fflush(file) == EOF)
-			vm->io_error();
+			myvm->io_error();
 		else
 			break;
 	}
@@ -203,11 +210,12 @@ PRIMITIVE(fflush)
 
 PRIMITIVE(fclose)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
 	for(;;)
 	{
 		if(fclose(file) == EOF)
-			vm->io_error();
+			myvm->io_error();
 		else
 			break;
 	}
