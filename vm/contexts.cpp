@@ -171,7 +171,7 @@ PRIMITIVE(check_datastack)
 	fixnum out = to_fixnum(dpop());
 	fixnum in = to_fixnum(dpop());
 	fixnum height = out - in;
-	array *saved_datastack = untag_check<array>(dpop(),vm);
+	array *saved_datastack = untag_check<array>(dpop(),myvm);
 	fixnum saved_height = array_capacity(saved_datastack);
 	fixnum current_height = (ds - ds_bot + sizeof(cell)) / sizeof(cell);
 	if(current_height - height != saved_height)

@@ -57,8 +57,9 @@ void ffi_dlclose(dll *dll)
 
 PRIMITIVE(existsp)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	struct stat sb;
-	char *path = (char *)(untag_check<byte_array>(dpop(),vm) + 1);
+	char *path = (char *)(untag_check<byte_array>(dpop(),myvm) + 1);
 	box_boolean(stat(path,&sb) >= 0);
 }
 

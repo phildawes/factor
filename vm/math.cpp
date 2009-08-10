@@ -246,7 +246,7 @@ unsigned int bignum_producer(unsigned int digit)
 PRIMITIVE(byte_array_to_bignum)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	cell n_digits = array_capacity(untag_check<byte_array>(dpeek(),vm));
+	cell n_digits = array_capacity(untag_check<byte_array>(dpeek(),myvm));
 	bignum * result = myvm->digit_stream_to_bignum(n_digits,bignum_producer,0x100,0);
 	drepl(tag<bignum>(result));
 }
@@ -299,7 +299,7 @@ PRIMITIVE(bignum_to_float)
 PRIMITIVE(str_to_float)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	byte_array *bytes = untag_check<byte_array>(dpeek(),vm);
+	byte_array *bytes = untag_check<byte_array>(dpeek(),myvm);
 	cell capacity = array_capacity(bytes);
 
 	char *c_str = (char *)(bytes + 1);

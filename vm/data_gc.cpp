@@ -627,8 +627,8 @@ PRIMITIVE(clear_gc_stats)
 PRIMITIVE(become)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	array *new_objects = untag_check<array>(dpop(),vm);
-	array *old_objects = untag_check<array>(dpop(),vm);
+	array *new_objects = untag_check<array>(dpop(),myvm);
+	array *old_objects = untag_check<array>(dpop(),myvm);
 
 	cell capacity = array_capacity(new_objects);
 	if(capacity != array_capacity(old_objects))

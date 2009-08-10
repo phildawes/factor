@@ -58,7 +58,7 @@ void factorvm::update_code_heap_words()
 PRIMITIVE(modify_code_heap)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	gc_root<array> alist(dpop(),vm);
+	gc_root<array> alist(dpop(),myvm);
 
 	cell count = array_capacity(alist.untagged());
 
@@ -68,10 +68,10 @@ PRIMITIVE(modify_code_heap)
 	cell i;
 	for(i = 0; i < count; i++)
 	{
-		gc_root<array> pair(array_nth(alist.untagged(),i),vm);
+		gc_root<array> pair(array_nth(alist.untagged(),i),myvm);
 
-		gc_root<word> word(array_nth(pair.untagged(),0),vm);
-		gc_root<object> data(array_nth(pair.untagged(),1),vm);
+		gc_root<word> word(array_nth(pair.untagged(),0),myvm);
+		gc_root<object> data(array_nth(pair.untagged(),1),myvm);
 
 		switch(data.type())
 		{

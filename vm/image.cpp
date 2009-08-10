@@ -126,7 +126,7 @@ PRIMITIVE(save_image)
 	/* do a full GC to push everything into tenured space */
 	myvm->gc();
 
-	gc_root<byte_array> path(dpop(),vm);
+	gc_root<byte_array> path(dpop(),myvm);
 	path.untag_check();
 	myvm->save_image((vm_char *)(path.untagged() + 1));
 }
@@ -137,7 +137,7 @@ PRIMITIVE(save_image_and_exit)
 	/* We unbox this before doing anything else. This is the only point
 	where we might throw an error, so we have to throw an error here since
 	later steps destroy the current image. */
-	gc_root<byte_array> path(dpop(),vm);
+	gc_root<byte_array> path(dpop(),myvm);
 	path.untag_check();
 
 	/* strip out userenv data which is set on startup anyway */

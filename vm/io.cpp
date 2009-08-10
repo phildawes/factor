@@ -34,8 +34,8 @@ void factorvm::io_error()
 PRIMITIVE(fopen)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	gc_root<byte_array> mode(dpop(),vm);
-	gc_root<byte_array> path(dpop(),vm);
+	gc_root<byte_array> mode(dpop(),myvm);
+	gc_root<byte_array> path(dpop(),myvm);
 	mode.untag_check();
 	path.untag_check();
 
@@ -143,7 +143,7 @@ PRIMITIVE(fwrite)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
 	FILE *file = (FILE *)unbox_alien();
-	byte_array *text = untag_check<byte_array>(dpop(),vm);
+	byte_array *text = untag_check<byte_array>(dpop(),myvm);
 	cell length = array_capacity(text);
 	char *string = (char *)(text + 1);
 

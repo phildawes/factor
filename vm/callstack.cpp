@@ -156,7 +156,7 @@ struct stack_frame_accumulator {
 PRIMITIVE(callstack_to_array)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	gc_root<callstack> callstack(dpop(),vm);
+	gc_root<callstack> callstack(dpop(),myvm);
 
 	stack_frame_accumulator accum(vm);
 	myvm->iterate_callstack_object(callstack.untagged(),accum);
@@ -189,20 +189,20 @@ Used by the single stepper. */
 PRIMITIVE(innermost_stack_frame_executing)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	dpush(myvm->frame_executing(myvm->innermost_stack_frame(untag_check<callstack>(dpop(),vm))));
+	dpush(myvm->frame_executing(myvm->innermost_stack_frame(untag_check<callstack>(dpop(),myvm))));
 }
 
 PRIMITIVE(innermost_stack_frame_scan)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	dpush(myvm->frame_scan(myvm->innermost_stack_frame_quot(untag_check<callstack>(dpop(),vm))));
+	dpush(myvm->frame_scan(myvm->innermost_stack_frame_quot(untag_check<callstack>(dpop(),myvm))));
 }
 
 PRIMITIVE(set_innermost_stack_frame_quot)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();	
-	gc_root<callstack> callstack(dpop(),vm);
-	gc_root<quotation> quot(dpop(),vm);
+	gc_root<callstack> callstack(dpop(),myvm);
+	gc_root<quotation> quot(dpop(),myvm);
 
 	callstack.untag_check();
 	quot.untag_check();
