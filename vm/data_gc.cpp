@@ -576,6 +576,7 @@ PRIMITIVE(gc)
 
 PRIMITIVE(gc_stats)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	growable_array result(vm);
 
 	cell i;
@@ -583,22 +584,22 @@ PRIMITIVE(gc_stats)
 
 	for(i = 0; i < max_gen_count; i++)
 		{
-			gc_stats *s = &vm->stats[i];
-			result.add(vm->allot_cell(s->collections));
-			result.add(tag<bignum>(vm->long_long_to_bignum(s->gc_time)));
-			result.add(tag<bignum>(vm->long_long_to_bignum(s->max_gc_time)));
-			result.add(vm->allot_cell(s->collections == 0 ? 0 : s->gc_time / s->collections));
-			result.add(vm->allot_cell(s->object_count));
-			result.add(tag<bignum>(vm->long_long_to_bignum(s->bytes_copied)));
+			gc_stats *s = &myvm->stats[i];
+			result.add(myvm->allot_cell(s->collections));
+			result.add(tag<bignum>(myvm->long_long_to_bignum(s->gc_time)));
+			result.add(tag<bignum>(myvm->long_long_to_bignum(s->max_gc_time)));
+			result.add(myvm->allot_cell(s->collections == 0 ? 0 : s->gc_time / s->collections));
+			result.add(myvm->allot_cell(s->object_count));
+			result.add(tag<bignum>(myvm->long_long_to_bignum(s->bytes_copied)));
 
 			total_gc_time += s->gc_time;
 		}
 
-	result.add(tag<bignum>(vm->ulong_long_to_bignum(total_gc_time)));
-	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->cards_scanned)));
-	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->decks_scanned)));
-	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->card_scan_time)));
-	result.add(vm->allot_cell(vm->code_heap_scans));
+	result.add(tag<bignum>(myvm->ulong_long_to_bignum(total_gc_time)));
+	result.add(tag<bignum>(myvm->ulong_long_to_bignum(myvm->cards_scanned)));
+	result.add(tag<bignum>(myvm->ulong_long_to_bignum(myvm->decks_scanned)));
+	result.add(tag<bignum>(myvm->ulong_long_to_bignum(myvm->card_scan_time)));
+	result.add(myvm->allot_cell(myvm->code_heap_scans));
 
 	result.trim();
 	dpush(result.elements.value());
@@ -617,19 +618,21 @@ void factorvm::clear_gc_stats()
 
 PRIMITIVE(clear_gc_stats)
 {
-	vm->clear_gc_stats();
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->clear_gc_stats();
 }
 
 /* classes.tuple uses this to reshape tuples; tools.deploy.shaker uses this
    to coalesce equal but distinct quotations and wrappers. */
 PRIMITIVE(become)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	array *new_objects = untag_check<array>(dpop(),vm);
 	array *old_objects = untag_check<array>(dpop(),vm);
 
 	cell capacity = array_capacity(new_objects);
 	if(capacity != array_capacity(old_objects))
-		vm->critical_error("bad parameters to become",0);
+		myvm->critical_error("bad parameters to become",0);
 
 	cell i;
 
@@ -642,13 +645,13 @@ PRIMITIVE(become)
 				old_obj->h.forward_to(new_obj.untagged());
 		}
 
-	vm->gc();
+	myvm->gc();
 
 	/* If a word's definition quotation was in old_objects and the
 	   quotation in new_objects is not compiled, we might leak memory
 	   by referencing the old quotation unless we recompile all
 	   unoptimized words. */
-	vm->compile_all_words();
+	myvm->compile_all_words();
 }
 
 

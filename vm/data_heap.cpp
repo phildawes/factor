@@ -244,7 +244,8 @@ cell factorvm::unaligned_object_size(object *pointer)
 
 PRIMITIVE(size)
 {
-	box_unsigned_cell(vm->object_size(dpop()));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	box_unsigned_cell(myvm->object_size(dpop()));
 }
 
 /* The number of cells from the start of the object which should be scanned by
@@ -287,15 +288,16 @@ cell factorvm::binary_payload_start(object *pointer)
 /* Push memory usage statistics in data heap */
 PRIMITIVE(data_room)
 {
-	dpush(tag_fixnum((vm->data->cards_end - vm->data->cards) >> 10));
-	dpush(tag_fixnum((vm->data->decks_end - vm->data->decks) >> 10));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	dpush(tag_fixnum((myvm->data->cards_end - myvm->data->cards) >> 10));
+	dpush(tag_fixnum((myvm->data->decks_end - myvm->data->decks) >> 10));
 
 	growable_array a(vm);
 
 	cell gen;
-	for(gen = 0; gen < vm->data->gen_count; gen++)
+	for(gen = 0; gen < myvm->data->gen_count; gen++)
 	{
-		zone *z = (gen == vm->data->nursery() ? &nursery : &vm->data->generations[gen]);
+		zone *z = (gen == myvm->data->nursery() ? &nursery : &myvm->data->generations[gen]);
 		a.add(tag_fixnum((z->end - z->here) >> 10));
 		a.add(tag_fixnum((z->size) >> 10));
 	}
@@ -319,7 +321,8 @@ void factorvm::end_scan()
 
 PRIMITIVE(begin_scan)
 {
-	vm->begin_scan();
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->begin_scan();
 }
 
 cell factorvm::next_object()
@@ -338,13 +341,15 @@ cell factorvm::next_object()
 /* Push object at heap scan cursor and advance; pushes f when done */
 PRIMITIVE(next_object)
 {
-	dpush(vm->next_object());
+	factorvm *myvm = PRIMITIVE_GETVM();
+	dpush(myvm->next_object());
 }
 
 /* Re-enables GC */
 PRIMITIVE(end_scan)
 {
-	vm->gc_off = false;
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->gc_off = false;
 }
 
 template<typename TYPE> void factorvm::each_object(TYPE &functor)

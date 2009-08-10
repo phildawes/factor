@@ -87,21 +87,22 @@ VM_C_API void init_parameters_from_args(vm_parameters *p, int argc, vm_char **ar
 }
 
 /* Do some initialization that we do once only */
-static void do_stage1_init()
+void factorvm::do_stage1_init()
 {
 	print_string("*** Stage 2 early init... ");
 	fflush(stdout);
 
-	vm->compile_all_words();
-	userenv[STAGE2_ENV] = vm->T;
+	compile_all_words();
+	userenv[STAGE2_ENV] = T;
 
 	print_string("done\n");
 	fflush(stdout);
 }
 
-VM_C_API void init_factor(vm_parameters *p)
+VM_C_API void *init_factor(vm_parameters *p)
 {
-  vm = new factorvm;
+	factorvm *thevm = new factorvm;
+	vm = thevm;  // set the singleton  - TO BE REMOVED!
 	/* Kilobytes */
 	p->ds_size = align_page(p->ds_size << 10);
 	p->rs_size = align_page(p->rs_size << 10);
@@ -113,7 +114,7 @@ VM_C_API void init_factor(vm_parameters *p)
 	p->code_size <<= 20;
 
 	/* Disable GC during init as a sanity check */
-	vm->gc_off = true;
+	thevm->gc_off = true;
 
 	/* OS-specific initialization */
 	early_init();
@@ -128,38 +129,39 @@ VM_C_API void init_factor(vm_parameters *p)
 
 	srand(current_micros());
 	init_ffi();
-	vm->init_stacks(p->ds_size,p->rs_size);
-	vm->load_image(p);
-	vm->init_c_io();
-	vm->init_inline_caching(p->max_pic_size);
+	thevm->init_stacks(p->ds_size,p->rs_size);
+	thevm->load_image(p);
+	thevm->init_c_io();
+	thevm->init_inline_caching(p->max_pic_size);
 	init_signals();
 
 	if(p->console)
 		open_console();
 
-	vm->init_profiler();
+	thevm->init_profiler();
 
-	userenv[CPU_ENV] = vm->allot_alien(F,(cell)FACTOR_CPU_STRING);
-	userenv[OS_ENV] = vm->allot_alien(F,(cell)FACTOR_OS_STRING);
+	userenv[CPU_ENV] = thevm->allot_alien(F,(cell)FACTOR_CPU_STRING);
+	userenv[OS_ENV] = thevm->allot_alien(F,(cell)FACTOR_OS_STRING);
 	userenv[CELL_SIZE_ENV] = tag_fixnum(sizeof(cell));
-	userenv[EXECUTABLE_ENV] = vm->allot_alien(F,(cell)p->executable_path);
+	userenv[EXECUTABLE_ENV] = thevm->allot_alien(F,(cell)p->executable_path);
 	userenv[ARGS_ENV] = F;
 	userenv[EMBEDDED_ENV] = F;
 
 	/* We can GC now */
-	vm->gc_off = false;
+	thevm->gc_off = false;
 
 	if(userenv[STAGE2_ENV] == F)
 	{
-		userenv[STACK_TRACES_ENV] = vm->tag_boolean(p->stack_traces);
-		do_stage1_init();
+		userenv[STACK_TRACES_ENV] = thevm->tag_boolean(p->stack_traces);
+		thevm->do_stage1_init();
 	}
+	return thevm;
 }
 
 /* May allocate memory */
 VM_C_API void pass_args_to_factor(int argc, vm_char **argv)
 {
-	growable_array args(vm);
+	growable_array args((factorvm*)vm);
 	int i;
 
 	for(i = 1; i < argc; i++)
@@ -169,9 +171,9 @@ VM_C_API void pass_args_to_factor(int argc, vm_char **argv)
 	userenv[ARGS_ENV] = args.elements.value();
 }
 
-static void start_factor(vm_parameters *p)
+void factorvm::start_factor(vm_parameters *p)
 {
-	if(p->fep) vm->factorbug();
+	if(p->fep) factorbug();
 
 	nest_stacks();
 	c_to_factor_toplevel(userenv[BOOT_ENV]);
@@ -181,7 +183,7 @@ static void start_factor(vm_parameters *p)
 VM_C_API void start_embedded_factor(vm_parameters *p)
 {
 	userenv[EMBEDDED_ENV] = vm->T;
-	start_factor(p);
+	vm->start_factor(p);
 }
 
 VM_C_API void start_standalone_factor(int argc, vm_char **argv)
@@ -191,7 +193,7 @@ VM_C_API void start_standalone_factor(int argc, vm_char **argv)
 	init_parameters_from_args(&p,argc,argv);
 	init_factor(&p);
 	pass_args_to_factor(argc,argv);
-	start_factor(&p);
+	vm->start_factor(&p);
 }
 
 VM_C_API char *factor_eval_string(char *string)

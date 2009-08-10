@@ -122,16 +122,18 @@ bool factorvm::save_image(const vm_char *filename)
 
 PRIMITIVE(save_image)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	/* do a full GC to push everything into tenured space */
-	vm->gc();
+	myvm->gc();
 
 	gc_root<byte_array> path(dpop(),vm);
 	path.untag_check();
-	vm->save_image((vm_char *)(path.untagged() + 1));
+	myvm->save_image((vm_char *)(path.untagged() + 1));
 }
 
 PRIMITIVE(save_image_and_exit)
-{	
+{
+	factorvm *myvm = PRIMITIVE_GETVM();
 	/* We unbox this before doing anything else. This is the only point
 	where we might throw an error, so we have to throw an error here since
 	later steps destroy the current image. */
@@ -145,12 +147,12 @@ PRIMITIVE(save_image_and_exit)
 	}
 
 	/* do a full GC + code heap compaction */
-	vm->performing_compaction = true;
-	vm->compact_code_heap();
-	vm->performing_compaction = false;
+	myvm->performing_compaction = true;
+	myvm->compact_code_heap();
+	myvm->performing_compaction = false;
 
 	/* Save the image */
-	if(vm->save_image((vm_char *)(path.untagged() + 1)))
+	if(myvm->save_image((vm_char *)(path.untagged() + 1)))
 		exit(0);
 	else
 		exit(1);

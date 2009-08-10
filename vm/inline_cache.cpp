@@ -197,7 +197,7 @@ void factorvm::update_pic_transitions(cell pic_size)
 
 /* The cache_entries parameter is either f (on cold call site) or an array (on cache miss).
 Called from assembly with the actual return address */
-void *inline_cache_miss(cell return_address)
+void *inline_cache_miss(cell return_address)    // referenced from assembly code
 {
 	vm->check_code_pointer(return_address);
 

@@ -264,9 +264,9 @@ void find_data_references_step(cell *scan,factorvm *myvm)
 {
 	if(myvm->look_for == *scan)
 	{
-		print_cell_hex_pad(vm->obj);
+		print_cell_hex_pad(myvm->obj);
 		print_string(" ");
-		myvm->print_nested_obj(vm->obj,2);
+		myvm->print_nested_obj(myvm->obj,2);
 		nl();
 	}
 }
@@ -470,9 +470,10 @@ void factorvm::factorbug()
 
 PRIMITIVE(die)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	print_string("The die word was called by the library. Unless you called it yourself,\n");
 	print_string("you have triggered a bug in Factor. Please report.\n");
-	vm->factorbug();
+	myvm->factorbug();
 }
 
 }

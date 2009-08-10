@@ -115,9 +115,10 @@ cell factorvm::lookup_method(cell obj, cell methods)
 
 PRIMITIVE(lookup_method)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell methods = dpop();
 	cell obj = dpop();
-	dpush(vm->lookup_method(obj,methods));
+	dpush(myvm->lookup_method(obj,methods));
 }
 
 cell object_class(cell obj)
@@ -149,7 +150,8 @@ void factorvm::update_method_cache(cell cache, cell klass, cell method)
 
 PRIMITIVE(mega_cache_miss)
 {
-	vm->megamorphic_cache_misses++;
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->megamorphic_cache_misses++;
 
 	cell cache = dpop();
 	fixnum index = untag_fixnum(dpop());
@@ -157,23 +159,25 @@ PRIMITIVE(mega_cache_miss)
 
 	cell object = ((cell *)ds)[-index];
 	cell klass = object_class(object);
-	cell method = vm->lookup_method(object,methods);
+	cell method = myvm->lookup_method(object,methods);
 
-	vm->update_method_cache(cache,klass,method);
+	myvm->update_method_cache(cache,klass,method);
 
 	dpush(method);
 }
 
 PRIMITIVE(reset_dispatch_stats)
 {
-	vm->megamorphic_cache_hits = vm->megamorphic_cache_misses = 0;
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->megamorphic_cache_hits = myvm->megamorphic_cache_misses = 0;
 }
 
 PRIMITIVE(dispatch_stats)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	growable_array stats(vm);
-	stats.add(vm->allot_cell(vm->megamorphic_cache_hits));
-	stats.add(vm->allot_cell(vm->megamorphic_cache_misses));
+	stats.add(myvm->allot_cell(myvm->megamorphic_cache_hits));
+	stats.add(myvm->allot_cell(myvm->megamorphic_cache_misses));
 	stats.trim();
 	dpush(stats.elements.value());
 }

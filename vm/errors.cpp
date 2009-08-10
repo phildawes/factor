@@ -33,15 +33,15 @@ void factorvm::throw_error(cell error, stack_frame *callstack_top)
 	if(userenv[BREAK_ENV] != F)
 	{
 		/* If error was thrown during heap scan, we re-enable the GC */
-		vm->gc_off = false;
+		gc_off = false;
 
 		/* Reset local roots */
-		vm->gc_locals = vm->gc_locals_region->start - sizeof(cell);
-		vm->gc_bignums = vm->gc_bignums_region->start - sizeof(cell);
+		gc_locals = gc_locals_region->start - sizeof(cell);
+		gc_bignums = gc_bignums_region->start - sizeof(cell);
 
 		/* If we had an underflow or overflow, stack pointers might be
 		out of bounds */
-		vm->fix_stacks();
+		fix_stacks();
 
 		dpush(error);
 
@@ -103,11 +103,11 @@ void factorvm::memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ds_bot, 0, -1))
 		general_error(ERROR_DS_UNDERFLOW,F,F,native_stack);
-	else if(in_page(addr, ds_bot, vm->ds_size, 0))
+	else if(in_page(addr, ds_bot, ds_size, 0))
 		general_error(ERROR_DS_OVERFLOW,F,F,native_stack);
 	else if(in_page(addr, rs_bot, 0, -1))
 		general_error(ERROR_RS_UNDERFLOW,F,F,native_stack);
-	else if(in_page(addr, rs_bot, vm->rs_size, 0))
+	else if(in_page(addr, rs_bot, rs_size, 0))
 		general_error(ERROR_RS_OVERFLOW,F,F,native_stack);
 	else if(in_page(addr, getnursery()->end, 0, 0))
 		critical_error("allot_object() missed GC check",0);
@@ -133,7 +133,8 @@ PRIMITIVE(call_clear)
 /* For testing purposes */
 PRIMITIVE(unimplemented)
 {
-	vm->not_implemented_error();
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->not_implemented_error();
 }
 
 void memory_signal_handler_impl()
