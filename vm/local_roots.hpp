@@ -42,7 +42,7 @@ struct gc_bignum
 	factorvm *myvm;
 	bignum **addr;
 
-	DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
+	DEFPUSHPOP(gc_bignum_,myvm->gc_bignums)
 
 	gc_bignum(bignum **addr_,factorvm *vm) : myvm(vm), addr(addr_) {
 		if(*addr_)
