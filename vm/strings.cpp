@@ -101,9 +101,10 @@ string *factorvm::allot_string(cell capacity, cell fill)
 
 PRIMITIVE(string)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell initial = to_cell(dpop());
-	cell length = vm->unbox_array_size();
-	dpush(tag<string>(vm->allot_string(length,initial)));
+	cell length = myvm->unbox_array_size();
+	dpush(tag<string>(myvm->allot_string(length,initial)));
 }
 
 static bool reallot_string_in_place_p(string *str, cell capacity)
@@ -157,9 +158,10 @@ string* factorvm::reallot_string(string *str_, cell capacity)
 
 PRIMITIVE(resize_string)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	string* str = untag_check<string>(dpop(),vm);
-	cell capacity = vm->unbox_array_size();
-	dpush(tag<string>(vm->reallot_string(str,capacity)));
+	cell capacity = myvm->unbox_array_size();
+	dpush(tag<string>(myvm->reallot_string(str,capacity)));
 }
 
 PRIMITIVE(string_nth)
@@ -179,10 +181,11 @@ PRIMITIVE(set_string_nth_fast)
 
 PRIMITIVE(set_string_nth_slow)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	string *str = untag<string>(dpop());
 	cell index = untag_fixnum(dpop());
 	cell value = untag_fixnum(dpop());
-	vm->set_string_nth_slow(str,index,value);
+	myvm->set_string_nth_slow(str,index,value);
 }
 
 }
