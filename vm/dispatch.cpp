@@ -139,7 +139,7 @@ static cell method_cache_hashcode(cell klass, array *array)
 	return ((klass >> TAG_BITS) & capacity) << 1;
 }
 
-static void update_method_cache(cell cache, cell klass, cell method)
+void factorvm::update_method_cache(cell cache, cell klass, cell method)
 {
 	array *cache_elements = untag<array>(cache);
 	cell hashcode = method_cache_hashcode(klass,cache_elements);
@@ -159,7 +159,7 @@ PRIMITIVE(mega_cache_miss)
 	cell klass = object_class(object);
 	cell method = vm->lookup_method(object,methods);
 
-	update_method_cache(cache,klass,method);
+	vm->update_method_cache(cache,klass,method);
 
 	dpush(method);
 }
@@ -172,8 +172,8 @@ PRIMITIVE(reset_dispatch_stats)
 PRIMITIVE(dispatch_stats)
 {
 	growable_array stats(vm);
-	stats.add(allot_cell(vm->megamorphic_cache_hits));
-	stats.add(allot_cell(vm->megamorphic_cache_misses));
+	stats.add(vm->allot_cell(vm->megamorphic_cache_hits));
+	stats.add(vm->allot_cell(vm->megamorphic_cache_misses));
 	stats.trim();
 	dpush(stats.elements.value());
 }

@@ -44,8 +44,8 @@ PRIMITIVE(word_xt)
 {
 	word *w = untag_check<word>(dpop(),vm);
 	code_block *code = (vm->profiling_p ? w->profiling : w->code);
-	dpush(allot_cell((cell)code->xt()));
-	dpush(allot_cell((cell)code + code->size));
+	dpush(vm->allot_cell((cell)code->xt()));
+	dpush(vm->allot_cell((cell)code + code->size));
 }
 
 /* Allocates memory */

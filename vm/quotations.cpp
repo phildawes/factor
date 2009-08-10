@@ -309,7 +309,7 @@ PRIMITIVE(array_to_quotation)
 PRIMITIVE(quotation_xt)
 {
 	quotation *quot = untag_check<quotation>(dpeek(),vm);
-	drepl(allot_cell((cell)quot->xt));
+	drepl(vm->allot_cell((cell)quot->xt));
 }
 
 void factorvm::compile_all_words()

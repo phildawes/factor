@@ -5,7 +5,7 @@ namespace factor
 
 PRIMITIVE(bignum_to_fixnum)
 {
-	drepl(tag_fixnum(bignum_to_fixnum(untag<bignum>(dpeek()))));
+	drepl(tag_fixnum(vm->bignum_to_fixnum(untag<bignum>(dpeek()))));
 }
 
 PRIMITIVE(float_to_fixnum)
@@ -21,7 +21,7 @@ PRIMITIVE(fixnum_divint)
 	fixnum x = untag_fixnum(dpeek());
 	fixnum result = x / y;
 	if(result == -fixnum_min)
-		drepl(allot_integer(-fixnum_min));
+		drepl(vm->allot_integer(-fixnum_min));
 	else
 		drepl(tag_fixnum(result));
 }
@@ -32,7 +32,7 @@ PRIMITIVE(fixnum_divmod)
 	cell x = ((cell *)ds)[-1];
 	if(y == tag_fixnum(-1) && x == tag_fixnum(fixnum_min))
 	{
-		((cell *)ds)[-1] = allot_integer(-fixnum_min);
+		((cell *)ds)[-1] = vm->allot_integer(-fixnum_min);
 		((cell *)ds)[0] = tag_fixnum(0);
 	}
 	else
@@ -84,18 +84,18 @@ PRIMITIVE(fixnum_shift)
 		}
 	}
 
-	drepl(tag<bignum>(bignum_arithmetic_shift(
-		fixnum_to_bignum(x),y)));
+	drepl(tag<bignum>(vm->bignum_arithmetic_shift(
+		vm->fixnum_to_bignum(x),y)));
 }
 
 PRIMITIVE(fixnum_to_bignum)
 {
-	drepl(tag<bignum>(fixnum_to_bignum(untag_fixnum(dpeek()))));
+	drepl(tag<bignum>(vm->fixnum_to_bignum(untag_fixnum(dpeek()))));
 }
 
 PRIMITIVE(float_to_bignum)
 {
-	drepl(tag<bignum>(float_to_bignum(dpeek())));
+	drepl(tag<bignum>(vm->float_to_bignum(dpeek())));
 }
 
 #define POP_BIGNUMS(x,y) \
@@ -105,25 +105,25 @@ PRIMITIVE(float_to_bignum)
 PRIMITIVE(bignum_eq)
 {
 	POP_BIGNUMS(x,y);
-	box_boolean(bignum_equal_p(x,y));
+	box_boolean(vm->bignum_equal_p(x,y));
 }
 
 PRIMITIVE(bignum_add)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_add(x,y)));
+	dpush(tag<bignum>(vm->bignum_add(x,y)));
 }
 
 PRIMITIVE(bignum_subtract)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_subtract(x,y)));
+	dpush(tag<bignum>(vm->bignum_subtract(x,y)));
 }
 
 PRIMITIVE(bignum_multiply)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_multiply(x,y)));
+	dpush(tag<bignum>(vm->bignum_multiply(x,y)));
 }
 
 PRIMITIVE(bignum_divint)
@@ -150,67 +150,67 @@ PRIMITIVE(bignum_mod)
 PRIMITIVE(bignum_and)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_bitwise_and(x,y)));
+	dpush(tag<bignum>(vm->bignum_bitwise_and(x,y)));
 }
 
 PRIMITIVE(bignum_or)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_bitwise_ior(x,y)));
+	dpush(tag<bignum>(vm->bignum_bitwise_ior(x,y)));
 }
 
 PRIMITIVE(bignum_xor)
 {
 	POP_BIGNUMS(x,y);
-	dpush(tag<bignum>(bignum_bitwise_xor(x,y)));
+	dpush(tag<bignum>(vm->bignum_bitwise_xor(x,y)));
 }
 
 PRIMITIVE(bignum_shift)
 {
 	fixnum y = untag_fixnum(dpop());
         bignum* x = untag<bignum>(dpop());
-	dpush(tag<bignum>(bignum_arithmetic_shift(x,y)));
+	dpush(tag<bignum>(vm->bignum_arithmetic_shift(x,y)));
 }
 
 PRIMITIVE(bignum_less)
 {
 	POP_BIGNUMS(x,y);
-	box_boolean(bignum_compare(x,y) == bignum_comparison_less);
+	box_boolean(vm->bignum_compare(x,y) == bignum_comparison_less);
 }
 
 PRIMITIVE(bignum_lesseq)
 {
 	POP_BIGNUMS(x,y);
-	box_boolean(bignum_compare(x,y) != bignum_comparison_greater);
+	box_boolean(vm->bignum_compare(x,y) != bignum_comparison_greater);
 }
 
 PRIMITIVE(bignum_greater)
 {
 	POP_BIGNUMS(x,y);
-	box_boolean(bignum_compare(x,y) == bignum_comparison_greater);
+	box_boolean(vm->bignum_compare(x,y) == bignum_comparison_greater);
 }
 
 PRIMITIVE(bignum_greatereq)
 {
 	POP_BIGNUMS(x,y);
-	box_boolean(bignum_compare(x,y) != bignum_comparison_less);
+	box_boolean(vm->bignum_compare(x,y) != bignum_comparison_less);
 }
 
 PRIMITIVE(bignum_not)
 {
-	drepl(tag<bignum>(bignum_bitwise_not(untag<bignum>(dpeek()))));
+	drepl(tag<bignum>(vm->bignum_bitwise_not(untag<bignum>(dpeek()))));
 }
 
 PRIMITIVE(bignum_bitp)
 {
 	fixnum bit = to_fixnum(dpop());
 	bignum *x = untag<bignum>(dpop());
-	box_boolean(bignum_logbitp(bit,x));
+	box_boolean(vm->bignum_logbitp(bit,x));
 }
 
 PRIMITIVE(bignum_log2)
 {
-	drepl(tag<bignum>(bignum_integer_length(untag<bignum>(dpeek()))));
+	drepl(tag<bignum>(vm->bignum_integer_length(untag<bignum>(dpeek()))));
 }
 
 unsigned int bignum_producer(unsigned int digit)
@@ -222,7 +222,7 @@ unsigned int bignum_producer(unsigned int digit)
 PRIMITIVE(byte_array_to_bignum)
 {
 	cell n_digits = array_capacity(untag_check<byte_array>(dpeek(),vm));
-	bignum * result = digit_stream_to_bignum(n_digits,bignum_producer,0x100,0);
+	bignum * result = vm->digit_stream_to_bignum(n_digits,bignum_producer,0x100,0);
 	drepl(tag<bignum>(result));
 }
 
@@ -266,7 +266,7 @@ PRIMITIVE(fixnum_to_float)
 
 PRIMITIVE(bignum_to_float)
 {
-	drepl(vm->allot_float(bignum_to_float(dpeek())));
+	drepl(vm->allot_float(vm->bignum_to_float(dpeek())));
 }
 
 PRIMITIVE(str_to_float)
@@ -381,7 +381,7 @@ VM_C_API fixnum to_fixnum(cell tagged)
 	case FIXNUM_TYPE:
 		return untag_fixnum(tagged);
 	case BIGNUM_TYPE:
-		return bignum_to_fixnum(untag<bignum>(tagged));
+		return vm->bignum_to_fixnum(untag<bignum>(tagged));
 	default:
 		vm->type_error(FIXNUM_TYPE,tagged);
 		return 0; /* can't happen */
@@ -415,28 +415,28 @@ VM_C_API void box_unsigned_2(u16 n)
 
 VM_C_API void box_signed_4(s32 n)
 {
-	dpush(allot_integer(n));
+	dpush(vm->allot_integer(n));
 }
 
 VM_C_API void box_unsigned_4(u32 n)
 {
-	dpush(allot_cell(n));
+	dpush(vm->allot_cell(n));
 }
 
 VM_C_API void box_signed_cell(fixnum integer)
 {
-	dpush(allot_integer(integer));
+	dpush(vm->allot_integer(integer));
 }
 
 VM_C_API void box_unsigned_cell(cell cell)
 {
-	dpush(allot_cell(cell));
+	dpush(vm->allot_cell(cell));
 }
 
 VM_C_API void box_signed_8(s64 n)
 {
 	if(n < fixnum_min || n > fixnum_max)
-		dpush(tag<bignum>(long_long_to_bignum(n)));
+		dpush(tag<bignum>(vm->long_long_to_bignum(n)));
 	else
 		dpush(tag_fixnum(n));
 }
@@ -448,7 +448,7 @@ VM_C_API s64 to_signed_8(cell obj)
 	case FIXNUM_TYPE:
 		return untag_fixnum(obj);
 	case BIGNUM_TYPE:
-		return bignum_to_long_long(untag<bignum>(obj));
+		return vm->bignum_to_long_long(untag<bignum>(obj));
 	default:
 		vm->type_error(BIGNUM_TYPE,obj);
 		return 0;
@@ -458,7 +458,7 @@ VM_C_API s64 to_signed_8(cell obj)
 VM_C_API void box_unsigned_8(u64 n)
 {
 	if(n > (u64)fixnum_max)
-		dpush(tag<bignum>(ulong_long_to_bignum(n)));
+		dpush(tag<bignum>(vm->ulong_long_to_bignum(n)));
 	else
 		dpush(tag_fixnum(n));
 }
@@ -470,7 +470,7 @@ VM_C_API u64 to_unsigned_8(cell obj)
 	case FIXNUM_TYPE:
 		return untag_fixnum(obj);
 	case BIGNUM_TYPE:
-		return bignum_to_ulong_long(untag<bignum>(obj));
+		return vm->bignum_to_ulong_long(untag<bignum>(obj));
 	default:
 		vm->type_error(BIGNUM_TYPE,obj);
 		return 0;
@@ -501,23 +501,23 @@ VM_C_API double to_double(cell value)
 overflow, they call these functions. */
 VM_ASM_API void overflow_fixnum_add(fixnum x, fixnum y)
 {
-	drepl(tag<bignum>(fixnum_to_bignum(
+	drepl(tag<bignum>(vm->fixnum_to_bignum(
 		untag_fixnum(x) + untag_fixnum(y))));
 }
 
 VM_ASM_API void overflow_fixnum_subtract(fixnum x, fixnum y)
 {
-	drepl(tag<bignum>(fixnum_to_bignum(
+	drepl(tag<bignum>(vm->fixnum_to_bignum(
 		untag_fixnum(x) - untag_fixnum(y))));
 }
 
 VM_ASM_API void overflow_fixnum_multiply(fixnum x, fixnum y)
 {
-	bignum *bx = fixnum_to_bignum(x);
+	bignum *bx = vm->fixnum_to_bignum(x);
 	GC_BIGNUM(bx);
-	bignum *by = fixnum_to_bignum(y);
+	bignum *by = vm->fixnum_to_bignum(y);
 	GC_BIGNUM(by);
-	drepl(tag<bignum>(bignum_multiply(bx,by)));
+	drepl(tag<bignum>(vm->bignum_multiply(bx,by)));
 }
 
 }

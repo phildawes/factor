@@ -259,12 +259,12 @@ PRIMITIVE(reset_inline_cache_stats)
 PRIMITIVE(inline_cache_stats)
 {
 	growable_array stats(vm);
-	stats.add(allot_cell(vm->cold_call_to_ic_transitions));
-	stats.add(allot_cell(vm->ic_to_pic_transitions));
-	stats.add(allot_cell(vm->pic_to_mega_transitions));
+	stats.add(vm->allot_cell(vm->cold_call_to_ic_transitions));
+	stats.add(vm->allot_cell(vm->ic_to_pic_transitions));
+	stats.add(vm->allot_cell(vm->pic_to_mega_transitions));
 	cell i;
 	for(i = 0; i < 4; i++)
-		stats.add(allot_cell(vm->pic_counts[i]));
+		stats.add(vm->allot_cell(vm->pic_counts[i]));
 	stats.trim();
 	dpush(stats.elements.value());
 }

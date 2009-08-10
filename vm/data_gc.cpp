@@ -583,21 +583,21 @@ PRIMITIVE(gc_stats)
 	for(i = 0; i < max_gen_count; i++)
 		{
 			gc_stats *s = &vm->stats[i];
-			result.add(allot_cell(s->collections));
-			result.add(tag<bignum>(long_long_to_bignum(s->gc_time)));
-			result.add(tag<bignum>(long_long_to_bignum(s->max_gc_time)));
-			result.add(allot_cell(s->collections == 0 ? 0 : s->gc_time / s->collections));
-			result.add(allot_cell(s->object_count));
-			result.add(tag<bignum>(long_long_to_bignum(s->bytes_copied)));
+			result.add(vm->allot_cell(s->collections));
+			result.add(tag<bignum>(vm->long_long_to_bignum(s->gc_time)));
+			result.add(tag<bignum>(vm->long_long_to_bignum(s->max_gc_time)));
+			result.add(vm->allot_cell(s->collections == 0 ? 0 : s->gc_time / s->collections));
+			result.add(vm->allot_cell(s->object_count));
+			result.add(tag<bignum>(vm->long_long_to_bignum(s->bytes_copied)));
 
 			total_gc_time += s->gc_time;
 		}
 
-	result.add(tag<bignum>(ulong_long_to_bignum(total_gc_time)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->cards_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->decks_scanned)));
-	result.add(tag<bignum>(ulong_long_to_bignum(vm->card_scan_time)));
-	result.add(allot_cell(vm->code_heap_scans));
+	result.add(tag<bignum>(vm->ulong_long_to_bignum(total_gc_time)));
+	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->cards_scanned)));
+	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->decks_scanned)));
+	result.add(tag<bignum>(vm->ulong_long_to_bignum(vm->card_scan_time)));
+	result.add(vm->allot_cell(vm->code_heap_scans));
 
 	result.trim();
 	dpush(result.elements.value());
