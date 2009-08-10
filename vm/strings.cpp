@@ -159,7 +159,7 @@ string* factorvm::reallot_string(string *str_, cell capacity)
 PRIMITIVE(resize_string)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	string* str = untag_check<string>(dpop(),vm);
+	string* str = untag_check<string>(dpop(),myvm);
 	cell capacity = myvm->unbox_array_size();
 	dpush(tag<string>(myvm->reallot_string(str,capacity)));
 }
