@@ -291,13 +291,15 @@ void factorvm::jit_compile(cell quot_, bool relocating)
 
 PRIMITIVE(jit_compile)
 {
-	vm->jit_compile(dpop(),true);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->jit_compile(dpop(),true);
 }
 
 /* push a new quotation on the stack */
 PRIMITIVE(array_to_quotation)
 {
-	quotation *quot = vm->allot<quotation>(sizeof(quotation));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	quotation *quot = myvm->allot<quotation>(sizeof(quotation));
 	quot->array = dpeek();
 	quot->cached_effect = F;
 	quot->cache_counter = F;
@@ -308,8 +310,9 @@ PRIMITIVE(array_to_quotation)
 
 PRIMITIVE(quotation_xt)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	quotation *quot = untag_check<quotation>(dpeek(),vm);
-	drepl(vm->allot_cell((cell)quot->xt));
+	drepl(myvm->allot_cell((cell)quot->xt));
 }
 
 void factorvm::compile_all_words()
@@ -355,9 +358,10 @@ VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack)
 
 PRIMITIVE(quot_compiled_p)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	tagged<quotation> quot(dpop());
 	quot.untag_check(vm);
-	dpush(vm->tag_boolean(quot->code != NULL));
+	dpush(myvm->tag_boolean(quot->code != NULL));
 }
 
 }

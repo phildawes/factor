@@ -548,6 +548,8 @@ struct factorvm {
 
 	// run   ----------------------------------------------------------------------------
 	cell T;   
+	cell clone_object(cell obj_);
+
 
 	// write_barrier  ----------------------------------------------------------------------------
 
@@ -700,6 +702,8 @@ struct factorvm {
 	void *safe_malloc(size_t size);
 	vm_char *safe_strdup(const vm_char *str);
 
+	
+
 	// factor
 
 	void do_stage1_init();
@@ -719,6 +723,7 @@ VM_C_API factor::context *stack_chain;
 
 // run.cpp
 /* TAGGED user environment data; see getenv/setenv prims */
+
 
 // write_barrier.cpp
 VM_C_API factor::cell cards_offset;

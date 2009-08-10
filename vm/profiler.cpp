@@ -50,7 +50,8 @@ void factorvm::set_profiling(bool profiling)
 
 PRIMITIVE(profiling)
 {
-	vm->set_profiling(to_boolean(dpop()));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->set_profiling(to_boolean(dpop()));
 }
 
 }

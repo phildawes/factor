@@ -52,16 +52,16 @@ PRIMITIVE(load_locals)
 	rs += sizeof(cell) * count;
 }
 
-static cell clone_object(cell obj_)
+cell factorvm::clone_object(cell obj_)
 {
-	gc_root<object> obj(obj_,vm);
+	gc_root<object> obj(obj_,this);
 
 	if(immediate_p(obj.value()))
 		return obj.value();
 	else
 	{
-		cell size = vm->object_size(obj.value());
-		object *new_obj = vm->allot_object(obj.type(),size);
+		cell size = object_size(obj.value());
+		object *new_obj = allot_object(obj.type(),size);
 		memcpy(new_obj,obj.untagged(),size);
 		return tag_dynamic(new_obj);
 	}
@@ -69,7 +69,8 @@ static cell clone_object(cell obj_)
 
 PRIMITIVE(clone)
 {
-	drepl(clone_object(dpeek()));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	drepl(myvm->clone_object(dpeek()));
 }
 
 }
