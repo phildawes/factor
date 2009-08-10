@@ -178,7 +178,7 @@ void print_stack_frame(stack_frame *frame, factorvm *myvm)
 	print_cell_hex((cell)frame->xt);
 	print_string("\n");
 	print_string("return address: ");
-	print_cell_hex((cell)FRAME_RETURN_ADDRESS(frame));
+	print_cell_hex((cell)FRAME_RETURN_ADDRESS(frame,myvm));
 	print_string("\n");
 }
 

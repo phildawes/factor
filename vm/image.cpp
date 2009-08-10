@@ -200,7 +200,7 @@ void factorvm::fixup_alien(alien *d)
 void fixup_stack_frame(stack_frame *frame, factorvm *myvm)
 {
 	myvm->code_fixup(&frame->xt);
-	myvm->code_fixup(&FRAME_RETURN_ADDRESS(frame));
+	myvm->code_fixup(&FRAME_RETURN_ADDRESS(frame,myvm));
 }
 
 void factorvm::fixup_callstack_object(callstack *stack)

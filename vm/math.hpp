@@ -67,7 +67,7 @@ inline static double untag_float_check(cell tagged)
 
 inline cell factorvm::allot_float(double n)
 {
-        boxed_float *flo = vm->allot<boxed_float>(sizeof(boxed_float));
+        boxed_float *flo = allot<boxed_float>(sizeof(boxed_float));
 	flo->n = n;
 	return tag(flo);
 }

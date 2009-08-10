@@ -124,10 +124,10 @@ code_block *factorvm::forward_xt(code_block *compiled)
 
 void forward_frame_xt(stack_frame *frame, factorvm *myvm)
 {
-	cell offset = (cell)FRAME_RETURN_ADDRESS(frame) - (cell)myvm->frame_code(frame);
+	cell offset = (cell)FRAME_RETURN_ADDRESS(frame,myvm) - (cell)myvm->frame_code(frame);
 	code_block *forwarded = myvm->forward_xt(myvm->frame_code(frame));
 	frame->xt = forwarded->xt();
-	FRAME_RETURN_ADDRESS(frame) = (void *)((cell)forwarded + offset);
+	FRAME_RETURN_ADDRESS(frame,myvm) = (void *)((cell)forwarded + offset);
 }
 
 void factorvm::forward_object_xts()

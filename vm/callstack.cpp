@@ -116,7 +116,7 @@ cell factorvm::frame_scan(stack_frame *frame)
 				return F;
 			else
 			{
-				char *return_addr = (char *)FRAME_RETURN_ADDRESS(frame);
+				char *return_addr = (char *)FRAME_RETURN_ADDRESS(frame,this);
 				char *quot_xt = (char *)(frame_code(frame) + 1);
 
 				return tag_fixnum(quot_code_offset_to_scan(
@@ -195,6 +195,7 @@ PRIMITIVE(innermost_stack_frame_scan)
 
 PRIMITIVE(set_innermost_stack_frame_quot)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();	
 	gc_root<callstack> callstack(dpop(),vm);
 	gc_root<quotation> quot(dpop(),vm);
 
@@ -204,9 +205,9 @@ PRIMITIVE(set_innermost_stack_frame_quot)
 	vm->jit_compile(quot.value(),true);
 
 	stack_frame *inner = vm->innermost_stack_frame_quot(callstack.untagged());
-	cell offset = (char *)FRAME_RETURN_ADDRESS(inner) - (char *)inner->xt;
+	cell offset = (char *)FRAME_RETURN_ADDRESS(inner,myvm) - (char *)inner->xt;
 	inner->xt = quot->xt;
-	FRAME_RETURN_ADDRESS(inner) = (char *)quot->xt + offset;
+	FRAME_RETURN_ADDRESS(inner,myvm) = (char *)quot->xt + offset;
 }
 
 /* called before entry into Factor code. */
