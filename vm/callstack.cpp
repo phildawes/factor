@@ -48,20 +48,22 @@ stack_frame *factorvm::capture_start()
 
 PRIMITIVE(callstack)
 {
-	stack_frame *top = vm->capture_start();
+	factorvm *myvm = PRIMITIVE_GETVM();
+	stack_frame *top = myvm->capture_start();
 	stack_frame *bottom = stack_chain->callstack_bottom;
 
 	fixnum size = (cell)bottom - (cell)top;
 	if(size < 0)
 		size = 0;
 
-	callstack *stack = vm->allot_callstack(size);
+	callstack *stack = myvm->allot_callstack(size);
 	memcpy(stack->top(),top,size);
 	dpush(tag<callstack>(stack));
 }
 
 PRIMITIVE(set_callstack)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	callstack *stack = untag_check<callstack>(dpop(),vm);
 
 	set_callstack(stack_chain->callstack_bottom,
@@ -70,7 +72,7 @@ PRIMITIVE(set_callstack)
 		memcpy);
 
 	/* We cannot return here ... */
-	vm->critical_error("Bug in set_callstack()",0);
+	myvm->critical_error("Bug in set_callstack()",0);
 }
 
 code_block *factorvm::frame_code(stack_frame *frame)
@@ -153,10 +155,11 @@ struct stack_frame_accumulator {
 
 PRIMITIVE(callstack_to_array)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	gc_root<callstack> callstack(dpop(),vm);
 
 	stack_frame_accumulator accum(vm);
-	vm->iterate_callstack_object(callstack.untagged(),accum);
+	myvm->iterate_callstack_object(callstack.untagged(),accum);
 	accum.frames.trim();
 
 	dpush(accum.frames.elements.value());
@@ -185,12 +188,14 @@ stack_frame *factorvm::innermost_stack_frame_quot(callstack *callstack)
 Used by the single stepper. */
 PRIMITIVE(innermost_stack_frame_executing)
 {
-	dpush(vm->frame_executing(vm->innermost_stack_frame(untag_check<callstack>(dpop(),vm))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	dpush(myvm->frame_executing(myvm->innermost_stack_frame(untag_check<callstack>(dpop(),vm))));
 }
 
 PRIMITIVE(innermost_stack_frame_scan)
 {
-	dpush(vm->frame_scan(vm->innermost_stack_frame_quot(untag_check<callstack>(dpop(),vm))));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	dpush(myvm->frame_scan(myvm->innermost_stack_frame_quot(untag_check<callstack>(dpop(),vm))));
 }
 
 PRIMITIVE(set_innermost_stack_frame_quot)
@@ -202,9 +207,9 @@ PRIMITIVE(set_innermost_stack_frame_quot)
 	callstack.untag_check();
 	quot.untag_check();
 
-	vm->jit_compile(quot.value(),true);
+	myvm->jit_compile(quot.value(),true);
 
-	stack_frame *inner = vm->innermost_stack_frame_quot(callstack.untagged());
+	stack_frame *inner = myvm->innermost_stack_frame_quot(callstack.untagged());
 	cell offset = (char *)FRAME_RETURN_ADDRESS(inner,myvm) - (char *)inner->xt;
 	inner->xt = quot->xt;
 	FRAME_RETURN_ADDRESS(inner,myvm) = (char *)quot->xt + offset;

@@ -57,6 +57,7 @@ void factorvm::update_code_heap_words()
 
 PRIMITIVE(modify_code_heap)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	gc_root<array> alist(dpop(),vm);
 
 	cell count = array_capacity(alist.untagged());
@@ -75,7 +76,7 @@ PRIMITIVE(modify_code_heap)
 		switch(data.type())
 		{
 		case QUOTATION_TYPE:
-			vm->jit_compile_word(word.value(),data.value(),false);
+			myvm->jit_compile_word(word.value(),data.value(),false);
 			break;
 		case ARRAY_TYPE:
 			{
