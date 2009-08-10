@@ -132,14 +132,16 @@ bool factorvm::stack_to_array(cell bottom, cell top)
 
 PRIMITIVE(datastack)
 {
-	if(!vm->stack_to_array(ds_bot,ds))
-		vm->general_error(ERROR_DS_UNDERFLOW,F,F,NULL);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	if(!myvm->stack_to_array(ds_bot,ds))
+		myvm->general_error(ERROR_DS_UNDERFLOW,F,F,NULL);
 }
 
 PRIMITIVE(retainstack)
 {
-	if(!vm->stack_to_array(rs_bot,rs))
-		vm->general_error(ERROR_RS_UNDERFLOW,F,F,NULL);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	if(!myvm->stack_to_array(rs_bot,rs))
+		myvm->general_error(ERROR_RS_UNDERFLOW,F,F,NULL);
 }
 
 /* returns pointer to top of stack */
@@ -152,17 +154,20 @@ cell array_to_stack(array *array, cell bottom)
 
 PRIMITIVE(set_datastack)
 {
-	ds = array_to_stack(untag_check<array>(dpop(),vm),ds_bot);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	ds = array_to_stack(untag_check<array>(dpop(),myvm),ds_bot);
 }
 
 PRIMITIVE(set_retainstack)
 {
-	rs = array_to_stack(untag_check<array>(dpop(),vm),rs_bot);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	rs = array_to_stack(untag_check<array>(dpop(),myvm),rs_bot);
 }
 
 /* Used to implement call( */
 PRIMITIVE(check_datastack)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	fixnum out = to_fixnum(dpop());
 	fixnum in = to_fixnum(dpop());
 	fixnum height = out - in;
@@ -182,7 +187,7 @@ PRIMITIVE(check_datastack)
 				return;
 			}
 		}
-		dpush(vm->T);
+		dpush(myvm->T);
 	}
 }
 
