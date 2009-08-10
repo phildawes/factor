@@ -27,7 +27,7 @@ PRIMITIVE(uninitialized_byte_array)
 PRIMITIVE(resize_byte_array)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	byte_array *array = untag_check<byte_array>(dpop(),vm);
+	byte_array *array = untag_check<byte_array>(dpop(),myvm);
 	cell capacity = myvm->unbox_array_size();
 	dpush(tag<byte_array>(myvm->reallot_array(array,capacity)));
 }
@@ -49,7 +49,7 @@ void growable_byte_array::append_bytes(void *elts, cell len)
 void growable_byte_array::append_byte_array(cell byte_array_)
 {
 	factorvm *myvm = elements.myvm;
-	gc_root<byte_array> byte_array(byte_array_,vm);
+	gc_root<byte_array> byte_array(byte_array_,myvm);
 
 	cell len = array_capacity(byte_array.untagged());
 	cell new_size = count + len;

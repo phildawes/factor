@@ -159,13 +159,13 @@ VM_C_API void *init_factor(vm_parameters *p)
 }
 
 /* May allocate memory */
-VM_C_API void pass_args_to_factor(int argc, vm_char **argv)
+VM_C_API void pass_args_to_factor(int argc, vm_char **argv, void *thevm)
 {
-	growable_array args((factorvm*)vm);
+	growable_array args((factorvm*)thevm);
 	int i;
 
 	for(i = 1; i < argc; i++)
-		args.add(vm->allot_alien(F,(cell)argv[i]));
+		args.add(((factorvm *)thevm)->allot_alien(F,(cell)argv[i]));
 
 	args.trim();
 	userenv[ARGS_ENV] = args.elements.value();
@@ -180,10 +180,10 @@ void factorvm::start_factor(vm_parameters *p)
 	unnest_stacks();
 }
 
-VM_C_API void start_embedded_factor(vm_parameters *p)
+VM_C_API void start_embedded_factor(vm_parameters *p, void *thevm)
 {
-	userenv[EMBEDDED_ENV] = vm->T;
-	vm->start_factor(p);
+	userenv[EMBEDDED_ENV] = ((factorvm*)thevm)->T;
+	((factorvm*)thevm)->start_factor(p);
 }
 
 VM_C_API void start_standalone_factor(int argc, vm_char **argv)
@@ -191,9 +191,9 @@ VM_C_API void start_standalone_factor(int argc, vm_char **argv)
 	vm_parameters p;
 	default_parameters(&p);
 	init_parameters_from_args(&p,argc,argv);
-	init_factor(&p);
-	pass_args_to_factor(argc,argv);
-	vm->start_factor(&p);
+	factorvm *thevm = (factorvm*)init_factor(&p);
+	pass_args_to_factor(argc,argv,thevm);
+	thevm->start_factor(&p);
 }
 
 VM_C_API char *factor_eval_string(char *string)

@@ -67,7 +67,7 @@ cell factorvm::allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 PRIMITIVE(resize_array)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	array* a = untag_check<array>(dpop(),vm);
+	array* a = untag_check<array>(dpop(),myvm);
 	cell capacity = myvm->unbox_array_size();
 	dpush(tag<array>(myvm->reallot_array(a,capacity)));
 }

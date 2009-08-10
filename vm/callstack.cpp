@@ -64,7 +64,7 @@ PRIMITIVE(callstack)
 PRIMITIVE(set_callstack)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	callstack *stack = untag_check<callstack>(dpop(),vm);
+	callstack *stack = untag_check<callstack>(dpop(),myvm);
 
 	set_callstack(stack_chain->callstack_bottom,
 		stack->top(),

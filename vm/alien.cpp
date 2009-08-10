@@ -129,7 +129,7 @@ PRIMITIVE(set_alien_cell)
 PRIMITIVE(dlopen)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	gc_root<byte_array> path(dpop(),vm);
+	gc_root<byte_array> path(dpop(),myvm);
 	path.untag_check();
 	gc_root<dll> library(myvm->allot<dll>(sizeof(dll)),myvm);
 	library->path = path.value();
@@ -140,8 +140,9 @@ PRIMITIVE(dlopen)
 /* look up a symbol in a native library */
 PRIMITIVE(dlsym)
 {
-	gc_root<object> library(dpop(),vm);
-	gc_root<byte_array> name(dpop(),vm);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	gc_root<object> library(dpop(),myvm);
+	gc_root<byte_array> name(dpop(),myvm);
 	name.untag_check();
 
 	symbol_char *sym = name->data<symbol_char>();
@@ -150,7 +151,7 @@ PRIMITIVE(dlsym)
 		box_alien(ffi_dlsym(NULL,sym));
 	else
 	{
-		dll *d = untag_check<dll>(library.value(),vm);
+		dll *d = untag_check<dll>(library.value(),myvm);
 
 		if(d->dll == NULL)
 			dpush(F);
@@ -162,7 +163,8 @@ PRIMITIVE(dlsym)
 /* close a native library handle */
 PRIMITIVE(dlclose)
 {
-	dll *d = untag_check<dll>(dpop(),vm);
+	factorvm *myvm = PRIMITIVE_GETVM();
+	dll *d = untag_check<dll>(dpop(),myvm);
 	if(d->dll != NULL)
 		ffi_dlclose(d);
 }
@@ -174,7 +176,7 @@ PRIMITIVE(dll_validp)
 	if(library == F)
 		dpush(myvm->T);
 	else
-		dpush(untag_check<dll>(library,vm)->dll == NULL ? F : myvm->T);
+		dpush(untag_check<dll>(library,myvm)->dll == NULL ? F : myvm->T);
 }
 
 /* gets the address of an object representing a C pointer */

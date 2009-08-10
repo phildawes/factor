@@ -311,7 +311,7 @@ PRIMITIVE(array_to_quotation)
 PRIMITIVE(quotation_xt)
 {
 	factorvm *myvm = PRIMITIVE_GETVM();
-	quotation *quot = untag_check<quotation>(dpeek(),vm);
+	quotation *quot = untag_check<quotation>(dpeek(),myvm);
 	drepl(myvm->allot_cell((cell)quot->xt));
 }
 
