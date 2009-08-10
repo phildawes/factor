@@ -175,6 +175,7 @@ M: x86.64 %alien-indirect ( -- )
 
 M: x86.64 %alien-callback ( quot -- )
     param-reg-1 swap %load-reference
+    param-reg-2 0 MOV rc-absolute-cell rt-vm rel-fixup
     "c_to_factor" f %alien-invoke ;
 
 M: x86.64 %callback-value ( ctype -- )

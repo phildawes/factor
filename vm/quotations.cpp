@@ -348,11 +348,11 @@ fixnum factorvm::quot_code_offset_to_scan(cell quot_, cell offset)
 	return compiler.get_position();
 }
 
-VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack)
+VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack, factorvm *myvm)
 {
-	gc_root<quotation> quot(quot_,vm);
+	gc_root<quotation> quot(quot_,myvm);
 	stack_chain->callstack_top = stack;
-	vm->jit_compile(quot.value(),true);
+	myvm->jit_compile(quot.value(),true);
 	return quot.value();
 }
 

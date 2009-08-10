@@ -5,7 +5,7 @@ namespace factor
 
 void factorvm::c_to_factor_toplevel(cell quot)
 {
-	c_to_factor(quot);
+	c_to_factor(quot,this);
 }
 
 void init_signals()
