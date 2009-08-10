@@ -570,7 +570,8 @@ void factorvm::gc()
 
 PRIMITIVE(gc)
 {
-	vm->gc();
+	factorvm *myvm = PRIMITIVE_GETVM();
+	myvm->gc();
 }
 
 PRIMITIVE(gc_stats)
