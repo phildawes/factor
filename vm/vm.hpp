@@ -624,7 +624,7 @@ struct factorvm {
 	factorvm();
 };
 
-extern factorvm *vm;	 // Ideally we want to get rid of this singleton ptr completely
+VM_C_API factorvm *vm;	 // Ideally we want to get rid of this singleton ptr completely
 
 
 
