@@ -48,6 +48,7 @@ cell factorvm::allot_alien(cell delegate_, cell displacement)
 /* make an alien pointing at an offset of another alien */
 PRIMITIVE(displaced_alien)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell alien = dpop();
 	cell displacement = to_cell(dpop());
 
@@ -60,10 +61,10 @@ PRIMITIVE(displaced_alien)
 		case BYTE_ARRAY_TYPE:
 		case ALIEN_TYPE:
 		case F_TYPE:
-			dpush(vm->allot_alien(alien,displacement));
+			dpush(myvm->allot_alien(alien,displacement));
 			break;
 		default:
-			vm->type_error(ALIEN_TYPE,alien);
+			myvm->type_error(ALIEN_TYPE,alien);
 			break;
 		}
 	}
@@ -73,7 +74,8 @@ PRIMITIVE(displaced_alien)
 if the object is a byte array, as a sanity check. */
 PRIMITIVE(alien_address)
 {
-	box_unsigned_cell((cell)vm->pinned_alien_offset(dpop()));
+	factorvm *myvm = PRIMITIVE_GETVM();
+	box_unsigned_cell((cell)myvm->pinned_alien_offset(dpop()));
 }
 
 /* pop ( alien n ) from datastack, return alien's address plus n */
@@ -108,14 +110,28 @@ DEFINE_ALIEN_ACCESSOR(signed_1,s8,box_signed_1,to_fixnum)
 DEFINE_ALIEN_ACCESSOR(unsigned_1,u8,box_unsigned_1,to_cell)
 DEFINE_ALIEN_ACCESSOR(float,float,box_float,to_float)
 DEFINE_ALIEN_ACCESSOR(double,double,box_double,to_double)
-DEFINE_ALIEN_ACCESSOR(cell,void *,box_alien,vm->pinned_alien_offset)
+//DEFINE_ALIEN_ACCESSOR(cell,void *,box_alien,myvm->pinned_alien_offset)
+
+PRIMITIVE(alien_cell)							
+{
+	box_alien(*(void **)alien_pointer());
+}
+PRIMITIVE(set_alien_cell)
+{ 
+	factorvm *myvm = PRIMITIVE_GETVM();
+	void **ptr = (void **)alien_pointer();
+	void *value = myvm->pinned_alien_offset(dpop());
+	*ptr = value;
+}
+
 
 /* open a native library and push a handle */
 PRIMITIVE(dlopen)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	gc_root<byte_array> path(dpop(),vm);
 	path.untag_check();
-	gc_root<dll> library(vm->allot<dll>(sizeof(dll)),vm);
+	gc_root<dll> library(myvm->allot<dll>(sizeof(dll)),myvm);
 	library->path = path.value();
 	ffi_dlopen(library.untagged());
 	dpush(library.value());
@@ -153,11 +169,12 @@ PRIMITIVE(dlclose)
 
 PRIMITIVE(dll_validp)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell library = dpop();
 	if(library == F)
-		dpush(vm->T);
+		dpush(myvm->T);
 	else
-		dpush(untag_check<dll>(library,vm)->dll == NULL ? F : vm->T);
+		dpush(untag_check<dll>(library,vm)->dll == NULL ? F : myvm->T);
 }
 
 /* gets the address of an object representing a C pointer */

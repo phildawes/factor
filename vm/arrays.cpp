@@ -26,9 +26,10 @@ array *factorvm::allot_array(cell capacity, cell fill_)
 /* push a new array on the stack */
 PRIMITIVE(array)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	cell initial = dpop();
-	cell size = vm->unbox_array_size();
-	dpush(tag<array>(vm->allot_array(size,initial)));
+	cell size = myvm->unbox_array_size();
+	dpush(tag<array>(myvm->allot_array(size,initial)));
 }
 
 cell factorvm::allot_array_1(cell obj_)
@@ -65,9 +66,10 @@ cell factorvm::allot_array_4(cell v1_, cell v2_, cell v3_, cell v4_)
 
 PRIMITIVE(resize_array)
 {
+	factorvm *myvm = PRIMITIVE_GETVM();
 	array* a = untag_check<array>(dpop(),vm);
-	cell capacity = vm->unbox_array_size();
-	dpush(tag<array>(vm->reallot_array(a,capacity)));
+	cell capacity = myvm->unbox_array_size();
+	dpush(tag<array>(myvm->reallot_array(a,capacity)));
 }
 
 void growable_array::add(cell elt_)

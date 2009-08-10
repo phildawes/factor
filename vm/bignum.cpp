@@ -1356,7 +1356,7 @@ bignum *
 factorvm::allot_bignum(bignum_length_type length, int negative_p)
 {
   BIGNUM_ASSERT ((length >= 0) || (length < BIGNUM_RADIX));
-  bignum * result = vm->allot_array_internal<bignum>(length + 1);
+  bignum * result = allot_array_internal<bignum>(length + 1);
   BIGNUM_SET_NEGATIVE_P (result, negative_p);
   return (result);
 }
@@ -1373,8 +1373,8 @@ factorvm::allot_bignum_zeroed(bignum_length_type length, int negative_p)
   return (result);
 }
 
-#define BIGNUM_REDUCE_LENGTH(source, length) \
-	source = vm->reallot_array(source,length + 1)
+#define BIGNUM_REDUCE_LENGTH(source, length, myvm)		\
+	source = myvm->reallot_array(source,length + 1)
 
 /* allocates memory */
 bignum *
@@ -1384,7 +1384,7 @@ factorvm::bignum_shorten_length(bignum * bignum, bignum_length_type length)
   BIGNUM_ASSERT ((length >= 0) || (length <= current_length));
   if (length < current_length)
     {
-      BIGNUM_REDUCE_LENGTH (bignum, length);
+		BIGNUM_REDUCE_LENGTH (bignum, length, this);
       BIGNUM_SET_NEGATIVE_P (bignum, (length != 0) && (BIGNUM_NEGATIVE_P (bignum)));
     }
   return (bignum);
@@ -1403,7 +1403,7 @@ factorvm::bignum_trim(bignum * bignum)
   if (scan < end)
     {
       bignum_length_type length = (scan - start);
-      BIGNUM_REDUCE_LENGTH (bignum, length);
+      BIGNUM_REDUCE_LENGTH (bignum, length, this);
       BIGNUM_SET_NEGATIVE_P (bignum, (length != 0) && (BIGNUM_NEGATIVE_P (bignum)));
     }
   return (bignum);
