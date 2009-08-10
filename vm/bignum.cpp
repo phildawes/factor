@@ -508,7 +508,7 @@ factorvm::bignum_compare_unsigned(bignum * x, bignum * y)
 bignum *
 factorvm::bignum_add_unsigned(bignum * x, bignum * y, int negative_p)
 {
-  GC_BIGNUM(x); GC_BIGNUM(y);
+	GC_BIGNUM(x,this); GC_BIGNUM(y,this);
 
   if ((BIGNUM_LENGTH (y)) > (BIGNUM_LENGTH (x)))
     {
@@ -576,7 +576,7 @@ factorvm::bignum_add_unsigned(bignum * x, bignum * y, int negative_p)
 bignum *
 factorvm::bignum_subtract_unsigned(bignum * x, bignum * y)
 {
-  GC_BIGNUM(x); GC_BIGNUM(y);
+	GC_BIGNUM(x,this); GC_BIGNUM(y,this);
   
   int negative_p = 0;
   switch (bignum_compare_unsigned (x, y))
@@ -655,7 +655,7 @@ factorvm::bignum_subtract_unsigned(bignum * x, bignum * y)
 bignum *
 factorvm::bignum_multiply_unsigned(bignum * x, bignum * y, int negative_p)
 {
-  GC_BIGNUM(x); GC_BIGNUM(y);
+	GC_BIGNUM(x,this); GC_BIGNUM(y,this);
 
   if ((BIGNUM_LENGTH (y)) > (BIGNUM_LENGTH (x)))
     {
@@ -728,7 +728,7 @@ bignum *
 factorvm::bignum_multiply_unsigned_small_factor(bignum * x, bignum_digit_type y,
                                       int negative_p)
 {
-  GC_BIGNUM(x);
+	GC_BIGNUM(x,this);
   
   bignum_length_type length_x = (BIGNUM_LENGTH (x));
 
@@ -810,7 +810,7 @@ factorvm::bignum_divide_unsigned_large_denominator(bignum * numerator,
                                          int q_negative_p,
                                          int r_negative_p)
 {
-  GC_BIGNUM(numerator); GC_BIGNUM(denominator);
+	GC_BIGNUM(numerator,this); GC_BIGNUM(denominator,this);
   
   bignum_length_type length_n = ((BIGNUM_LENGTH (numerator)) + 1);
   bignum_length_type length_d = (BIGNUM_LENGTH (denominator));
@@ -819,10 +819,10 @@ factorvm::bignum_divide_unsigned_large_denominator(bignum * numerator,
     ((quotient != ((bignum * *) 0))
      ? (allot_bignum ((length_n - length_d), q_negative_p))
      : BIGNUM_OUT_OF_BAND);
-  GC_BIGNUM(q);
+  GC_BIGNUM(q,this);
   
   bignum * u = (allot_bignum (length_n, r_negative_p));
-  GC_BIGNUM(u);
+  GC_BIGNUM(u,this);
   
   int shift = 0;
   BIGNUM_ASSERT (length_d > 1);
@@ -1028,12 +1028,12 @@ factorvm::bignum_divide_unsigned_medium_denominator(bignum * numerator,
                                           int q_negative_p,
                                           int r_negative_p)
 {
-  GC_BIGNUM(numerator);
+	GC_BIGNUM(numerator,this);
   
   bignum_length_type length_n = (BIGNUM_LENGTH (numerator));
   bignum_length_type length_q;
   bignum * q = NULL;
-  GC_BIGNUM(q);
+  GC_BIGNUM(q,this);
   
   int shift = 0;
   /* Because `bignum_digit_divide' requires a normalized denominator. */
@@ -1272,10 +1272,10 @@ factorvm::bignum_divide_unsigned_small_denominator(bignum * numerator,
                                          int q_negative_p,
                                          int r_negative_p)
 {
-  GC_BIGNUM(numerator);
+	GC_BIGNUM(numerator,this);
   
   bignum * q = (bignum_new_sign (numerator, q_negative_p));
-  GC_BIGNUM(q);
+  GC_BIGNUM(q,this);
 
   bignum_digit_type r = (bignum_destructive_scale_down (q, denominator));
 
@@ -1415,7 +1415,7 @@ factorvm::bignum_trim(bignum * bignum)
 bignum *
 factorvm::bignum_new_sign(bignum * x, int negative_p)
 {
-  GC_BIGNUM(x);
+	GC_BIGNUM(x,this);
   bignum * result = (allot_bignum ((BIGNUM_LENGTH (x)), negative_p));
 
   bignum_destructive_copy (x, result);
@@ -1525,7 +1525,7 @@ factorvm::bignum_bitwise_xor(bignum * arg1, bignum * arg2)
 bignum *
 factorvm::bignum_magnitude_ash(bignum * arg1, fixnum n)
 {
-  GC_BIGNUM(arg1);
+	GC_BIGNUM(arg1,this);
   
   bignum * result = NULL;
   bignum_digit_type *scan1;
@@ -1587,7 +1587,7 @@ factorvm::bignum_magnitude_ash(bignum * arg1, fixnum n)
 bignum *
 factorvm::bignum_pospos_bitwise_op(int op, bignum * arg1, bignum * arg2)
 {
-  GC_BIGNUM(arg1); GC_BIGNUM(arg2);
+	GC_BIGNUM(arg1,this); GC_BIGNUM(arg2,this);
   
   bignum * result;
   bignum_length_type max_length;
@@ -1622,7 +1622,7 @@ factorvm::bignum_pospos_bitwise_op(int op, bignum * arg1, bignum * arg2)
 bignum *
 factorvm::bignum_posneg_bitwise_op(int op, bignum * arg1, bignum * arg2)
 {
-  GC_BIGNUM(arg1); GC_BIGNUM(arg2);
+	GC_BIGNUM(arg1,this); GC_BIGNUM(arg2,this);
   
   bignum * result;
   bignum_length_type max_length;
@@ -1675,7 +1675,7 @@ factorvm::bignum_posneg_bitwise_op(int op, bignum * arg1, bignum * arg2)
 bignum *
 factorvm::bignum_negneg_bitwise_op(int op, bignum * arg1, bignum * arg2)
 {
-  GC_BIGNUM(arg1); GC_BIGNUM(arg2);
+	GC_BIGNUM(arg1,this); GC_BIGNUM(arg2,this);
   
   bignum * result;
   bignum_length_type max_length;
@@ -1764,7 +1764,7 @@ factorvm::bignum_negate_magnitude(bignum * arg)
 bignum *
 factorvm::bignum_integer_length(bignum * x)
 {
-  GC_BIGNUM(x);
+	GC_BIGNUM(x,this);
   
   bignum_length_type index = ((BIGNUM_LENGTH (x)) - 1);
   bignum_digit_type digit = (BIGNUM_REF (x, index));

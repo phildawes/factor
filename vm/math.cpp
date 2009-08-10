@@ -514,9 +514,9 @@ VM_ASM_API void overflow_fixnum_subtract(fixnum x, fixnum y)
 VM_ASM_API void overflow_fixnum_multiply(fixnum x, fixnum y)
 {
 	bignum *bx = vm->fixnum_to_bignum(x);
-	GC_BIGNUM(bx);
+	GC_BIGNUM(bx,vm);
 	bignum *by = vm->fixnum_to_bignum(y);
-	GC_BIGNUM(by);
+	GC_BIGNUM(by,vm);
 	drepl(tag<bignum>(vm->bignum_multiply(bx,by)));
 }
 

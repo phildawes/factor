@@ -40,9 +40,9 @@ struct jit {
 	}
 
 	void emit_subprimitive(cell word_) {
-		gc_root<word> word(word_,vm);
+		gc_root<word> word(word_,myvm);
 		gc_root<array> code_template(word->subprimitive,vm);
-		if(array_capacity(code_template.untagged()) > 1) literal(vm->T);
+		if(array_capacity(code_template.untagged()) > 1) literal(myvm->T);
 		emit(code_template.value());
 	}
 
