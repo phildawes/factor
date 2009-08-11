@@ -702,7 +702,9 @@ struct factorvm {
 	void *safe_malloc(size_t size);
 	vm_char *safe_strdup(const vm_char *str);
 
-	
+	// os-genunix os-macosx os-windows-nt ------------------------------------------
+
+	void c_to_factor_toplevel(cell quot);
 
 	// factor
 

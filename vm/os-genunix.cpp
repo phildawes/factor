@@ -3,7 +3,7 @@
 namespace factor
 {
 
-void c_to_factor_toplevel(cell quot)
+void factorvm::c_to_factor_toplevel(cell quot)
 {
 	c_to_factor(quot);
 }
