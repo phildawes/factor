@@ -350,9 +350,12 @@ fixnum factorvm::quot_code_offset_to_scan(cell quot_, cell offset)
 
 VM_ASM_API cell lazy_jit_compile_impl(cell quot_, stack_frame *stack, factorvm *myvm)
 {
-	gc_root<quotation> quot(quot_,myvm);
+	printf("lazy_jit_compile_impl %d %d\n",vm,myvm);
+	fflush(stdout);
+
+	gc_root<quotation> quot(quot_,vm);
 	stack_chain->callstack_top = stack;
-	myvm->jit_compile(quot.value(),true);
+	vm->jit_compile(quot.value(),true);
 	return quot.value();
 }
 

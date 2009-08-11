@@ -216,8 +216,10 @@ PRIMITIVE(set_innermost_stack_frame_quot)
 }
 
 /* called before entry into Factor code. */
-VM_ASM_API void save_callstack_bottom(stack_frame *callstack_bottom)
+VM_ASM_API void save_callstack_bottom(stack_frame *callstack_bottom, factorvm *myvm)
 {
+	printf("save_callstack_bottom %d %d\n",vm,myvm);
+	fflush(stdout);
 	stack_chain->callstack_bottom = callstack_bottom;
 }
 
