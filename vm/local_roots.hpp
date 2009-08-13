@@ -9,20 +9,20 @@ extern cell gc_locals;
 
 struct factorvm;
 
-template <typename T>
-struct gc_root : public tagged<T>
+template <typename TYPE>
+struct gc_root : public tagged<TYPE>
 {
-	DEFPUSHPOP(gc_local_,vm->gc_locals)
+	DEFPUSHPOP(gc_local_,myvm->gc_locals)
 
-	//factorvm *myvm;
-	void push() { check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
+	factorvm *myvm;
+	void push() { check_tagged_pointer(tagged<TYPE>::value()); gc_local_push((cell)this); }
 	
-	//explicit gc_root(cell value_, factorvm *vm) : myvm(vm),tagged<T>(value_) { push(); }
-	explicit gc_root(cell value_) : tagged<T>(value_) { push(); }
-	explicit gc_root(T *value_) : tagged<T>(value_) { push(); }
+	//explicit gc_root(cell value_, factorvm *vm) : myvm(vm),tagged<TYPE>(value_) { push(); }
+	explicit gc_root(cell value_,factorvm *vm) : tagged<TYPE>(value_),myvm(vm) { push(); }
+	explicit gc_root(TYPE *value_, factorvm *vm) : tagged<TYPE>(value_),myvm(vm) { push(); }
 
-	const gc_root<T>& operator=(const T *x) { tagged<T>::operator=(x); return *this; }
-	const gc_root<T>& operator=(const cell &x) { tagged<T>::operator=(x); return *this; }
+	const gc_root<TYPE>& operator=(const TYPE *x) { tagged<TYPE>::operator=(x); return *this; }
+	const gc_root<TYPE>& operator=(const cell &x) { tagged<TYPE>::operator=(x); return *this; }
 
 	~gc_root() {
 #ifdef FACTOR_DEBUG
