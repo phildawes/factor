@@ -17,13 +17,13 @@ FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
 	CONTEXT *c = (CONTEXT*)pe->ContextRecord;
 
 	if(in_code_heap_p(c->EIP))
-		signal_callstack_top = (stack_frame *)c->ESP;
+		vm->signal_callstack_top = (stack_frame *)c->ESP;
 	else
-		signal_callstack_top = NULL;
+		vm->signal_callstack_top = NULL;
 
 	if(e->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
 	{
-		signal_fault_addr = e->ExceptionInformation[1];
+		vm->signal_fault_addr = e->ExceptionInformation[1];
 		c->EIP = (cell)memory_signal_handler_impl;
 	}
 	/* If the Widcomm bluetooth stack is installed, the BTTray.exe process
@@ -34,7 +34,7 @@ FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
 	this exception means. */
 	else if(e->ExceptionCode != 0x40010006)
 	{
-		signal_number = e->ExceptionCode;
+		vm->signal_number = e->ExceptionCode;
 		c->EIP = (cell)misc_signal_handler_impl;
 	}
 
