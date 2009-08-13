@@ -818,6 +818,8 @@ PRIMITIVE(become)
 	PRIMITIVE_GETVM()->vmprim_become();
 }
 
+DEFPUSHPOP(gc_local_,vm->gc_locals)
+
 VM_ASM_API void factorvm::inline_gc(cell *gc_roots_base, cell gc_roots_size)
 {
 	for(cell i = 0; i < gc_roots_size; i++)
