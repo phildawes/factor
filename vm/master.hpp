@@ -66,6 +66,7 @@
 #include "callstack.hpp"
 #include "alien.hpp"
 #include "vm.hpp"
+#include "inlineimpls.hpp"
 #include "jit.hpp"
 #include "quotations.hpp"
 #include "dispatch.hpp"
