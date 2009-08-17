@@ -9,21 +9,31 @@ cell signal_number;
 cell signal_fault_addr;
 stack_frame *signal_callstack_top;
 
-void out_of_memory()
+void factorvm::out_of_memory()
 {
 	print_string("Out of memory\n\n");
 	dump_generations();
 	exit(1);
 }
 
-void fatal_error(const char* msg, cell tagged)
+void out_of_memory()
+{
+	return vm->out_of_memory();
+}
+
+void factorvm::fatal_error(const char* msg, cell tagged)
 {
 	print_string("fatal_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
 	exit(1);
 }
 
-void critical_error(const char* msg, cell tagged)
+void fatal_error(const char* msg, cell tagged)
+{
+	return vm->fatal_error(msg,tagged);
+}
+
+void factorvm::critical_error(const char* msg, cell tagged)
 {
 	print_string("You have triggered a bug in Factor. Please report.\n");
 	print_string("critical_error: "); print_string(msg);
@@ -31,7 +41,12 @@ void critical_error(const char* msg, cell tagged)
 	factorbug();
 }
 
-void throw_error(cell error, stack_frame *callstack_top)
+void critical_error(const char* msg, cell tagged)
+{
+	return vm->critical_error(msg,tagged);
+}
+
+void factorvm::throw_error(cell error, stack_frame *callstack_top)
 {
 	/* If the error handler is set, we rewind any C stack frames and
 	pass the error to user-space. */
@@ -76,26 +91,45 @@ void throw_error(cell error, stack_frame *callstack_top)
 	}
 }
 
-void general_error(vm_error_type error, cell arg1, cell arg2,
-	stack_frame *callstack_top)
+void throw_error(cell error, stack_frame *callstack_top)
+{
+	return vm->throw_error(error, callstack_top);
+}
+
+void factorvm::general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *callstack_top)
 {
 	throw_error(allot_array_4(userenv[ERROR_ENV],
 		tag_fixnum(error),arg1,arg2),callstack_top);
 }
 
-void type_error(cell type, cell tagged)
+void general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *callstack_top)
+{
+	return vm->general_error(error,arg1,arg2,callstack_top);
+}
+
+void factorvm::type_error(cell type, cell tagged)
 {
 	general_error(ERROR_TYPE,tag_fixnum(type),tagged,NULL);
 }
 
-void not_implemented_error()
+void type_error(cell type, cell tagged)
+{
+	return vm->type_error(type, tagged);
+}
+
+void factorvm::not_implemented_error()
 {
 	general_error(ERROR_NOT_IMPLEMENTED,F,F,NULL);
 }
 
+void not_implemented_error()
+{
+	return vm->not_implemented_error();
+}
+
 /* Test if 'fault' is in the guard page at the top or bottom (depending on
 offset being 0 or -1) of area+area_size */
-bool in_page(cell fault, cell area, cell area_size, int offset)
+bool factorvm::in_page(cell fault, cell area, cell area_size, int offset)
 {
 	int pagesize = getpagesize();
 	area += area_size;
@@ -104,7 +138,12 @@ bool in_page(cell fault, cell area, cell area_size, int offset)
 	return fault >= area && fault <= area + pagesize;
 }
 
-void memory_protection_error(cell addr, stack_frame *native_stack)
+bool in_page(cell fault, cell area, cell area_size, int offset)
+{
+	return vm->in_page(fault,area,area_size,offset);
+}
+
+void factorvm::memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ds_bot, 0, -1))
 		general_error(ERROR_DS_UNDERFLOW,F,F,native_stack);
@@ -120,35 +159,70 @@ void memory_protection_error(cell addr, stack_frame *native_stack)
 		general_error(ERROR_MEMORY,allot_cell(addr),F,native_stack);
 }
 
-void signal_error(int signal, stack_frame *native_stack)
+void memory_protection_error(cell addr, stack_frame *native_stack)
+{
+	return vm->memory_protection_error(addr,native_stack);
+}
+
+void factorvm::signal_error(int signal, stack_frame *native_stack)
 {
 	general_error(ERROR_SIGNAL,tag_fixnum(signal),F,native_stack);
 }
 
-void divide_by_zero_error()
+void signal_error(int signal, stack_frame *native_stack)
+{
+	return vm->signal_error(signal, native_stack);
+}
+
+void factorvm::divide_by_zero_error()
 {
 	general_error(ERROR_DIVIDE_BY_ZERO,F,F,NULL);
 }
 
-PRIMITIVE(call_clear)
+void divide_by_zero_error()
+{
+	return vm->divide_by_zero_error();
+}
+
+inline void factorvm::vmprim_call_clear()
 {
 	throw_impl(dpop(),stack_chain->callstack_bottom);
 }
 
+PRIMITIVE(call_clear)
+{
+	PRIMITIVE_GETVM()->vmprim_call_clear();
+}
+
 /* For testing purposes */
-PRIMITIVE(unimplemented)
+inline void factorvm::vmprim_unimplemented()
 {
 	not_implemented_error();
 }
 
-void memory_signal_handler_impl()
+PRIMITIVE(unimplemented)
+{
+	PRIMITIVE_GETVM()->vmprim_unimplemented();
+}
+
+void factorvm::memory_signal_handler_impl()
 {
 	memory_protection_error(signal_fault_addr,signal_callstack_top);
 }
 
-void misc_signal_handler_impl()
+void memory_signal_handler_impl()
+{
+	return vm->memory_signal_handler_impl();
+}
+
+void factorvm::misc_signal_handler_impl()
 {
 	signal_error(signal_number,signal_callstack_top);
+}
+
+void misc_signal_handler_impl()
+{
+	return vm->misc_signal_handler_impl();
 }
 
 }
