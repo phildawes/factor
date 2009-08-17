@@ -91,11 +91,6 @@ void factorvm::throw_error(cell error, stack_frame *callstack_top)
 	}
 }
 
-void throw_error(cell error, stack_frame *callstack_top)
-{
-	return vm->throw_error(error, callstack_top);
-}
-
 void factorvm::general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *callstack_top)
 {
 	throw_error(allot_array_4(userenv[ERROR_ENV],
@@ -110,11 +105,6 @@ void general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *calls
 void factorvm::type_error(cell type, cell tagged)
 {
 	general_error(ERROR_TYPE,tag_fixnum(type),tagged,NULL);
-}
-
-void type_error(cell type, cell tagged)
-{
-	return vm->type_error(type, tagged);
 }
 
 void factorvm::not_implemented_error()
@@ -138,11 +128,6 @@ bool factorvm::in_page(cell fault, cell area, cell area_size, int offset)
 	return fault >= area && fault <= area + pagesize;
 }
 
-bool in_page(cell fault, cell area, cell area_size, int offset)
-{
-	return vm->in_page(fault,area,area_size,offset);
-}
-
 void factorvm::memory_protection_error(cell addr, stack_frame *native_stack)
 {
 	if(in_page(addr, ds_bot, 0, -1))
@@ -159,29 +144,14 @@ void factorvm::memory_protection_error(cell addr, stack_frame *native_stack)
 		general_error(ERROR_MEMORY,allot_cell(addr),F,native_stack);
 }
 
-void memory_protection_error(cell addr, stack_frame *native_stack)
-{
-	return vm->memory_protection_error(addr,native_stack);
-}
-
 void factorvm::signal_error(int signal, stack_frame *native_stack)
 {
 	general_error(ERROR_SIGNAL,tag_fixnum(signal),F,native_stack);
 }
 
-void signal_error(int signal, stack_frame *native_stack)
-{
-	return vm->signal_error(signal, native_stack);
-}
-
 void factorvm::divide_by_zero_error()
 {
 	general_error(ERROR_DIVIDE_BY_ZERO,F,F,NULL);
-}
-
-void divide_by_zero_error()
-{
-	return vm->divide_by_zero_error();
 }
 
 inline void factorvm::vmprim_call_clear()
