@@ -7,13 +7,17 @@ objects in gc_root instances */
 extern segment *gc_locals_region;
 extern cell gc_locals;
 
-DEFPUSHPOP(gc_local_,gc_locals)
+struct factorvm;
 
 template <typename T>
 struct gc_root : public tagged<T>
 {
+	DEFPUSHPOP(gc_local_,vm->gc_locals)
+
+	//factorvm *myvm;
 	void push() { check_tagged_pointer(tagged<T>::value()); gc_local_push((cell)this); }
 	
+	//explicit gc_root(cell value_, factorvm *vm) : myvm(vm),tagged<T>(value_) { push(); }
 	explicit gc_root(cell value_) : tagged<T>(value_) { push(); }
 	explicit gc_root(T *value_) : tagged<T>(value_) { push(); }
 
@@ -34,13 +38,16 @@ struct gc_root : public tagged<T>
 extern segment *gc_bignums_region;
 extern cell gc_bignums;
 
-DEFPUSHPOP(gc_bignum_,gc_bignums)
 
 struct gc_bignum
 {
 	bignum **addr;
+	factorvm *myvm;
+	
+	DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
 
-	gc_bignum(bignum **addr_) : addr(addr_) {
+	//gc_bignum(bignum **addr_, factorvm *vm) : addr(addr_), myvm(vm) {
+	gc_bignum(bignum **addr_) : addr(addr_), myvm(vm) {
 		if(*addr_)
 			check_data_pointer(*addr_);
 		gc_bignum_push((cell)addr);
