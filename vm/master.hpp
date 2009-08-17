@@ -72,4 +72,6 @@
 #include "factor.hpp"
 #include "utilities.hpp"
 
+#include "vm.hpp"
+
 #endif /* __FACTOR_MASTER_H__ */
