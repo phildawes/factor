@@ -44,10 +44,9 @@ struct gc_bignum
 	bignum **addr;
 	factorvm *myvm;
 	
-	DEFPUSHPOP(gc_bignum_,vm->gc_bignums)
+	DEFPUSHPOP(gc_bignum_,myvm->gc_bignums)
 
-	//gc_bignum(bignum **addr_, factorvm *vm) : addr(addr_), myvm(vm) {
-	gc_bignum(bignum **addr_) : addr(addr_), myvm(vm) {
+	gc_bignum(bignum **addr_, factorvm *vm) : addr(addr_), myvm(vm) {
 		if(*addr_)
 			check_data_pointer(*addr_);
 		gc_bignum_push((cell)addr);
@@ -56,6 +55,6 @@ struct gc_bignum
 	~gc_bignum() { assert((cell)addr == gc_bignum_pop()); }
 };
 
-#define GC_BIGNUM(x) gc_bignum x##__gc_root(&x)
+#define GC_BIGNUM(x,vm) gc_bignum x##__gc_root(&x,vm)
 
 }
