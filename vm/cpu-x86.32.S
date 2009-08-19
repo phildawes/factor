@@ -68,6 +68,14 @@ DEF(void,primitive_inline_cache_miss_tail,(void)):
 	add $12,%esp
 	jmp *%eax
 
+DEF(F_FASTCALL void,throw_impl,(CELL quot, F_STACK_FRAME *rewind_to, void *vm)):
+	mov CELL_SIZE(STACK_REG),NV_TEMP_REG  /* stash vm ptr  */
+	/* rewind_to */
+	mov ARG1,STACK_REG
+	mov NV_TEMP_REG,ARG1
+	jmp *QUOT_XT_OFFSET(ARG0)
+
+	
 #include "cpu-x86.S"
 
 #ifdef WINDOWS

@@ -88,4 +88,9 @@ DEF(void,primitive_inline_cache_miss_tail,(void)):
 	add $STACK_PADDING,%rsp
 	jmp *%rax
 
+DEF(F_FASTCALL void,throw_impl,(CELL quot, F_STACK_FRAME *rewind_to, void *vm)):
+	/* rewind_to */
+	mov ARG1,STACK_REG
+	jmp *QUOT_XT_OFFSET(ARG0)
+	
 #include "cpu-x86.S"
