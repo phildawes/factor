@@ -51,9 +51,9 @@ inline static bool tail_call_site_p(cell return_address)
 }
 
 /* Defined in assembly */
-VM_ASM_API void c_to_factor(cell quot);
+VM_ASM_API void c_to_factor(cell quot,void *vm);
 VM_ASM_API void throw_impl(cell quot, stack_frame *rewind_to);
-VM_ASM_API void lazy_jit_compile(cell quot);
+VM_ASM_API void lazy_jit_compile(cell quot, void *vm);
 
 VM_C_API void set_callstack(stack_frame *to,
 			      stack_frame *from,
