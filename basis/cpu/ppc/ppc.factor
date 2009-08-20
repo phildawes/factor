@@ -657,7 +657,7 @@ M: ppc %box-large-struct ( n c-type -- )
 
 : %load-vm-field-addr ( reg symbol -- )
     [ drop %load-vm-addr ]
-    [ [ dup ] dip vm-offset ADDI ] 2bi ;
+    [ [ dup ] dip vm-field-offset ADDI ] 2bi ;
 
 M: ppc %prepare-alien-invoke
     #! Save Factor stack pointers in case the C code calls a

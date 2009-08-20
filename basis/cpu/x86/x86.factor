@@ -611,7 +611,7 @@ M: x86 %prepare-alien-invoke
     #! callback which does a GC, which must reliably trace
     #! all roots.
     temp-reg 0 MOV rc-absolute-cell rt-vm rel-fixup
-    temp-reg temp-reg "stack_chain" vm-offset [+] MOV
+    temp-reg temp-reg "stack_chain" vm-field-offset [+] MOV
     temp-reg [] stack-reg MOV
     temp-reg [] cell SUB
     temp-reg 2 cells [+] ds-reg MOV
