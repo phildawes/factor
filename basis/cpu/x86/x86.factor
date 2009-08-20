@@ -1,17 +1,11 @@
 ! Copyright (C) 2005, 2008 Slava Pestov.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors assocs alien alien.c-types arrays strings
-cpu.x86.assembler cpu.x86.assembler.private cpu.x86.assembler.operands
-cpu.architecture kernel kernel.private math memory namespaces make
-sequences words system layouts combinators math.order fry locals
-compiler.constants
-compiler.cfg.registers
-compiler.cfg.instructions
-compiler.cfg.intrinsics
-compiler.cfg.comparisons
-compiler.cfg.stack-frame
-compiler.codegen
-compiler.codegen.fixup ;
+USING: accessors alien combinators compiler.cfg.comparisons
+compiler.cfg.intrinsics compiler.cfg.registers
+compiler.cfg.stack-frame compiler.codegen.fixup compiler.constants
+cpu.architecture cpu.x86.assembler cpu.x86.assembler.operands fry
+kernel layouts locals make math math.order namespaces sequences system
+vm ;
 IN: cpu.x86
 
 << enable-fixnum-log2 >>
@@ -616,8 +610,8 @@ M: x86 %prepare-alien-invoke
     #! Save Factor stack pointers in case the C code calls a
     #! callback which does a GC, which must reliably trace
     #! all roots.
-    temp-reg 0 MOV rc-absolute-cell rt-vm rel-fixup ! stack-chain is first item in vm struct. TODO: make vm C-STRUCT
-    temp-reg temp-reg [] MOV
+    temp-reg 0 MOV rc-absolute-cell rt-vm rel-fixup
+    temp-reg temp-reg "stack_chain" vm-offset [+] MOV
     temp-reg [] stack-reg MOV
     temp-reg [] cell SUB
     temp-reg 2 cells [+] ds-reg MOV
