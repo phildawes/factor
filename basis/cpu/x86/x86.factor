@@ -498,7 +498,7 @@ M:: x86 %call-gc ( gc-root-count -- )
     param-reg-2 gc-root-count MOV
     ! Call GC
     %prepare-alien-invoke
-    "inline_gc" f %vm-invoke ;
+    "inline_gc" %vm-invoke ;
 
 M: x86 %alien-global ( dst symbol library -- )
     [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;    
