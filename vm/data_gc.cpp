@@ -693,7 +693,6 @@ PRIMITIVE(become)
 }
 
 
-DEFPUSHPOP(gc_local_,vm->gc_locals)
 
 void factorvm::inline_gc(cell *gc_roots_base, cell gc_roots_size)
 {
