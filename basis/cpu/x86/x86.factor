@@ -437,10 +437,13 @@ M: x86 %shl [ SHL ] emit-shift ;
 M: x86 %shr [ SHR ] emit-shift ;
 M: x86 %sar [ SAR ] emit-shift ;
 
+M: x86 %vm-field-ptr ( dst field -- )
+    [ drop 0 MOV rc-absolute-cell rt-vm rel-fixup ]
+    [ vm-field-offset ADD ] 2bi ;
+
 : load-zone-ptr ( reg -- )
     #! Load pointer to start of zone array
-    [ 0 MOV rc-absolute-cell rt-vm rel-fixup ]
-    [ "nursery" vm-field-offset ADD ] bi ;
+    "nursery" %vm-field-ptr ;
 
 : load-allot-ptr ( nursery-ptr allot-ptr -- )
     [ drop load-zone-ptr ] [ swap cell [+] MOV ] 2bi ;
@@ -460,9 +463,6 @@ M:: x86 %allot ( dst size class nursery-ptr -- )
     dst class store-tagged
     nursery-ptr size inc-allot-ptr ;
 
-: %vm-field-ptr ( reg field -- )
-    [ drop 0 MOV rc-absolute-cell rt-vm rel-fixup ]
-    [ vm-field-offset ADD ] 2bi ;
 
 M:: x86 %write-barrier ( src card# table -- )
     #! Mark the card pointed to by vreg.
@@ -501,7 +501,7 @@ M:: x86 %call-gc ( gc-root-count -- )
     "inline_gc" f %vm-invoke ;
 
 M: x86 %alien-global ( dst symbol library -- )
-    [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;
+    [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;    
 
 M: x86 %epilogue ( n -- ) cell - incr-stack-reg ;
 

@@ -71,6 +71,7 @@ IN: compiler.cfg.hats
 : ^^alien-float ( src -- dst ) ^^r1 ##alien-float ; inline
 : ^^alien-double ( src -- dst ) ^^r1 ##alien-double ; inline
 : ^^alien-global ( symbol library -- dst ) ^^r2 ##alien-global ; inline
+: ^^vm-field-ptr ( fieldname -- dst ) ^^r1 ##vm-field-ptr ; inline
 : ^^compare ( src1 src2 cc -- dst ) ^^r3 next-vreg ##compare ; inline
 : ^^compare-imm ( src1 src2 cc -- dst ) ^^r3 next-vreg ##compare-imm ; inline
 : ^^compare-float ( src1 src2 cc -- dst ) ^^r3 next-vreg ##compare-float ; inline

@@ -172,6 +172,8 @@ INSN: ##write-barrier < ##effect card# table ;
 
 INSN: ##alien-global < ##flushable symbol library ;
 
+INSN: ##vm-field-ptr < ##flushable fieldname ;
+
 ! FFI
 INSN: ##alien-invoke params stack-frame ;
 INSN: ##alien-indirect params stack-frame ;
