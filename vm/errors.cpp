@@ -16,21 +16,11 @@ void factorvm::out_of_memory()
 	exit(1);
 }
 
-void out_of_memory()
-{
-	return vm->out_of_memory();
-}
-
 void factorvm::fatal_error(const char* msg, cell tagged)
 {
 	print_string("fatal_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
 	exit(1);
-}
-
-void fatal_error(const char* msg, cell tagged)
-{
-	return vm->fatal_error(msg,tagged);
 }
 
 void factorvm::critical_error(const char* msg, cell tagged)
@@ -39,11 +29,6 @@ void factorvm::critical_error(const char* msg, cell tagged)
 	print_string("critical_error: "); print_string(msg);
 	print_string(": "); print_cell_hex(tagged); nl();
 	factorbug();
-}
-
-void critical_error(const char* msg, cell tagged)
-{
-	return vm->critical_error(msg,tagged);
 }
 
 void factorvm::throw_error(cell error, stack_frame *callstack_top)
@@ -97,10 +82,6 @@ void factorvm::general_error(vm_error_type error, cell arg1, cell arg2, stack_fr
 		tag_fixnum(error),arg1,arg2),callstack_top);
 }
 
-void general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *callstack_top)
-{
-	return vm->general_error(error,arg1,arg2,callstack_top);
-}
 
 void factorvm::type_error(cell type, cell tagged)
 {
@@ -112,10 +93,6 @@ void factorvm::not_implemented_error()
 	general_error(ERROR_NOT_IMPLEMENTED,F,F,NULL);
 }
 
-void not_implemented_error()
-{
-	return vm->not_implemented_error();
-}
 
 /* Test if 'fault' is in the guard page at the top or bottom (depending on
 offset being 0 or -1) of area+area_size */

@@ -22,15 +22,7 @@ enum vm_error_type
 	ERROR_MEMORY,
 };
 
-void out_of_memory();
-void fatal_error(const char* msg, cell tagged);
-void critical_error(const char* msg, cell tagged);
-
 PRIMITIVE(die);
-
-void general_error(vm_error_type error, cell arg1, cell arg2, stack_frame *native_stack);
-void not_implemented_error();
-
 PRIMITIVE(call_clear);
 PRIMITIVE(unimplemented);
 
