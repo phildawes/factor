@@ -702,7 +702,7 @@ extern void register_vm(unsigned long threadid,factorvm *vm);
   #define PRIMITIVE_OVERFLOW_GETVM() vm
   #define VM_PTR vm
   #define ASSERTVM() 
-  #define SIGNAL_VM_PTR vm
+  #define SIGNAL_VM_PTR() vm
 #endif
 
 #ifdef FACTOR_TESTING_MULTITHREADED
@@ -711,7 +711,7 @@ extern void register_vm(unsigned long threadid,factorvm *vm);
   #define PRIMITIVE_OVERFLOW_GETVM() vm
   #define VM_PTR myvm
   #define ASSERTVM() assert(vm==myvm)
-  #define SIGNAL_VM_PTR lookup_vm(thread_id())
+  #define SIGNAL_VM_PTR() lookup_vm(thread_id())
 #endif
 
 #ifdef FACTOR_MULTITHREADED
@@ -719,7 +719,7 @@ extern void register_vm(unsigned long threadid,factorvm *vm);
   #define PRIMITIVE_OVERFLOW_GETVM() ((factorvm*)myvm)
   #define VM_PTR myvm
   #define ASSERTVM() 
-  #define SIGNAL_VM_PTR lookup_vm(thread_id())
+  #define SIGNAL_VM_PTR() lookup_vm(thread_id())
 #endif
 
 }
