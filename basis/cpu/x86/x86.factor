@@ -498,7 +498,7 @@ M:: x86 %call-gc ( gc-root-count -- )
     param-reg-2 gc-root-count MOV
     ! Call GC
     %prepare-alien-invoke
-    "inline_gc" %vm-invoke ; ! (PHIL) TODO: vm-invoke won't work with ppc or x86.64. need %vm-invoke-3rd
+    "inline_gc" %vm-invoke-3rd-arg ; 
 
 M: x86 %alien-global ( dst symbol library -- )
     [ 0 MOV ] 2dip rc-absolute-cell rel-dlsym ;    
