@@ -39,21 +39,20 @@ s64 current_micros()
 		- EPOCH_OFFSET) / 10;
 }
 
-FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
+LONG factorvm::exception_handler(PEXCEPTION_POINTERS pe)
 {
-	factorvm *myvm = SIGNAL_VM_PTR();
 	PEXCEPTION_RECORD e = (PEXCEPTION_RECORD)pe->ExceptionRecord;
 	CONTEXT *c = (CONTEXT*)pe->ContextRecord;
 
-	if(myvm->in_code_heap_p(c->EIP))
-		myvm->signal_callstack_top = (stack_frame *)c->ESP;
+	if(in_code_heap_p(c->EIP))
+		signal_callstack_top = (stack_frame *)c->ESP;
 	else
-		myvm->signal_callstack_top = NULL;
+		signal_callstack_top = NULL;
 
 	if(e->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
 	{
-		myvm->signal_fault_addr = e->ExceptionInformation[1];
-		c->EIP = (cell)memory_signal_handler_impl;
+		signal_fault_addr = e->ExceptionInformation[1];
+		c->EIP = (cell)factor::memory_signal_handler_impl;
 	}
 	/* If the Widcomm bluetooth stack is installed, the BTTray.exe process
 	injects code into running programs. For some reason this results in
@@ -63,11 +62,18 @@ FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
 	this exception means. */
 	else if(e->ExceptionCode != 0x40010006)
 	{
-		myvm->signal_number = e->ExceptionCode;
-		c->EIP = (cell)misc_signal_handler_impl;
+		signal_number = e->ExceptionCode;
+		c->EIP = (cell)factor::misc_signal_handler_impl;
 	}
 
 	return EXCEPTION_CONTINUE_EXECUTION;
+
+}
+
+
+FACTOR_STDCALL LONG exception_handler(PEXCEPTION_POINTERS pe)
+{
+	return SIGNAL_VM_PTR()->exception_handler(pe);
 }
 
 bool handler_added = 0;
@@ -75,12 +81,12 @@ bool handler_added = 0;
 void factorvm::c_to_factor_toplevel(cell quot)
 {
 	if(!handler_added){
-		if(!AddVectoredExceptionHandler(0, (PVECTORED_EXCEPTION_HANDLER)exception_handler))
+		if(!AddVectoredExceptionHandler(0, (PVECTORED_EXCEPTION_HANDLER)factor::exception_handler))
 			fatal_error("AddVectoredExceptionHandler failed", 0);
 		handler_added = 1;
 	}
 	c_to_factor(quot,this);
- 	RemoveVectoredExceptionHandler((void *)exception_handler);
+ 	RemoveVectoredExceptionHandler((void *)factor::exception_handler);
 }
 
 void factorvm::open_console()
