@@ -60,13 +60,14 @@ DEF(long long,read_timestamp_counter,(void)):
 	rdtsc
 	ret
 
-DEF(void,primitive_inline_cache_miss,(void)):
+DEF(void,primitive_inline_cache_miss,(void *vm)):
 	mov (%esp),%ebx
-DEF(void,primitive_inline_cache_miss_tail,(void)):
+DEF(void,primitive_inline_cache_miss_tail,(void *vm)):
 	sub $8,%esp
+	push %eax   /* push vm ptr */
 	push %ebx
 	call MANGLE(inline_cache_miss)
-	add $12,%esp
+	add $16,%esp
 	jmp *%eax
 
 DEF(F_FASTCALL void,throw_impl,(CELL quot, F_STACK_FRAME *rewind_to, void *vm)):
