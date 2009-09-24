@@ -316,6 +316,19 @@ M: x86.32 dummy-int-params? f ;
 
 M: x86.32 dummy-fp-params? f ;
 
+M:: x86.32 %call-gc ( gc-root-count -- )
+    12 [
+        push-vm-ptr
+        ! Pass number of roots as second parameter
+        temp-reg gc-root-count MOV
+        temp-reg PUSH 
+        ! Pass pointer to start of GC roots as first parameter
+        temp-reg gc-root-base param@ LEA
+        temp-reg PUSH 
+        ! Call GC
+        "inline_gc" f %alien-invoke
+    ] with-aligned-stack ;
+
 os windows? [
     cell "longlong" c-type (>>align)
     cell "ulonglong" c-type (>>align)
