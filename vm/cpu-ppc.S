@@ -252,11 +252,13 @@ DEF(void,set_callstack,(F_STACK_FRAME *to, F_STACK_FRAME *from, CELL length, voi
 
 DEF(void,throw_impl,(CELL quot, F_STACK_FRAME *rewind_to)):
 	mr r1,r4	   /* compute new stack pointer */
+        mr r4,r5
 	lwz r0,LR_SAVE(r1) /* we have rewound the stack; load return address */
 	mtlr r0
 	JUMP_QUOT	   /* call the quotation */
 
-DEF(void,lazy_jit_compile,(CELL quot)):
+DEF(void,lazy_jit_compile,(CELL quot,void *vm)):
+        mr r5,r4	   /* vm ptr is 3rd arg */
 	mr r4,r1	   /* save stack pointer */
 	PROLOGUE
 	bl MANGLE(lazy_jit_compile_impl)
