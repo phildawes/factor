@@ -61,4 +61,20 @@ void register_vm_with_thread(factor_vm *vm);
 factor_vm *tls_vm();
 void open_console();
 
+struct pthread_size_info {
+	int sizeof_pthread_mutex_t;
+	int sizeof_pthread_mutexattr_t;
+	int sizeof_pthread_cond_t;
+	int sizeof_pthread_condattr_t;
+
+	pthread_size_info() 
+		: sizeof_pthread_mutex_t(sizeof(pthread_mutex_t)),
+		  sizeof_pthread_mutexattr_t(sizeof(pthread_mutexattr_t)),
+		  sizeof_pthread_cond_t(sizeof(pthread_cond_t)),
+		  sizeof_pthread_condattr_t(sizeof(pthread_condattr_t))
+	{}
+};
+
+extern "C" const pthread_size_info *pthread_sizes();
+
 }
