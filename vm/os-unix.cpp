@@ -347,4 +347,11 @@ VM_C_API void wait_for_stdin()
 	}
 }
 
+pthread_size_info the_pthread_sizes;
+
+VM_C_API const pthread_size_info *pthread_sizes()
+{
+	return &the_pthread_sizes;
+}
+   
 }
