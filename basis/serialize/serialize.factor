@@ -6,13 +6,11 @@
 !
 ! See http://factorcode.org/license.txt for BSD license.
 !
-USING: namespaces sequences kernel math io math.functions
-io.binary strings classes words sbufs classes.tuple arrays
-vectors byte-arrays quotations hashtables assocs help.syntax
-help.markup splitting io.streams.byte-array io.encodings.string
-io.encodings.utf8 io.encodings.binary combinators accessors
-locals prettyprint compiler.units sequences.private
-classes.tuple.private vocabs.loader ;
+USING: accessors alien arrays assocs byte-arrays classes classes.tuple
+combinators hashtables io io.binary io.encodings.binary
+io.encodings.string io.encodings.utf8 io.streams.byte-array kernel
+locals math namespaces prettyprint quotations sequences
+sequences.private strings vocabs.loader words ;
 IN: serialize
 
 GENERIC: (serialize) ( obj -- )
@@ -141,6 +139,12 @@ M: string (serialize) ( obj -- )
         ] bi
     ] serialize-shared ;
 
+M: alien (serialize) ( obj -- )
+    [
+        CHAR: P write1
+        alien-address serialize-cell
+    ] serialize-shared ;
+
 : serialize-true ( word -- )
     drop CHAR: t write1 ;
 
@@ -252,6 +256,9 @@ SYMBOL: deserialized
         [ [ copy-seq-to-tuple ] keep ] bi*
     ] bi ;
 
+: deserialize-alien ( -- alien )
+    deserialize-cell <alien> ;
+
 : deserialize-unknown ( -- object )
     deserialize-cell deserialized get nth ;
 
@@ -261,6 +268,7 @@ SYMBOL: deserialized
             { CHAR: A [ deserialize-byte-array ] }
             { CHAR: F [ deserialize-float ] }
             { CHAR: T [ deserialize-tuple ] }
+            { CHAR: P [ deserialize-alien ] }
             { CHAR: W [ deserialize-wrapper ] }
             { CHAR: a [ deserialize-array ] }
             { CHAR: h [ deserialize-hashtable ] }
