@@ -1,6 +1,7 @@
 USING: alien.c-types alien.syntax concurrency.messaging io
 io.encodings.utf16n io.encodings.utf8 io.files kernel namespaces
-native-thread-test.io sequences system threads unix.utilities ;
+native-thread-test.io sequences system threads unix.utilities
+;
 IN: native-thread-test
 
 FUNCTION: void* start_standalone_factor_in_new_thread ( int argc, char** argv ) ;
@@ -21,3 +22,10 @@ M: unix native-string-encoding utf8 ;
     start-vm-comms
     start-vm-in-native-thread-with-io
     [ send ] keep ; 
+
+! handy example code:
+
+USING: accessors math ;
+
+: 3-adder ( -- )
+   [ receive [ data>> 3 + ] keep reply-synchronous t ] loop ;
